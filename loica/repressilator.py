@@ -15,14 +15,14 @@ class Repressilator:
         p1 = proteins[0]
         p2 = proteins[1]
         p3 = proteins[2]
-        self.r1.IN = p3
-        self.r1.OUT = p1
-        Nextp1 = self.r1.step()
-        self.r2.IN = p1 
-        self.r2.OUT = p2
-        Nextp2 = self.r2.step()
-        self.r3.IN = p2
-        self.r3.OUT = p3
-        Nextp3 = self.r3.step()
-        stepOut = np.array([Nextp1, Nextp2, Nextp3])
-        return stepOut
+        self.r1.input = p3
+        self.r1.output = p1
+        next_p1 = self.r1.step()
+        self.r2.input = p1 
+        self.r2.output = p2
+        next_p2 = self.r2.step()
+        self.r3.input = p2
+        self.r3.output = p3
+        next_p3 = self.r3.step()
+        step_out = np.array([next_p1, next_p2, next_p3])
+        return step_out
