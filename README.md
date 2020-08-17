@@ -16,6 +16,7 @@ cell = Cell(metabolism=metabolism, genetic_network=repressilator)
 Ploting results
 
 ```python
+cell.run(2000)
 memory_np = np.array(cell.memory)
 ap1 = memory_np[:,0]
 ap2 = memory_np[:,1]
