@@ -30,3 +30,6 @@ plt.xlabel('Time')
 ```
 Output
 <img src="https://github.com/SynBioUC/LOICA/blob/master/images/time_dynamics.png" height="300" />
+
+
+Nice!
