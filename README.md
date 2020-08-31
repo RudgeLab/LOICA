@@ -3,12 +3,19 @@ Logic Operators for Intelligent Cell Algorithms
 
 ## High level idea
 Program cells with Python
+
 Easy progamation of genetic network models
+
 Generation of synthetic data
+
 Generation of Human/Machine readable protocols for DNA assembly
+
 Communication with FlapJack
+
 Use and output SBOL/SBML
+
 Use all sorts of cellular computation
+
 
 ## Usage
 
