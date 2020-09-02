@@ -1,5 +1,5 @@
 # LOICA
-Logic Operators for Intelligent Cell Algorithms
+Logical Operators for Intelligent Cell Algorithms
 
 ## High level idea
 Program cells with Python
