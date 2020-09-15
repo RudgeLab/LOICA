@@ -22,7 +22,7 @@ class Assay:
         '''
         #substeps = self.interval / dt
         dt = self.interval / substeps
-        for sample in self.samples:
+        for sample_id, sample in enumerate(self.samples):
             # Integrate models
             for t in range(self.n_measurements):
                 for tt in range(substeps):
@@ -31,9 +31,29 @@ class Assay:
                 # Record measurements of fluorescence
                 signals = sample.signals
                 for name, sig in signals.items():
-                    row = {'Time': time, 'Signal': name, 'Measurement': sig * sample.biomass}
+                    row = {'Time': time, 'Signal': name, 'Measurement': sig * sample.biomass, 'Sample':sample_id}
                     self.measurements = self.measurements.append(row, ignore_index=True)
                 # Record measurement of biomass
-                row = {'Time': time, 'Measurement': sample.biomass, 'Signal':'Biomass'}
+                row = {'Time': time, 'Measurement': sample.biomass, 'Signal':'Biomass', 'Sample':sample_id}
                 self.measurements = self.measurements.append(row, ignore_index=True)
                 
+    def upload(self, 
+            flapjack, 
+            name,
+            temp,
+            description,
+            study,
+            media,
+            strain,
+            signals
+            ):
+        assay = flapjack.create('assay', name=name, study=study, temperature=temp, description=description)
+        for sample_id, sample in enumerate(samples):
+            sample = fj.create('sample',
+                                row=sample_id, col=1,
+                                media=media.id[0],
+                                strain=strain.id[0],
+                                vector=vector.id[0],
+                                assay=assay.id[0],
+                                )
+
