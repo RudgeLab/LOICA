@@ -8,16 +8,16 @@ class GeneticNetwork(nx.DiGraph):
         if links:
             self.add_edges_from(links)
 
-    def add_link(self, input_regulator, output_regulator, link):
-        self.add_edge(input_regulator, output_regulator, object=link)
+    def add_tu(self, input_regulator, output_regulator, tu):
+        self.add_edge(input_regulator, output_regulator, object=tu)
 
     def add_regulator(self, regulator):
         self.add_node(regulator)
 
     def step(circuit, growth_rate=1, dt=0.1):
         for r1,r2,data in circuit.edges.data():
-            link = data['object']
-            expression_rate = link.output(r1.concentration, dt)
+            tu = data['object']
+            expression_rate = tu.output(r1.concentration, dt)
             r2.step(expression_rate, growth_rate, dt)
         for r in circuit.nodes:
             r.update()
