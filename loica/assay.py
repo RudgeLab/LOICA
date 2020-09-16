@@ -45,15 +45,25 @@ class Assay:
             study,
             media,
             strain,
-            signals
+            vector
             ):
-        assay = flapjack.create('assay', name=name, study=study, temperature=temp, description=description)
-        for sample_id, sample in enumerate(samples):
-            sample = fj.create('sample',
+        assay = flapjack.create('assay', 
+                                    name=name, 
+                                    study=study.id[0], 
+                                    temperature=temp, 
+                                    machine='Loica',
+                                    description=description)
+        for sample_id, sample in enumerate(self.samples):
+            sample = flapjack.create('sample',
                                 row=sample_id, col=1,
                                 media=media.id[0],
                                 strain=strain.id[0],
                                 vector=vector.id[0],
                                 assay=assay.id[0],
                                 )
+            for signal,data in self.measurements.groupby('Signal'):
+                sig = flapjack.get('signal', name=signal)
+                if len(sig)==0:
+                    sig = flapjack.create('signal', name=signal, description='loica signal', color='green')
+                flapjack.upload_measurements(data, signal=sig.id, sample=sample.id)
 
