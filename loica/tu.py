@@ -4,7 +4,7 @@ class TU:
     def output(self, inputs, dt):
         return 0
 
-class RepressedRepressor(TU):
+class Inverter(TU):
     def __init__(self, input, output, a, b, K, n):
         self.a = a
         self.b = b
