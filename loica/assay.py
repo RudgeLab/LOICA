@@ -76,7 +76,7 @@ class Assay:
                                 vector=sample.vector,
                                 assay=assay.id[0],
                                 )
-            for signal_id,data in self.measurements.groupby('Signal'):
+            for signal_id,data in self.measurements.groupby('Signal_id'):
                 if signal_id:
                     sig = flapjack.get('signal', id=signal_id)
                     flapjack.upload_measurements(data, signal=sig.id, sample=fj_sample.id)
