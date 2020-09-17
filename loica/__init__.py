@@ -3,4 +3,4 @@ from .sample import *
 from .genetic_network import *
 from .metabolism import *
 from .tus import *
-from .regulator import *
+from .geneproduct import *
