@@ -1,10 +1,10 @@
 import numpy as np
 
-class TU:
+class Operator:
     def output(self, inputs, dt):
         return 0
 
-class Inverter(TU):
+class Inverter(Operator):
     def __init__(self, input, output, a, b, K, n):
         self.a = a
         self.b = b

@@ -16,11 +16,17 @@ class Sample:
         self.vector = vector
         if self.circuit:
             self.reporters = self.circuit.reporters
+        self.supplements = {}
+
+    def add_supplement(self, supplement, concentration):
+        self.supplements[supplement] = concentration
 
     def step(self, t, dt):
         if self.circuit and self.metabolism:
             growth_rate = self.metabolism.growth_rate(t)
             profile = self.metabolism.profile(t)
+            for supp,conc in self.supplements.items():
+                supp.concentration = conc
             self.circuit.step(growth_rate, dt)
             self.reporters = self.circuit.reporters
         self.biomass = self.metabolism.biomass(t)
