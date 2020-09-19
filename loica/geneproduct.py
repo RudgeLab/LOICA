@@ -27,5 +27,3 @@ class Reporter(GeneProduct):
     def __init__(self, name, init_concentration=0, degradation_rate=0, signal_id=None):
         super().__init__(name, init_concentration, degradation_rate)
         self.signal_id = signal_id
-
-
