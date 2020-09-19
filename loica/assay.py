@@ -68,15 +68,30 @@ class Assay:
                                     temperature=0, 
                                     machine='Loica',
                                     description=self.description)
-        for row,sample in enumerate(self.samples):
+        for sample_id,sample in enumerate(self.samples):
             fj_sample = flapjack.create('sample',
-                                row=row, col=1,
+                                row=sample_id, col=1,
                                 media=sample.media,
                                 strain=sample.strain,
                                 vector=sample.vector,
                                 assay=assay.id[0],
                                 )
-            for signal_id,data in self.measurements.groupby('Signal_id'):
+
+            supplements = []
+            for supp,conc in sample.supplements.items():
+                chemical = flapjack.get('chemical', name=supp.name)
+                if len(chemical)==0:
+                    chemical = flapjack.create('chemical', name=supp.name, description='Testing')
+                name = supp.name + f' {conc}'
+                s = flapjack.get('supplement', name=name, concentration=conc, chemical=chemical.id[0])
+                if len(s)==0:
+                    s = flapjack.create('supplement', name=name, concentration=conc, chemical=chemical.id[0])
+                supplements.append(s.id[0])
+            if len(supplements):
+                flapjack.patch('sample', fj_sample.id[0], supplements=supplements)
+
+            meas = self.measurements[self.measurements.Sample==sample_id]
+            for signal_id,data in meas.groupby('Signal_id'):
                 if signal_id:
                     sig = flapjack.get('signal', id=signal_id)
                     flapjack.upload_measurements(data, signal=sig.id, sample=fj_sample.id)

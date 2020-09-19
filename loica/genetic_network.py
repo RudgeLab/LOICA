@@ -14,16 +14,16 @@ class GeneticNetwork():
     def add_reporter(self, rep):
         self.reporters.append(rep)
 
-    def step(self, growth_rate=1, dt=0.1):
+    def step(self, profile=1, growth_rate=1, dt=0.1):
         for tu in self.tus:
             expression_rate = tu.expression_rate()
             tu.output.express(expression_rate)
 
         for regulator in self.regulators:
-            regulator.step(growth_rate, dt)
+            regulator.step(profile, growth_rate, dt)
 
         for reporter in self.reporters:
-            reporter.step(growth_rate, dt)
+            reporter.step(profile, growth_rate, dt)
 
 
         

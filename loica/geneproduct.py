@@ -10,8 +10,8 @@ class GeneProduct:
     def express(self, rate):
         self.expression_rate += rate
 
-    def step(self, growth_rate, dt):
-        dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
+    def step(self, profile, growth_rate, dt):
+        dconcdt = self.expression_rate * profile - (self.degradation_rate + growth_rate) * self.concentration
         self.next_concentration = self.concentration + dconcdt * dt
         self.concentration = self.next_concentration
         self.expression_rate = 0

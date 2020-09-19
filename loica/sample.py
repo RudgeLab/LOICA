@@ -6,14 +6,13 @@ class Sample:
             assay=None,
             media=None,
             strain=None,
-            vector=None
             ):
         self.circuit = circuit
         self.metabolism = metabolism
         self.biomass = init_biomass
         self.media = media
         self.strain = strain
-        self.vector = vector
+        self.vector = self.circuit.vector
         if self.circuit:
             self.reporters = self.circuit.reporters
         self.supplements = {}
@@ -27,7 +26,7 @@ class Sample:
             profile = self.metabolism.profile(t)
             for supp,conc in self.supplements.items():
                 supp.concentration = conc
-            self.circuit.step(growth_rate, dt)
+            self.circuit.step(profile, growth_rate, dt)
             self.reporters = self.circuit.reporters
         self.biomass = self.metabolism.biomass(t)
 
