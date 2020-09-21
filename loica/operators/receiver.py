@@ -10,7 +10,7 @@ class Receiver:
         self.receptor = receptor
         self.output = output
         
-    def expression_rate(self):
+    def expression_rate(self, t, dt):
         receptor = self.receptor.concentration
         inducer = self.inducer.concentration
         complex = receptor * inducer

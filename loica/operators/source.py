@@ -1,16 +1,23 @@
 import numpy as np
 from numpy.fft import fft, ifft, fftfreq
 from scipy.optimize import least_squares
+from scipy.interpolate import interp1d
 
 class Source:
-    def __init__(self, output, rate):
+    def __init__(self, output, rate, profile=None):
+        if profile:
+            self.profile = profile
+        else:
+            def profile(t):
+                return 1
+            self.profile = profile
         self.rate = rate
         self.output = output
 
-    def expression_rate(self):
-        return self.rate
+    def expression_rate(self, t, dt):
+        return self.rate * self.profile(t)
 
-    def simulate(
+    def forward_model(
         self,
         Dt=0.25,
         sim_steps=10,
@@ -46,7 +53,7 @@ class Source:
             tff = np.zeros((nt,), dtype=np.complex)
             tff[np.abs(freqs)<fmax] = ff
             profile = ifft(tff).real
-            p,tt = self.simulate(
+            p,tt = self.forward_model(
                         Dt=dt,
                         odval=odval,
                         profile=profile,
@@ -70,7 +77,8 @@ class Source:
                             type='Background Correct',
                             biomass_signal=biomass_signal
                             ).sort_values(['Sample', 'Time'])
-        dt = np.diff(expression.Time.unique()).mean()
+        t = expression.Time.unique()
+        dt = np.diff(t).mean()
         expression = expression.groupby('Time').mean().Measurement.values
 
         biomass = flapjack.analysis(media=media, 
@@ -107,7 +115,7 @@ class Source:
         fcomps = fprofile[::2] + fprofile[1::2]*1j
         tff = np.zeros((nt,), dtype=np.complex)
         tff[np.abs(freqs)<fmax] = fcomps
-        self.profile = ifft(tff).real
+        self.profile = interp1d(t, ifft(tff).real)
 
 
 

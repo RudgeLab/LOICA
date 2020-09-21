@@ -8,7 +8,7 @@ class Buffer:
         self.input = input
         self.output = output
         
-    def expression_rate(self):
+    def expression_rate(self, t, dt):
         input_inducer = self.input.concentration
         i = (input_inducer/self.K)**self.n
         expression_rate = ( self.a + self.b*i ) / (1 + i)

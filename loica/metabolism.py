@@ -17,20 +17,14 @@ class Metabolism:
         pass
 
 class SimulatedMetabolism(Metabolism):
-    def __init__(self, biomass_func, growth_rate_func, profile_func):
+    def __init__(self, biomass_func, growth_rate_func):
         super().__init__()
         self.biomass_func = biomass_func
         self.growth_rate_func = growth_rate_func
-        self.profile_func = profile_func
 
     def biomass(self, t):
         return self.biomass_func(t)
 
     def growth_rate(self, t):
         return self.growth_rate_func(t)
-
-    def profile(self, t):
-        gr = self.growth_rate(t)
-        b = self.biomass(t)
-        return self.profile_func(b, gr, t)
 
