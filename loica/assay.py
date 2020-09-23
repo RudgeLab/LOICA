@@ -93,6 +93,5 @@ class Assay:
             meas = self.measurements[self.measurements.Sample==sample_id]
             for signal_id,data in meas.groupby('Signal_id'):
                 if signal_id:
-                    sig = flapjack.get('signal', id=signal_id)
-                    flapjack.upload_measurements(data, signal=sig.id, sample=fj_sample.id)
+                    flapjack.upload_measurements(data, signal=[signal_id], sample=fj_sample.id)
 
