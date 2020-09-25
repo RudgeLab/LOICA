@@ -138,6 +138,16 @@ assay = Assay([sample],
              )
 assay.run()
 ```
+Plot your data
+
+```python
+m = assay.measurements
+fig,ax = plt.subplots(1,1)
+m[m.Signal=='CFP'].plot(x='Time', y='Measurement', ax=ax)
+m[m.Signal=='YFP'].plot(x='Time', y='Measurement', ax=ax)
+m[m.Signal=='RFP'].plot(x='Time', y='Measurement', ax=ax)
+plt.savefig('LOICARepressilator.png', dpi=300)
+```
 Output
 <img src="https://github.com/SynBioUC/LOICA/blob/dev/images/LOICARepressilator.png" height="300" />
 
