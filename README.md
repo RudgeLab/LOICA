@@ -147,6 +147,7 @@ You can also upload your data to FlapJack
 assay.upload(fj, study.id[0])
 ```
 To get this:
-<img src="https://github.com/SynBioUC/LOICA/blob/dev/images/Screen%20Shot%202020-09-25%20at%2000.10.20.png" height="300" />
+
+<img src="https://github.com/SynBioUC/LOICA/blob/dev/images/Screen%20Shot%202020-09-25%20at%2000.10.20.png" height="600" />
 
 Nice!
