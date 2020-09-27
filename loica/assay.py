@@ -47,7 +47,7 @@ class Assay:
                             'Time': time, 
                             'Signal_id': signal_id, 
                             'Signal':signal_name, 
-                            'Measurement': sig * sample.biomass, 
+                            'Measurement': sig * sample.biomass(time), 
                             'Sample':sample_id
                             }
                     self.measurements = self.measurements.append(row, ignore_index=True)
@@ -55,7 +55,7 @@ class Assay:
                 row = {
                         'Time': time, 
                         'Signal_id': self.biomass_signal_id, 
-                        'Measurement': sample.biomass, 
+                        'Measurement': sample.biomass(time), 
                         'Signal':'Biomass', 
                         'Sample':sample_id
                         }
