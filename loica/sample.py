@@ -27,6 +27,6 @@ class Sample:
                 supp.concentration = conc
             self.circuit.step(growth_rate, t, dt)
             self.reporters = self.circuit.reporters
-        self.biomass = self.metabolism.biomass(t)
+            self.biomass = self.metabolism.biomass
 
 
