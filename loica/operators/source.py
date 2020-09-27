@@ -62,35 +62,33 @@ class Source:
                         gamma=gamma
                     )
             model = p
-            residual = data - model
-            tikhonov = profile
-            total_variation = np.sqrt(np.abs(np.diff(profile)))
-            result = np.concatenate((residual, epsilon * tikhonov))
-            return result
+            residual = (data - model)
+            return residual
         return func
 
     def characterize(self, flapjack, vector, media, strain, signal, biomass_signal, fmax, epsilon):
-        expression = flapjack.analysis(media=media, 
+        expression_df = flapjack.analysis(media=media, 
                             strain=strain,
                             vector=vector,
                             signal=signal,
                             type='Background Correct',
                             biomass_signal=biomass_signal
                             ).sort_values(['Sample', 'Time'])
-        t = expression.Time.unique()
+        t = expression_df.groupby('Time').mean().index.values
         dt = np.diff(t).mean()
-        expression = expression.groupby('Time').mean().Measurement.values
+        expression = expression_df.groupby('Time').mean().Measurement.values
 
-        biomass = flapjack.analysis(media=media, 
+        biomass_df = flapjack.analysis(media=media, 
                             strain=strain,
                             vector=vector,
                             signal=biomass_signal,
                             type='Background Correct',
                             biomass_signal=biomass_signal
                             ).sort_values(['Sample', 'Time'])
-        biomass = biomass.groupby('Time').mean().Measurement.values
+        biomass = biomass_df.groupby('Time').mean().Measurement.values
 
-        nt = len(biomass)
+        nt = len(t)
+        print(nt)
         freqs = fftfreq(nt)
         ncomps = len(freqs[np.abs(freqs)<fmax]) * 2
 
@@ -107,15 +105,18 @@ class Source:
                 self.residuals(
                     data, data[0], biomass, epsilon=epsilon, dt=dt, nt=nt, fmax=fmax
                     ), 
-                [0] + [1]*ncomps, 
+                [1] + [100]*ncomps, 
                 bounds=bounds
                 )
+        self.res = res
         self.gamma = res.x[0]
         fprofile = res.x[1:]
         fcomps = fprofile[::2] + fprofile[1::2]*1j
         tff = np.zeros((nt,), dtype=np.complex)
         tff[np.abs(freqs)<fmax] = fcomps
-        self.profile = interp1d(t, ifft(tff).real)
+        profile = ifft(tff).real
+        self.rate = profile.max()
+        self.profile = interp1d(t, profile/self.rate, fill_value='extrapolate', bounds_error=False)
 
 
 
