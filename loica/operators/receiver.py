@@ -46,9 +46,9 @@ class Receiver:
         for t in range(nt):
             od = odval[t]
             tt = t*Dt
+            prof = profile[t]
             for tt in range(sim_steps):
                 a = (A/K_A)**n_A
-                prof = profile( (t + tt / sim_steps) * Dt)
                 nextp1 = p1 + (od * prof * a/(1 + a) - gamma*p1) * Dt/sim_steps
                 p1 = nextp1
 
@@ -62,10 +62,15 @@ class Receiver:
         t = np.arange(nt) * Dt
         return ap1,AA,tt
 
-    def residuals(self, data, p0, profile, A, odval, epsilon, dt, nt, fmax): 
+    def residuals(self, data, p0, A, odval, epsilon, dt, nt, fmax): 
         def func(x): 
             K_A = x[0]
             n_A = x[1]        
+            ff = x[2::2] + x[3::2]*1j
+            freqs = fftfreq(nt)
+            tff = np.zeros((nt,), dtype=np.complex)
+            tff[np.abs(freqs)<fmax] = ff
+            profile = ifft(tff).real
             
             p,AA,tt = self.forward_model(
                         K_A=K_A,
@@ -79,35 +84,67 @@ class Receiver:
                     )
             model = p.ravel()
             residual = data - model
-            return residual
+            tikhonov = profile
+            total_variation = np.sqrt(np.abs(np.diff(profile)))
+            result = np.concatenate((residual, epsilon * tikhonov))
+            return result
         return func
 
-    def characterize(self, flapjack, vector, media, strain, signal, biomass_signal, analyte, fmax, epsilon):
-        source = Source(None, 0)
-        source.characterize(
-                    flapjack,
-                    vector=vector,
-                    media=media,
-                    strain=strain,
-                    signal=signal,
-                    biomass_signal=biomass_signal,
-                    fmax=fmax,
-                    epsilon=epsilon
-                )
-        self.rate = source.rate
-        self.profile = source.profile
 
-        curve = flapjack.analysis(media=media, 
+    def characterize(self, flapjack, vector, media, strain, signal, biomass_signal, fmax, epsilon):
+        expression = flapjack.analysis(media=media, 
                             strain=strain,
                             vector=vector,
                             signal=signal,
-                            function='Mean Expression',
-                            type='Induction Curve',
-                            analyte=analyte,
+                            type='Background Correct',
                             biomass_signal=biomass_signal
                             )
-        params,std = fit_curve(hill, curve, x='Concentration', y='Expression')
-        self.params = params
-        self.std = std
-        self.curve = curve
-        
+        # Time points and interval
+        t = np.linspace(0, 24, 100) #expression.Time.unique()
+        dt = np.diff(t).mean()
+        # Inducer concentrations
+        A = expression.groupby('Concentration1').mean().index.values
+        # Group and average data
+        expression = expression.sort_values(['Sample', 'Concentration1', 'Time'])
+        expression = expression.groupby(['Concentration1', 'Time']).mean().Measurement.values
+
+        biomass = flapjack.analysis(media=media, 
+                            strain=strain,
+                            vector=vector,
+                            signal=biomass_signal,
+                            type='Background Correct',
+                            biomass_signal=biomass_signal
+                            )
+        biomass = biomass.sort_values(['Sample', 'Concentration1', 'Time'])        
+        biomass = biomass.groupby('Time').mean().Measurement.values
+
+        nt = len(t)
+        freqs = fftfreq(nt)
+        ncomps = len(freqs[np.abs(freqs)<fmax]) * 2
+
+        # Bounds for fitting
+        lower_bounds = [0]*2 + [-1e8]*ncomps
+        upper_bounds = [1e2, 4] + [1e8]*ncomps
+        bounds = [lower_bounds, upper_bounds]
+        '''
+            K_A = x[0]
+            n_A = x[1]
+            profile = x[2:]
+        '''
+
+        data = expression.ravel()
+        res = least_squares(
+                self.residuals(
+                    data, data[0], A, biomass, epsilon=epsilon, dt=dt, nt=nt, fmax=fmax
+                    ), 
+                [0, 0] + [1]*ncomps, 
+                bounds=bounds
+                )
+        self.res = res
+        self.K = res.x[0]
+        self.n = res.x[1]
+        fprofile = res.x[2:]
+        fcomps = fprofile[::2] + fprofile[1::2]*1j
+        tff = np.zeros((nt,), dtype=np.complex)
+        tff[np.abs(freqs)<fmax] = fcomps
+        self.profile = interp1d(t, ifft(tff).real)

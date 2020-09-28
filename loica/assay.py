@@ -33,8 +33,10 @@ class Assay:
         #substeps = self.interval / dt
         dt = self.interval / substeps
         for sample_id, sample in enumerate(self.samples):
+            sample.initialize()
             # Integrate models
             for t in range(self.n_measurements):
+                # Compute next time step
                 for tt in range(substeps):
                     time = t * self.interval + tt * dt
                     sample.step(time, dt)

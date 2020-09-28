@@ -5,6 +5,12 @@ class GeneticNetwork():
         self.reporters = []
         self.vector = vector
 
+    def initialize(self):
+        for regulator in self.regulators:
+            regulator.initialize()
+        for reporter in self.reporters:
+            reporter.initialize()
+
     def add_operator(self, op):
         self.operators.append(op)
 

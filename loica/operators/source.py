@@ -30,6 +30,8 @@ class Source:
         p1_list,od_list, A_list,t_list = [],[],[],[]
         p1 = p0
         for t in range(nt):
+            p1_list.append(p1)
+            t_list.append([t * Dt])
             od = odval[t]
             tt = t*Dt
             prof = profile[t]
@@ -37,8 +39,6 @@ class Source:
                 nextp1 = p1 + (odval[t]*profile[t] - gamma*p1) * Dt / sim_steps
                 p1 = nextp1
 
-            p1_list.append(p1)
-            t_list.append([t * Dt])
 
         ap1 = np.array(p1_list).transpose()
         tt = np.array(t_list).transpose()
