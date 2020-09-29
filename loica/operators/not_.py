@@ -200,7 +200,6 @@ class Not:
             strain, 
             signal, 
             biomass_signal, 
-            analyte, 
             fmax, 
             epsilon
             ):
@@ -222,7 +221,6 @@ class Not:
             strain=strain,
             signal=signal,
             biomass_signal=biomass_signal,
-            analyte=analyte,
             fmax=0.1,
             epsilon=0
         )
