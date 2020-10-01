@@ -47,8 +47,8 @@ class Source:
 
     def residuals(self, data, p0, odval, epsilon, dt, nt, fmax): 
         def func(x): 
-            gamma = x[0]
-            ff = x[1::2] + x[2::2]*1j
+            gamma = 0 #x[0]
+            ff = x[::2] + x[1::2]*1j
             freqs = fftfreq(nt)
             tff = np.zeros((nt,), dtype=np.complex)
             tff[np.abs(freqs)<fmax] = ff
@@ -93,8 +93,8 @@ class Source:
         ncomps = len(freqs[np.abs(freqs)<fmax]) * 2
 
         # Bounds for fitting
-        lower_bounds = [0] + [-1e8]*ncomps
-        upper_bounds = [5] + [1e8]*ncomps
+        lower_bounds = [-1e8]*ncomps
+        upper_bounds = [1e8]*ncomps
         bounds = [lower_bounds, upper_bounds]
         '''
             gamma = x[0]
@@ -105,12 +105,12 @@ class Source:
                 self.residuals(
                     data, data[0], biomass, epsilon=epsilon, dt=dt, nt=nt, fmax=fmax
                     ), 
-                [1] + [100]*ncomps, 
+                [100]*ncomps, 
                 bounds=bounds
                 )
         self.res = res
-        self.gamma = res.x[0]
-        fprofile = res.x[1:]
+        self.gamma = 0 #res.x[0]
+        fprofile = res.x[:]
         fcomps = fprofile[::2] + fprofile[1::2]*1j
         tff = np.zeros((nt,), dtype=np.complex)
         tff[np.abs(freqs)<fmax] = fcomps

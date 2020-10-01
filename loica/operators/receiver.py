@@ -44,6 +44,9 @@ class Receiver:
         p1_list,A_list,t_list = [],[],[]
         p1 = np.zeros_like(A) + p0
         for t in range(nt):
+            p1_list.append(p1)
+            A_list.append(A)
+            t_list.append([t * Dt]*len(A))
             od = odval[t]
             tt = t*Dt
             prof = profile[t]
@@ -52,9 +55,6 @@ class Receiver:
                 nextp1 = p1 + (od * prof * a/(1 + a) - gamma*p1) * Dt/sim_steps
                 p1 = nextp1
 
-            p1_list.append(p1)
-            A_list.append(A)
-            t_list.append([t * Dt]*len(A))
 
         ap1 = np.array(p1_list).transpose()
         AA = np.array(A_list).transpose()
