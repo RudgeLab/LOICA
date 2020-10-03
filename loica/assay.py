@@ -26,40 +26,45 @@ class Assay:
         self.description = description
         self.biomass_signal_id = biomass_signal_id
 
-    def run(self, substeps=10):
+    def run(self, substeps=10, nsr=0):
         '''
         Run the assay measuring at specified time points, with simulation time step dt
         '''
         #substeps = self.interval / dt
         dt = self.interval / substeps
         for sample_id, sample in enumerate(self.samples):
+            sample.initialize()
             # Integrate models
             for t in range(self.n_measurements):
-                for tt in range(substeps):
-                    time = t * self.interval + tt * dt
-                    sample.step(time, dt)
+                time = t * self.interval
                 # Record measurements of fluorescence
                 for reporter in sample.reporters:
                     sig = reporter.concentration
                     signal_id = reporter.signal_id
                     signal_name = reporter.name
+                    noise = np.random.normal(scale=np.sqrt(nsr))
                     row = {
                             'Time': time, 
                             'Signal_id': signal_id, 
                             'Signal':signal_name, 
-                            'Measurement': sig * sample.biomass, 
+                            'Measurement': sig * sample.biomass(time) * (1 + noise),
                             'Sample':sample_id
                             }
                     self.measurements = self.measurements.append(row, ignore_index=True)
                 # Record measurement of biomass
+                noise = np.random.normal(scale=np.sqrt(nsr))
                 row = {
                         'Time': time, 
                         'Signal_id': self.biomass_signal_id, 
-                        'Measurement': sample.biomass, 
+                        'Measurement': sample.biomass(time) * (1 + noise),
                         'Signal':'Biomass', 
                         'Sample':sample_id
                         }
                 self.measurements = self.measurements.append(row, ignore_index=True)
+                # Compute next time step
+                for tt in range(substeps):
+                    time = t * self.interval + tt * dt
+                    sample.step(time, dt)
                 
     def upload(self, flapjack, study):
         assay = flapjack.create('assay', 
@@ -93,6 +98,5 @@ class Assay:
             meas = self.measurements[self.measurements.Sample==sample_id]
             for signal_id,data in meas.groupby('Signal_id'):
                 if signal_id:
-                    sig = flapjack.get('signal', id=signal_id)
-                    flapjack.upload_measurements(data, signal=sig.id, sample=fj_sample.id)
+                    flapjack.upload_measurements(data, signal=[signal_id], sample=fj_sample.id)
 
