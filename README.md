@@ -137,6 +137,7 @@ Create and wire GeneticNetwork
 
 ```python
 nor = GeneticNetwork(vector=vector.id[0])
+
 sfp1 = Reporter(name='CFP', degradation_rate=0, signal_id=cfp.id[0])
 nor.add_reporter(sfp1)
 
