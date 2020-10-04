@@ -143,7 +143,9 @@ nor.add_reporter(sfp1)
 ahl1 = Supplement(name='AHL1')
 ahl2 = Supplement(name='AHL2')
 
-nor.add_operator(Nor(input=[ahl1, ahl2], output=sfp1, alpha=[0.0001,1,1,0], a=[100,100], b=[1,1], K=[1,1], n=[2,2]))
+nor.add_operator(Nor(input=[ahl1, ahl2], output=sfp1,
+                     alpha=[0.0001,1,1,0],
+                     a=[100,100], b=[1,1], K=[1,1], n=[2,2]))
 ```
 Ensamble Assay and run it
 
