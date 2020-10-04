@@ -28,16 +28,35 @@ Get or Create FlapJack parts for IDs
 dna = fj.get('dna', name='Rep')
 if len(dna)==0:
     dna = fj.create('dna', name='Rep')
+    
 vector = fj.get('vector', name='Rep')    
 if len(vector)==0:
     vector = fj.create('vector', name='Rep', dnas=dna.id)
+    
+cfp = fj.get('signal', name='CFP')
+
+yfp = fj.get('signal', name='YFP')
+
+rfp = fj.get('signal', name='RFP')
+
+media = fj.get('media', name='Loica')
+if len(media)==0:
+    media = fj.create('media', name='Loica', description='Simulated loica media')
+    
+strain = fj.get('strain', name='Loica strain')
+if len(strain)==0:
+    strain = fj.create('strain', name='Loica strain', description='Loica test strain')
+
+biomass_signal = fj.get('signal', name='OD')
 ```
 
-Create a LOICA GeneticNetwork for the Repressilator(rep)
+Create a GeneticNetwork for the Repressilator(rep)
 
-Create and Add LOICA Regulators (laci, tetr and ci)
+Create and add Regulators (laci, tetr and ci)
 
-Create and Add LOICA Operators
+Create and add Reporters (CFP, YFP, RFP)
+
+Create and add Operators (Not)
 
 ```python
 rep = GeneticNetwork(vector=vector.id[0])
@@ -49,26 +68,6 @@ rep.add_regulator(laci)
 rep.add_regulator(tetr)
 rep.add_regulator(ci)
 
-
-rep.add_operator(Not(input=ci, output=laci, a=100, b=0, K=1, n=2))
-rep.add_operator(Not(input=laci, output=tetr, a=100, b=0, K=1, n=2))
-rep.add_operator(Not(input=tetr, output=ci, a=100, b=0, K=1, n=2))
-```
-
-To generate synthetic data we need Reporters that emit a signal, to do this:
-
-Get or Create FlapJack signals for IDs (CFP, YFP, RFP)
-
-Create LOICA Reporters
-
-Create and Add LOICA Operators that outputs Reporters
-
-
-```python
-cfp = fj.get('signal', name='CFP')
-yfp = fj.get('signal', name='YFP')
-rfp = fj.get('signal', name='RFP')
-
 sfp1 = Reporter(name='CFP', degradation_rate=1, signal_id=cfp.id[0])
 sfp2 = Reporter(name='YFP', degradation_rate=1, signal_id=yfp.id[0])
 sfp3 = Reporter(name='RFP', degradation_rate=1, signal_id=rfp.id[0])
@@ -76,57 +75,20 @@ rep.add_reporter(sfp1)
 rep.add_reporter(sfp2)
 rep.add_reporter(sfp3)
 
+rep.add_operator(Not(input=ci, output=laci, a=100, b=0, K=1, n=2))
+rep.add_operator(Not(input=laci, output=tetr, a=100, b=0, K=1, n=2))
+rep.add_operator(Not(input=tetr, output=ci, a=100, b=0, K=1, n=2))
+
 rep.add_operator(Not(input=ci, output=sfp1, a=100, b=0, K=1, n=2))
 rep.add_operator(Not(input=laci, output=sfp2, a=100, b=0, K=1, n=2))
 rep.add_operator(Not(input=tetr, output=sfp3, a=100, b=0, K=1, n=2))
-
 ```
 
-Now that we have our Repressilator setted lets simulate a metabolism
-
-Create LOICA SimulatedMetabolism
+Create SimulatedMetabolism, Sample and Assay
 
 ```python
-def growth_rate(t):
-    return gompertz_growth_rate(t, 0.01, 1, 1, 4)
-
-def biomass(t):
-    return gompertz(t, 0.01, 1, 1, 4)
-    
 metab = SimulatedMetabolism(biomass, growth_rate)
-```
 
-
-We can use GeneticNetwork and Metabolism to create Samples
-
-And with Sample you can Create an Assay
-
-To connect with FlapJack we need some IDs first
-
-
-Get or Create FlapJack parts for IDs
-
-```python
-study = fj.get('study', name='Loica testing')
-if len(study)==0:
-    study = fj.create('study', name='Loica testing', description='Test')
-media = fj.get('media', name='Loica')
-if len(media)==0:
-    media = fj.create('media', name='Loica', description='Simulated loica media')
-strain = fj.get('strain', name='Loica strain')
-if len(strain)==0:
-    strain = fj.create('strain', name='Loica strain', description='Loica test strain')
-
-biomass_signal = fj.get('signal', name='OD')
-```
-
-Create Sample
-
-Create Assay
-
-Run Assay
-
-```python
 sample = Sample(circuit=rep, 
                 metabolism=metab,
                 media=media.id[0],
@@ -141,6 +103,7 @@ assay = Assay([sample],
              )
 assay.run()
 ```
+
 Plot your data
 
 ```python
@@ -154,7 +117,7 @@ plt.savefig('LOICARepressilator.png', dpi=300)
 Output
 <img src="https://github.com/SynBioUC/LOICA/blob/dev/images/LOICARepressilator.png" height="300" />
 
-You can also upload your data to FlapJack
+Export and upload your data to FlapJack
 
 ```python
 assay.upload(fj, study.id[0])
