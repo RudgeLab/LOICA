@@ -154,8 +154,8 @@ Ensamble Assay and run it
 metab = SimulatedMetabolism(biomass, growth_rate)
 
 samples = []
-for conc1 in np.logspace(-3, 3, 6):
-    for conc2 in np.logspace(-3,3,6):
+for conc1 in np.logspace(-3, 3, 12):
+    for conc2 in np.logspace(-3,3,12):
         sample = Sample(circuit=nor, 
                 metabolism=metab,
                 media=media.id[0],
@@ -177,6 +177,6 @@ assay.upload(fj, study.id[0])
 
 Export and upload your data
 
-<img src="https://github.com/SynBioUC/LOICA/blob/dev/images/Screen%20Shot%202020-10-03%20at%2021.59.24.png" height="600" />
+<img src="hhttps://github.com/SynBioUC/LOICA/blob/dev/images/Screen%20Shot%202020-10-05%20at%2000.32.42.png" height="600" />
 
 Nice!
