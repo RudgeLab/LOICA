@@ -177,6 +177,6 @@ assay.upload(fj, study.id[0])
 
 Export and upload your data
 
-<img src="hhttps://github.com/SynBioUC/LOICA/blob/dev/images/Screen%20Shot%202020-10-05%20at%2000.32.42.png" height="600" />
+<img src="https://github.com/SynBioUC/LOICA/blob/dev/images/Screen%20Shot%202020-10-05%20at%2000.32.42.png" height="600" />
 
 Nice!
