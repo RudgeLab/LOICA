@@ -62,16 +62,18 @@ class Receiver:
         t = np.arange(nt) * Dt
         return ap1,AA,tt
 
-    def residuals(self, data, p0, A, odval, epsilon, dt, nt, fmax): 
+    def residuals(self, data, p0, A, odval, epsilon, dt, t, n_gaussians): 
         def func(x): 
             K_A = x[0]
             n_A = x[1]        
-            ff = x[2::2] + x[3::2]*1j
-            freqs = fftfreq(nt)
-            tff = np.zeros((nt,), dtype=np.complex)
-            tff[np.abs(freqs)<fmax] = ff
-            profile = ifft(tff).real
-            
+            nt = len(t)
+            means = np.linspace(t.min(), t.max(), n_gaussians)
+            vars = [(t.max()-t.min())/n_gaussians]*n_gaussians 
+            heights = x[2:]
+            profile = np.zeros_like(t)
+            for mean,var,height in zip(means, vars, heights):
+                gaussian = height * np.exp(-(t-mean)*(t-mean) / var / 2) / np.sqrt(2 * np.pi * var)
+                profile += gaussian
             p,AA,tt = self.forward_model(
                         K_A=K_A,
                         n_A=n_A,
@@ -84,14 +86,14 @@ class Receiver:
                     )
             model = p.ravel()
             residual = data - model
-            tikhonov = profile
+            tikhonov = heights
             total_variation = np.sqrt(np.abs(np.diff(profile)))
             result = np.concatenate((residual, epsilon * tikhonov))
             return result
         return func
 
 
-    def characterize(self, flapjack, vector, media, strain, signal, biomass_signal, fmax, epsilon):
+    def characterize(self, flapjack, vector, media, strain, signal, biomass_signal, n_gaussians, epsilon):
         expression = flapjack.analysis(media=media, 
                             strain=strain,
                             vector=vector,
@@ -99,13 +101,14 @@ class Receiver:
                             type='Background Correct',
                             biomass_signal=biomass_signal
                             )
-        # Time points and interval
-        t = np.linspace(0, 24, 100) #expression.Time.unique()
-        dt = np.diff(t).mean()
         # Inducer concentrations
         A = expression.groupby('Concentration1').mean().index.values
         # Group and average data
         expression = expression.sort_values(['Sample', 'Concentration1', 'Time'])
+        # Time points and interval
+        t = expression.Time.unique()
+        dt = np.diff(t).mean()
+        # Take mean of samples
         expression = expression.groupby(['Concentration1', 'Time']).mean().Measurement.values
 
         biomass = flapjack.analysis(media=media, 
@@ -119,12 +122,9 @@ class Receiver:
         biomass = biomass.groupby('Time').mean().Measurement.values
 
         nt = len(t)
-        freqs = fftfreq(nt)
-        ncomps = len(freqs[np.abs(freqs)<fmax]) * 2
-
         # Bounds for fitting
-        lower_bounds = [0]*2 + [-1e8]*ncomps
-        upper_bounds = [1e2, 4] + [1e8]*ncomps
+        lower_bounds = [0]*2 + [0]*n_gaussians
+        upper_bounds = [1e2, 4] + [1e8]*n_gaussians
         bounds = [lower_bounds, upper_bounds]
         '''
             K_A = x[0]
@@ -135,16 +135,21 @@ class Receiver:
         data = expression.ravel()
         res = least_squares(
                 self.residuals(
-                    data, data[0], A, biomass, epsilon=epsilon, dt=dt, nt=nt, fmax=fmax
+                    data, data[0], A, biomass, epsilon=epsilon, dt=dt, t=t, n_gaussians=n_gaussians
                     ), 
-                [0, 0] + [1]*ncomps, 
+                [0, 0] + [1]*n_gaussians, 
                 bounds=bounds
                 )
         self.res = res
         self.K = res.x[0]
         self.n = res.x[1]
-        fprofile = res.x[2:]
-        fcomps = fprofile[::2] + fprofile[1::2]*1j
-        tff = np.zeros((nt,), dtype=np.complex)
-        tff[np.abs(freqs)<fmax] = fcomps
-        self.profile = interp1d(t, ifft(tff).real)
+        profile = np.zeros_like(t)
+        means = np.linspace(t.min(), t.max(), n_gaussians)
+        vars = [(t.max()-t.min())/n_gaussians] * n_gaussians 
+        heights = res.x[2:]
+        for mean,var,height in zip(means, vars, heights):
+            gaussian = height * np.exp(-(t-mean)*(t-mean) / var / 2) / np.sqrt(2 * np.pi * var)
+            profile += gaussian
+        self.b = profile.max()
+        self.profile = interp1d(t, profile/self.b, fill_value='extrapolate', bounds_error=False)
+        self.a = 0
