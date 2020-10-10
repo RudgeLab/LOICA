@@ -116,17 +116,17 @@ class Not:
             return result
         return func
 
-    def residuals(self, data, p0_1, p0_2, profile_A, a_A, b_A, K_A, n_A, A, muval, odval, epsilon, Dt, t, n_gaussians): 
+    def residuals(self, data, p0_1, p0_2, profile_A, a_A, b_A, K_A, n_A, A, muval, odval, epsilon, gamma, Dt, t, n_gaussians): 
         def func(x): 
             nt = len(t)
             n_i = x[0]
             K_i = x[1]
-            gamma = x[2]
-            b_j = x[3]
+            #gamma = x[2]
+            b_j = x[2]
             profile_j = np.zeros_like(t)
             means = np.linspace(t.min(), t.max(), n_gaussians)
             vars = [(t.max()-t.min())/n_gaussians] * n_gaussians 
-            heights = x[4:]
+            heights = x[3:]
             for mean,var,height in zip(means, vars, heights):
                 gaussian = height * np.exp(-(t-mean)*(t-mean) / var / 2) / np.sqrt(2 * np.pi * var)
                 profile_j += gaussian
@@ -209,7 +209,8 @@ class Not:
             signal, 
             biomass_signal, 
             n_gaussians, 
-            epsilon
+            epsilon,
+            gamma
             ):
         # Get growth rate profile
         self.characterize_growth(flapjack, 
@@ -255,8 +256,8 @@ class Not:
         inverter = inverter.groupby(['Concentration1', 'Time']).mean().Measurement.values
 
         # Bounds for fitting
-        lower_bounds = [0]*4 + [0]*n_gaussians
-        upper_bounds = [4, 1e8, 3, 1e-3]  + [1e10]*n_gaussians
+        lower_bounds = [0]*3 + [0]*n_gaussians
+        upper_bounds = [4, 1e8, 1e-3]  + [1e10]*n_gaussians
         bounds = [lower_bounds, upper_bounds]
 
         '''
@@ -274,20 +275,21 @@ class Not:
                                 self.profile_A, 
                                 self.a_A, self.b_A, self.K_A, self.n_A, A,
                                 self.mu_profile, self.biomass, 
+                                gamma=gamma,
                                 epsilon=0, Dt=dt, t=t,
                                 n_gaussians=n_gaussians
                             )
-        res = least_squares(residuals, [1,1,1,1e-6] + [1]*n_gaussians, bounds=bounds)
+        res = least_squares(residuals, [1,1,1e-6] + [1]*n_gaussians, bounds=bounds)
         self.res = res
         self.n = res.x[0]
         self.K = res.x[1]
-        self.gamma = res.x[2]
-        self.b = res.x[3]
+        #self.gamma = res.x[2]
+        self.b = res.x[2]
 
         profile = np.zeros_like(t)
         means = np.linspace(t.min(), t.max(), n_gaussians)
         vars = [(t.max()-t.min())/n_gaussians] * n_gaussians 
-        heights = res.x[4:]
+        heights = res.x[3:]
         for mean,var,height in zip(means, vars, heights):
             gaussian = height * np.exp(-(t-mean)*(t-mean) / var / 2) / np.sqrt(2 * np.pi * var)
             profile += gaussian
