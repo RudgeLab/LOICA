@@ -45,28 +45,32 @@ class Source:
         t = np.arange(nt) * Dt
         return ap1,tt
 
-    def residuals(self, data, p0, odval, epsilon, dt, nt, fmax): 
+    def residuals(self, data, p0, odval, dt, t, n_gaussians, epsilon): 
         def func(x): 
-            gamma = 0 #x[0]
-            ff = x[::2] + x[1::2]*1j
-            freqs = fftfreq(nt)
-            tff = np.zeros((nt,), dtype=np.complex)
-            tff[np.abs(freqs)<fmax] = ff
-            profile = ifft(tff).real
+            nt = len(t)
+            means = np.linspace(t.min(), t.max(), n_gaussians)
+            vars = [(t.max()-t.min())/n_gaussians]*n_gaussians 
+            heights = x
+            profile = np.zeros_like(t)
+            for mean,var,height in zip(means, vars, heights):
+                gaussian = height * np.exp(-(t-mean)*(t-mean) / var / 2) / np.sqrt(2 * np.pi * var)
+                profile += gaussian
             p,tt = self.forward_model(
                         Dt=dt,
                         odval=odval,
                         profile=profile,
                         nt=nt,
                         p0=p0,
-                        gamma=gamma
+                        gamma=0
                     )
-            model = p
-            residual = (data - model)
-            return residual
+            model = p[1:]
+            tikhonov = heights * epsilon
+            ntimes = len(t)*dt - tt.ravel()[1:]
+            residual = (data[1:] - model) / tt.ravel()[1:] 
+            return np.concatenate((residual, tikhonov))
         return func
 
-    def characterize(self, flapjack, vector, media, strain, signal, biomass_signal, fmax, epsilon):
+    def characterize(self, flapjack, vector, media, strain, signal, biomass_signal, n_gaussians, epsilon):
         expression_df = flapjack.analysis(media=media, 
                             strain=strain,
                             vector=vector,
@@ -88,13 +92,10 @@ class Source:
         biomass = biomass_df.groupby('Time').mean().Measurement.values
 
         nt = len(t)
-        print(nt)
-        freqs = fftfreq(nt)
-        ncomps = len(freqs[np.abs(freqs)<fmax]) * 2
 
         # Bounds for fitting
-        lower_bounds = [-1e8]*ncomps
-        upper_bounds = [1e8]*ncomps
+        lower_bounds = [0]*n_gaussians
+        upper_bounds = [1e8]*n_gaussians
         bounds = [lower_bounds, upper_bounds]
         '''
             gamma = x[0]
@@ -103,18 +104,20 @@ class Source:
         data = expression.ravel()
         res = least_squares(
                 self.residuals(
-                    data, data[0], biomass, epsilon=epsilon, dt=dt, nt=nt, fmax=fmax
+                    data, data[0], biomass, epsilon=epsilon, dt=dt, t=t, n_gaussians=n_gaussians
                     ), 
-                [100]*ncomps, 
+                [100]*n_gaussians, 
                 bounds=bounds
                 )
         self.res = res
-        self.gamma = 0 #res.x[0]
-        fprofile = res.x[:]
-        fcomps = fprofile[::2] + fprofile[1::2]*1j
-        tff = np.zeros((nt,), dtype=np.complex)
-        tff[np.abs(freqs)<fmax] = fcomps
-        profile = ifft(tff).real
+
+        profile = np.zeros_like(t)
+        means = np.linspace(t.min(), t.max(), n_gaussians)
+        vars = [(t.max()-t.min())/n_gaussians] * n_gaussians 
+        heights = res.x
+        for mean,var,height in zip(means, vars, heights):
+            gaussian = height * np.exp(-(t-mean)*(t-mean) / var / 2) / np.sqrt(2 * np.pi * var)
+            profile += gaussian
         self.rate = profile.max()
         self.profile = interp1d(t, profile/self.rate, fill_value='extrapolate', bounds_error=False)
 
