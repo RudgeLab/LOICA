@@ -50,23 +50,26 @@ class Source:
             nt = len(t)
             means = np.linspace(t.min(), t.max(), n_gaussians)
             vars = [(t.max()-t.min())/n_gaussians]*n_gaussians 
-            heights = x
+            p0 = x[0]
+            gamma = x[1]
+            heights = x[2:]
             profile = np.zeros_like(t)
             for mean,var,height in zip(means, vars, heights):
                 gaussian = height * np.exp(-(t-mean)*(t-mean) / var / 2) / np.sqrt(2 * np.pi * var)
-                profile += gaussian
+                profile = profile + gaussian
             p,tt = self.forward_model(
                         Dt=dt,
                         odval=odval,
                         profile=profile,
                         nt=nt,
                         p0=p0,
-                        gamma=0
+                        gamma=gamma
                     )
             model = p[1:]
             tikhonov = heights * epsilon
+            #tikhonov = np.diff(profile) * epsilon
             ntimes = len(t)*dt - tt.ravel()[1:]
-            residual = (data[1:] - model) / tt.ravel()[1:] 
+            residual = (data[1:] - model)  # / tt.ravel()[1:] 
             return np.concatenate((residual, tikhonov))
         return func
 
@@ -94,30 +97,37 @@ class Source:
         nt = len(t)
 
         # Bounds for fitting
-        lower_bounds = [0]*n_gaussians
-        upper_bounds = [1e8]*n_gaussians
+        lower_bounds = [0] + [0] + [0]*n_gaussians
+        upper_bounds = [1e8] + [5] + [1e8]*n_gaussians
         bounds = [lower_bounds, upper_bounds]
         '''
             gamma = x[0]
             profile = x[1:]
         '''
         data = expression.ravel()
-        res = least_squares(
-                self.residuals(
+        self.residuals_func0 = self.residuals(
+                    data, data[0], biomass, epsilon=0, dt=dt, t=t, n_gaussians=n_gaussians
+                    )
+        self.residuals_func = self.residuals(
                     data, data[0], biomass, epsilon=epsilon, dt=dt, t=t, n_gaussians=n_gaussians
-                    ), 
-                [100]*n_gaussians, 
+                    )
+        res = least_squares(
+                self.residuals_func, 
+                [0] + [0] + [100]*n_gaussians, 
                 bounds=bounds
                 )
         self.res = res
 
+        self.p0 = res.x[0]
+        self.gamma = res.x[1]
+
         profile = np.zeros_like(t)
         means = np.linspace(t.min(), t.max(), n_gaussians)
         vars = [(t.max()-t.min())/n_gaussians] * n_gaussians 
-        heights = res.x
+        heights = res.x[2:]
         for mean,var,height in zip(means, vars, heights):
             gaussian = height * np.exp(-(t-mean)*(t-mean) / var / 2) / np.sqrt(2 * np.pi * var)
-            profile += gaussian
+            profile = profile + gaussian
         self.rate = profile.max()
         self.profile = interp1d(t, profile/self.rate, fill_value='extrapolate', bounds_error=False)
 
