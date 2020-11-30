@@ -81,7 +81,7 @@ rep.add_operators([pCi_laci, pLac_tetr, pTet_ci])
 pCi_cfp = Not(input=ci, output=cfp, a=100, b=0, K=1, n=2)
 pLac_yfp = Not(input=laci, output=yfp, a=100, b=0, K=1, n=2)
 pTet_rfp = Not(input=tetr, output=rfp, a=100, b=0, K=1, n=2)
-rep.add_operators([pCi_laci, pLac_yefp, pTet_rfp])
+rep.add_operators([pCi_cfp, pLac_yfp, pTet_rfp])
 ```
 
 Create SimulatedMetabolism, Sample and Assay
