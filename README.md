@@ -73,15 +73,15 @@ yfp = Reporter(name='YFP', degradation_rate=1, signal_id=yfp.id[0])
 rfp = Reporter(name='RFP', degradation_rate=1, signal_id=rfp.id[0])
 rep.add_reporters([cfp, yfp, rfp])
 
-pCi_laci = Not(input=ci, output=laci, a=100, b=0, K=1, n=2)
-pLac_tetr = Not(input=laci, output=tetr, a=100, b=0, K=1, n=2)
-pTet_ci = Not(input=tetr, output=ci, a=100, b=0, K=1, n=2)
-rep.add_operators([pCi_laci, pLac_tetr, pTet_ci])
+ci_NOT_laci = Not(input=ci, output=laci, a=100, b=0, K=1, n=2)
+laci_NOT_tetr = Not(input=laci, output=tetr, a=100, b=0, K=1, n=2)
+tetr_NOT_ci = Not(input=tetr, output=ci, a=100, b=0, K=1, n=2)
+rep.add_operators([ci_NOT_laci, laci_NOT_tetr, tetr_NOT_ci])
 
-pCi_cfp = Not(input=ci, output=cfp, a=100, b=0, K=1, n=2)
-pLac_yfp = Not(input=laci, output=yfp, a=100, b=0, K=1, n=2)
-pTet_rfp = Not(input=tetr, output=rfp, a=100, b=0, K=1, n=2)
-rep.add_operators([pCi_cfp, pLac_yfp, pTet_rfp])
+ci_NOT_cfp = Not(input=ci, output=cfp, a=100, b=0, K=1, n=2)
+laci_NOT_yfp = Not(input=laci, output=yfp, a=100, b=0, K=1, n=2)
+tetr_NOT_rfp = Not(input=tetr, output=rfp, a=100, b=0, K=1, n=2)
+rep.add_operators([ci_NOT_cfp, laci_NOT_yfp, tetr_NOT_rfp])
 ```
 
 Create SimulatedMetabolism, Sample and Assay
