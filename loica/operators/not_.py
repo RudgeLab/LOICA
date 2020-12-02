@@ -122,17 +122,17 @@ class Not:
             n_i = x[0]
             K_i = x[1]
             #gamma = x[2]
-            b_j = x[2]
+            #b_j = x[2]
             profile_j = np.zeros_like(t)
             means = np.linspace(t.min(), t.max(), n_gaussians)
             vars = [(t.max()-t.min())/n_gaussians] * n_gaussians 
-            heights = x[3:]
+            heights = x[2:]
             for mean,var,height in zip(means, vars, heights):
                 gaussian = height * np.exp(-(t-mean)*(t-mean) / var / 2) / np.sqrt(2 * np.pi * var)
                 profile_j += gaussian
             
             p,AA,tt = self.forward_model(
-                        b_j,
+                        b_j=0,
                         n_i=n_i,
                         K_i=K_i,
                         a_A=a_A,
@@ -256,8 +256,8 @@ class Not:
         inverter = inverter.groupby(['Concentration1', 'Time']).mean().Measurement.values
 
         # Bounds for fitting
-        lower_bounds = [0]*3 + [0]*n_gaussians
-        upper_bounds = [4, 1e8, 1e-3]  + [1e10]*n_gaussians
+        lower_bounds = [0]*2 + [0]*n_gaussians
+        upper_bounds = [4, 1e8]  + [1e10]*n_gaussians
         bounds = [lower_bounds, upper_bounds]
 
         '''
@@ -279,17 +279,17 @@ class Not:
                                 epsilon=0, Dt=dt, t=t,
                                 n_gaussians=n_gaussians
                             )
-        res = least_squares(residuals, [1,1,1e-6] + [1]*n_gaussians, bounds=bounds)
+        res = least_squares(residuals, [1,1] + [1]*n_gaussians, bounds=bounds)
         self.res = res
         self.n = res.x[0]
         self.K = res.x[1]
         #self.gamma = res.x[2]
-        self.b = res.x[2]
+        #self.b = res.x[2]
 
         profile = np.zeros_like(t)
         means = np.linspace(t.min(), t.max(), n_gaussians)
         vars = [(t.max()-t.min())/n_gaussians] * n_gaussians 
-        heights = res.x[3:]
+        heights = res.x[2:]
         for mean,var,height in zip(means, vars, heights):
             gaussian = height * np.exp(-(t-mean)*(t-mean) / var / 2) / np.sqrt(2 * np.pi * var)
             profile += gaussian
