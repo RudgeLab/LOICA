@@ -26,7 +26,7 @@ class Assay:
         self.description = description
         self.biomass_signal_id = biomass_signal_id
 
-    def run(self, substeps=10, nsr=0):
+    def run(self, substeps=10, nsr=0, biomass_bg=0, fluo_bg=0):
         '''
         Run the assay measuring at specified time points, with simulation time step dt
         '''
@@ -43,20 +43,26 @@ class Assay:
                     signal_id = reporter.signal_id
                     signal_name = reporter.name
                     noise = np.random.normal(scale=np.sqrt(nsr))
+                    meas = sig * sample.biomass(time) + fluo_bg
+                    noisy_meas = (1 + noise) * meas
+                    corr_meas = noisy_meas - fluo_bg
                     row = {
                             'Time': time, 
                             'Signal_id': signal_id, 
                             'Signal':signal_name, 
-                            'Measurement': sig * sample.biomass(time) * (1 + noise),
+                            'Measurement': corr_meas,
                             'Sample':sample_id
                             }
                     self.measurements = self.measurements.append(row, ignore_index=True)
                 # Record measurement of biomass
                 noise = np.random.normal(scale=np.sqrt(nsr))
+                meas = sample.biomass(time) + biomass_bg
+                noisy_meas = (1 + noise) * meas
+                corr_meas = noisy_meas - biomass_bg
                 row = {
                         'Time': time, 
                         'Signal_id': self.biomass_signal_id, 
-                        'Measurement': sample.biomass(time) * (1 + noise),
+                        'Measurement': corr_meas,
                         'Signal':'Biomass', 
                         'Sample':sample_id
                         }
