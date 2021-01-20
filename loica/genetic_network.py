@@ -20,6 +20,18 @@ class GeneticNetwork():
     def add_reporter(self, rep):
         self.reporters.append(rep)
 
+    def add_operators(self, ops):
+        for op in ops:
+            self.operators.append(op)
+
+    def add_regulators(self, regs):
+        for reg in regs:
+            self.regulators.append(reg)
+
+    def add_reporters(self, reps):
+        for rep in reps:
+            self.reporters.append(rep)
+
     def step(self, growth_rate=1, t=0, dt=0.1):
         for op in self.operators:
             expression_rate = op.expression_rate(t, dt)
