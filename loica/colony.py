@@ -16,7 +16,7 @@ class Colony:
         mu = np.exp(-x)
         vel = 0.5 * (1 -np.exp(-x/self.r0))
         dx = np.mean(np.diff(x))
-        geneprods = self.circuit.regulators + self.circuit.reporters
+        geneprods =  self.circuit.reporters + self.circuit.regulators
         nprods = len(geneprods)
         
         def step(t, y):
@@ -55,8 +55,15 @@ class Colony:
                 rkymo[nx+xx-((t*nx)//nt),t,:] = kymo[xx,t,:]
         return rkymo
 
+    def norm_kymo(self, kymo):
+        nkymo = np.zeros_like(kymo)
+        nkymo[:,:,0] = kymo[:,:,0] / kymo[:,:,0].max()
+        nkymo[:,:,1] = kymo[:,:,1] / kymo[:,:,1].max()
+        nkymo[:,:,2] = kymo[:,:,2] / kymo[:,:,2].max()
+        return nkymo
+
     def kymograph(self, nx, nt, t0, tmax):
-        geneprods = self.circuit.regulators + self.circuit.reporters
+        geneprods =  self.circuit.reporters + self.circuit.regulators
         nprods = len(geneprods)
         L = (tmax - t0) / 2
         x = np.linspace(0, L, nx)
@@ -67,8 +74,10 @@ class Colony:
         y0 = y0.ravel()
         res = solve_ivp(self.fun(x), t_span=(t0,tmax), y0=y0, t_eval=np.linspace(t0,tmax,nt), method='LSODA')
         sol = res.y.reshape((nx,nprods,nt))
-        kymo = np.zeros((nx,nt,nprods))
-        for o in range(nprods):
+
+        nreps = len(self.circuit.reporters)
+        kymo = np.zeros((nx,nt,nreps))
+        for o in range(nreps):
             kymo[:,:,o] = sol[:,o,:]
         return self.map_kymo(kymo)
 
