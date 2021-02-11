@@ -1,4 +1,3 @@
-from scipy.integrate import solve_ivp
 import numpy as np
 
 class Colony:
@@ -62,23 +61,27 @@ class Colony:
         nkymo[:,:,2] = kymo[:,:,2] / kymo[:,:,2].max()
         return nkymo
 
-    def kymograph(self, nx, nt, t0, tmax):
+    def kymograph(self, nx, t0, tmax):
         geneprods =  self.circuit.reporters + self.circuit.regulators
         nprods = len(geneprods)
         L = (tmax - t0) / 2
         x = np.linspace(0, L, nx)
-        y0 = np.zeros((nx,nprods))
+
+        dx = np.diff(x).mean()
+        dt = dx * 0.5
+        nt = int((tmax-t0) // dt)
+        dydt = self.fun(x)
+        y = np.zeros((nx,nprods,nt))
         for g,prod in enumerate(geneprods):
             prod.initialize()
-            y0[:,g] = prod.init_concentration
-        y0 = y0.ravel()
-        res = solve_ivp(self.fun(x), t_span=(t0,tmax), y0=y0, t_eval=np.linspace(t0,tmax,nt), method='LSODA')
-        sol = res.y.reshape((nx,nprods,nt))
+            y[:,g,0] = prod.init_concentration
+
+        for t in range(1,nt):
+            y[:,:,t] = y[:,:,t-1] + dydt(t*dt, y[:,:,t-1]).reshape((nx,nprods)) * dt
 
         nreps = len(self.circuit.reporters)
         kymo = np.zeros((nx,nt,nreps))
         for o in range(nreps):
-            kymo[:,:,o] = sol[:,o,:]
-        return self.map_kymo(kymo)
-
+            kymo[:,:,o] = y[:,o,:]
+        return kymo
 
