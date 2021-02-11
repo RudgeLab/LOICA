@@ -51,7 +51,7 @@ class Colony:
         nx,nt,_ = kymo.shape
         for t in range(nt):
             for xx in range(((t*nx)//nt)):
-                rkymo[nx+xx-((t*nx)//nt),t,:] = kymo[xx,t,:]
+                rkymo[-xx+((t*nx)//nt),t,:] = kymo[xx,t,:]
         return rkymo
 
     def norm_kymo(self, kymo):
