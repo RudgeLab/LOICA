@@ -56,9 +56,8 @@ class Colony:
 
     def norm_kymo(self, kymo):
         nkymo = np.zeros_like(kymo)
-        nkymo[:,:,0] = kymo[:,:,0] / kymo[:,:,0].max()
-        nkymo[:,:,1] = kymo[:,:,1] / kymo[:,:,1].max()
-        nkymo[:,:,2] = kymo[:,:,2] / kymo[:,:,2].max()
+        for c in range(nkymo.shape[2]):
+            nkymo[:,:,c] = kymo[:,:,c] / kymo[:,:,c].max()
         return nkymo
 
     def kymograph(self, nx, t0, tmax):

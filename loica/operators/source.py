@@ -48,8 +48,8 @@ class Source:
     def residuals(self, data, odval, dt, t, n_gaussians, epsilon): 
         def func(x): 
             nt = len(t)
-            means = np.linspace(t.min(), t.max(), n_gaussians)
-            vars = [(t.max()-t.min())/n_gaussians]*n_gaussians 
+            means = np.linspace(t.min(), t.max()+1, n_gaussians, endpoint=True)
+            vars = [(t.max()+1-t.min())/n_gaussians]*n_gaussians 
             p0 = x[0]
             heights = x[1:]
             gamma = 0
@@ -121,8 +121,8 @@ class Source:
         self.p0 = res.x[0]
 
         profile = np.zeros_like(t)
-        means = np.linspace(t.min(), t.max(), n_gaussians)
-        vars = [(t.max()-t.min())/n_gaussians] * n_gaussians 
+        means = np.linspace(t.min(), t.max()+1, n_gaussians, endpoint=True)
+        vars = [(t.max()+1-t.min())/n_gaussians] * n_gaussians 
         heights = res.x[1:]
         for mean,var,height in zip(means, vars, heights):
             gaussian = height * np.exp(-(t-mean)*(t-mean) / var / 2) / np.sqrt(2 * np.pi * var)

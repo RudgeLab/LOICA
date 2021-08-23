@@ -85,7 +85,6 @@ class Not:
                 nextp2 = p2 + ( od * prof_j * (1 + b_j*p) / ( 1 + p )) * Dt/sim_steps
                 p1,p2 = nextp1,nextp2
 
-
         ap2 = np.array(p2_list).transpose()
         AA = np.array(A_list).transpose()
         tt = np.array(t_list).transpose()
