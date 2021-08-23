@@ -7,7 +7,7 @@ from .source import *
 from flapjack import *
 
 class Receiver:
-    def __init__(self, inducer, output, a, b, K, n, profile=None):
+    def __init__(self, input, output, a, b, K, n, profile=None):
         if profile:
             self.profile = profile
         else:
@@ -19,11 +19,11 @@ class Receiver:
         self.K = K
         self.n = n
         self.receptor = 0
-        self.inducer = inducer
+        self.input = input
         self.output = output
         
     def expression_rate(self, t, dt):
-        inducer = self.inducer.concentration
+        inducer = self.input.concentration
         i = (inducer/self.K)**self.n
         expression_rate = self.profile(t) * ( self.a + self.b*i ) / (1 + i)
         return expression_rate

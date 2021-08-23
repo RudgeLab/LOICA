@@ -5,3 +5,5 @@ from .metabolism import *
 from .operators import *
 from .geneproduct import *
 from .supplement import *
+from .util import *
+from .colony import *
