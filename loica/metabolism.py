@@ -7,7 +7,7 @@ def ramp_growth_rate(t, start, slope):
 
 def ramp_biomass(t, od0, start, slope):
     logod = np.maximum(0, ((t-start)**2)/2)
-    od = od0 * np.exp(integral)
+    od = od0 * np.exp(logod)
     return(od)
 
 def step_growth_rate(t, start):
