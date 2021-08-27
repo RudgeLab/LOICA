@@ -3,19 +3,21 @@ from scipy.interpolate import interp1d
 
 def ramp_growth_rate(t, start, slope):
     gr = np.maximum(0, slope*(t-start))
-    return gr
+    return(gr)
 
 def ramp_biomass(t, od0, start, slope):
     logod = np.maximum(0, ((t-start)**2)/2)
     od = od0 * np.exp(integral)
+    return(od)
 
 def step_growth_rate(t, start):
     gr = 1 * ((t-start)>0)
-    return gr
+    return(gr)
 
 def step_biomass(t, od0, start):
     logod = np.maximum(0, t-start)
     od = od0 * np.exp(logod)
+    return(od)
 
 def gompertz_growth_rate(t, y0, ymax, um, l):
     A = np.log(ymax/y0)
