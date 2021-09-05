@@ -45,7 +45,8 @@ class Assay:
                     noise = np.random.normal(scale=np.sqrt(nsr))
                     meas = sig * sample.biomass(time) + fluo_bg
                     noisy_meas = (1 + noise) * meas
-                    corr_meas = noisy_meas - fluo_bg
+                    noise_bg = np.random.normal(scale=np.sqrt(nsr))
+                    corr_meas = noisy_meas - (1 + noise_bg) * fluo_bg
                     row = {
                             'Time': time, 
                             'Signal_id': signal_id, 
@@ -58,7 +59,8 @@ class Assay:
                 noise = np.random.normal(scale=np.sqrt(nsr))
                 meas = sample.biomass(time) + biomass_bg
                 noisy_meas = (1 + noise) * meas
-                corr_meas = noisy_meas - biomass_bg
+                noise_bg = np.random.normal(scale=np.sqrt(nsr))
+                corr_meas = noisy_meas - (1 + noise_bg) * biomass_bg
                 row = {
                         'Time': time, 
                         'Signal_id': self.biomass_signal_id, 
