@@ -33,7 +33,7 @@ class Regulator(GeneProduct):
         super().__init__(name, init_concentration, degradation_rate)
 
 class Reporter(GeneProduct):
-    def __init__(self, name, init_concentration=0, degradation_rate=0, signal_id=None, color='w'):
-        super().__init__(name, init_concentration, degradation_rate)
+    def __init__(self, name, init_concentration=0, degradation_rate=0, signal_id=None, color='w', sbol_doc=None):
+        super().__init__(name, init_concentration, degradation_rate, sbol_doc)
         self.signal_id = signal_id
         self.color = color
