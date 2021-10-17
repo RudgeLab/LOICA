@@ -2,12 +2,15 @@ import numpy as np
 
 class GeneProduct:
     shape = '^'
-    def __init__(self, name, init_concentration=0, degradation_rate=0):
+    def __init__(self, name, init_concentration=0, degradation_rate=0, uri=None, sbol_doc=None):
         self.init_concentration = init_concentration
         self.concentration = init_concentration
         self.degradation_rate = degradation_rate
         self.name = name
         self.expression_rate = 0
+        self.uri = uri
+        self.sbol_doc = sbol_doc
+
 
     def initialize(self):
         self.concentration = self.init_concentration
