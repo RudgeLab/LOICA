@@ -1,3 +1,6 @@
+import networkx as nx
+from .geneproduct import Regulator
+
 class GeneticNetwork():
     def __init__(self, vector=None):
         self.operators = []
@@ -42,6 +45,37 @@ class GeneticNetwork():
 
         for reporter in self.reporters:
             reporter.step(growth_rate, dt)
+
+    def to_graph(self):
+        g = nx.DiGraph()
+        for op in self.operators:
+            if type(op.output)==Regulator:
+                if type(op.input)==list:
+                    for i in op.input:
+                        g.add_edge(i, op)
+                else:
+                    g.add_edge(op.input, op)
+                g.add_edge(op, op.output)
+        return g
+
+    def draw(self, node_shape='s', node_size=600):
+        g = self.to_graph()
+        nx.draw_networkx_nodes(
+            g, 
+            pos=nx.circular_layout(g), 
+            node_color=[n.color for n in g.nodes], 
+            node_shape=node_shape, 
+            node_size=node_size
+            )
+        nx.draw_networkx_edges(
+            g, 
+            pos=nx.circular_layout(g), 
+            width=1, 
+            node_shape=node_shape, 
+            node_size=node_size
+            )
+        nx.draw_networkx_labels(g, pos=nx.circular_layout(g))
+
 
 
         

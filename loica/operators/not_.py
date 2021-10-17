@@ -5,6 +5,8 @@ from scipy.optimize import least_squares
 from .receiver import *
 
 class Not:
+    color = 'skyblue'
+    shape = 's'
     def __init__(self, input, output, a, b, K, n, profile=None):
         self.a = a
         self.b = b
@@ -16,6 +18,9 @@ class Not:
             def profile(t):
                 return 1
         self.profile = profile
+
+    def __str__(self):
+        return 'NOT'
         
     def expression_rate(self, t, dt):
         input_repressor = self.input.concentration

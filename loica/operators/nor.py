@@ -1,4 +1,6 @@
 class Nor:
+    color = 'orange'
+    shape = 's'
     def __init__(self, input, output, alpha, a, b, K, n):
         self.alpha = alpha
         self.a = a
@@ -7,7 +9,10 @@ class Nor:
         self.n = n
         self.input = input
         self.output = output
-        
+
+    def __str__(self):
+        return 'NOR'
+
     def expression_rate(self, t, dt):
         input_repressor1 = self.input[0].concentration
         input_repressor2 = self.input[1].concentration

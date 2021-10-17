@@ -1,6 +1,7 @@
 import numpy as np
 
 class GeneProduct:
+    shape = '^'
     def __init__(self, name, init_concentration=0, degradation_rate=0):
         self.init_concentration = init_concentration
         self.concentration = init_concentration
@@ -24,10 +25,12 @@ class GeneProduct:
         return self.name
 
 class Regulator(GeneProduct):
+    color = 'lightgreen'
     def __init__(self, name, init_concentration=0, degradation_rate=0):
         super().__init__(name, init_concentration, degradation_rate)
 
 class Reporter(GeneProduct):
-    def __init__(self, name, init_concentration=0, degradation_rate=0, signal_id=None):
+    def __init__(self, name, init_concentration=0, degradation_rate=0, signal_id=None, color='w'):
         super().__init__(name, init_concentration, degradation_rate)
         self.signal_id = signal_id
+        self.color = color
