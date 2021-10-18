@@ -58,18 +58,19 @@ class GeneticNetwork():
                 g.add_edge(op, op.output)
         return g
 
-    def draw(self, node_shape='s', node_size=600):
+    def draw(self, node_shape='s', node_size=600, pos=nx.circular_layout):
         g = self.to_graph()
+        pos = pos(g)
         nx.draw_networkx_nodes(
             g, 
-            pos=nx.circular_layout(g), 
+            pos=pos, 
             node_color=[n.color for n in g.nodes], 
             node_shape=node_shape, 
             node_size=node_size
             )
         nx.draw_networkx_edges(
             g, 
-            pos=nx.circular_layout(g), 
+            pos=pos, 
             width=1, 
             node_shape=node_shape, 
             node_size=node_size

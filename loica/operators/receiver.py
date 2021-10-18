@@ -7,6 +7,7 @@ from .source import *
 from flapjack import *
 
 class Receiver:
+    color = 'orange'
     def __init__(self, input, output, a, b, K, n, profile=None):
         if profile:
             self.profile = profile
