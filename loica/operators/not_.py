@@ -7,13 +7,15 @@ from .receiver import *
 class Not:
     color = 'skyblue'
     shape = 's'
-    def __init__(self, input, output, a, b, K, n, profile=None):
+    def __init__(self, input, output, a, b, K, n, profile=None, uri=None, sbol_doc=None):
         self.a = a
         self.b = b
         self.K = K
         self.n = n
         self.input = input
         self.output = output
+        self.uri = uri
+        self.sbol_doc = sbol_doc
         if not profile:
             def profile(t):
                 return 1
