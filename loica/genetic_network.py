@@ -1,3 +1,4 @@
+import sbol3
 import networkx as nx
 from .geneproduct import Regulator
 
