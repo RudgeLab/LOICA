@@ -37,3 +37,4 @@ class Reporter(GeneProduct):
         super().__init__(name, init_concentration, degradation_rate, sbol_doc)
         self.signal_id = signal_id
         self.color = color
+        self.sbol_doc = sbol_doc

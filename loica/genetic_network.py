@@ -79,8 +79,9 @@ class GeneticNetwork():
         nx.draw_networkx_labels(g, pos=nx.circular_layout(g))
 
     def to_sbol(self):
-        #Operators
-        operators = []
+        doc = sbol3.Document()
+        geneticnetwork = sbol3.Component('geneticnetwork', sbol3.SBO_DNA)
+        geneticnetwork.roles.append(sbol3.SO_ENGINEERED_REGION)
         for op in self.operators:
             operator_doc = op.sbol_doc
             geneproduct_doc = op.output.sbol_doc
@@ -89,15 +90,17 @@ class GeneticNetwork():
 
             tu = sbol3.Component('tu', sbol3.SBO_DNA)
             tu.roles.append(sbol3.SO_ENGINEERED_REGION)
-            tu.features = [operator_sc, geneproduct_sc]
+            tu.features = [operator_sc, geneproduct_sc]                  
             tu.constraints = [sbol3.Constraint(sbol3.SBOL_PRECEDES, operator_sc, geneproduct_sc)]
-
-            doc = sbol3.Document()
-            doc.add(operator_doc)
-            doc.add(geneproduct_doc)
             doc.add(tu)
-            operators.append(doc)
-        return operators
+            tu_sc = sbol3.SubComponent(tu)
+            geneticnetwork.features.append(tu_sc)
+        if len(geneticnetwork.features) >= 2:
+            for i in range(len(geneticnetwork.features)):
+                geneticnetwork.constraints = [sbol3.Constraint(sbol3.SBOL_PRECEDES, geneticnetwork.features[i], geneticnetwork.features[i+1])]
+        else: pass
+        doc.add(geneticnetwork)
+        return doc
 
 
         
