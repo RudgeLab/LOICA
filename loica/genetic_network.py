@@ -88,14 +88,14 @@ class GeneticNetwork():
             operator_sc = sbol3.SubComponent(operator_doc)
             geneproduct_sc = sbol3.SubComponent(geneproduct_doc)
 
-            tu = sbol3.Component('tu', sbol3.SBO_DNA)
+            tu = sbol3.Component(f'TU_{op.input.name}_{op}_{op.output.name}', sbol3.SBO_DNA) #generalize to multi input/output TUs
             tu.roles.append(sbol3.SO_ENGINEERED_REGION)
             tu.features = [operator_sc, geneproduct_sc]                  
             tu.constraints = [sbol3.Constraint(sbol3.SBOL_PRECEDES, operator_sc, geneproduct_sc)]
             doc.add(tu)
             tu_sc = sbol3.SubComponent(tu)
             geneticnetwork.features.append(tu_sc)
-        if len(geneticnetwork.features) >= 2:
+        if len(geneticnetwork.features) > 1:
             for i in range(len(geneticnetwork.features)):
                 geneticnetwork.constraints = [sbol3.Constraint(sbol3.SBOL_PRECEDES, geneticnetwork.features[i], geneticnetwork.features[i+1])]
         else: pass
