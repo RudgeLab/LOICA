@@ -7,12 +7,16 @@ setup(name='loica',
     install_requires=[        
         'numpy', 
 	'networkx',
-	'pandas'
+	'pandas',
+    'sbol3',
+    'tyto'
         ],
     setup_requires=[
         'numpy',
 	'networkx',
-	'pandas' 
+	'pandas',
+    'sbol3',
+    'tyto' 
         ],
     packages=['loica'],
     python_requires='>=3',
