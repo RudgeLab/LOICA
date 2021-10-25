@@ -79,19 +79,36 @@ class GeneticNetwork():
         nx.draw_networkx_labels(g, pos=nx.circular_layout(g))
 
     def to_sbol(self):
+        # prototype for not gate interaction
         doc = sbol3.Document()
         geneticnetwork = sbol3.Component('geneticnetwork', sbol3.SBO_DNA)
         geneticnetwork.roles.append(sbol3.SO_ENGINEERED_REGION)
         for op in self.operators:
-            operator_doc = op.sbol_doc
-            geneproduct_doc = op.output.sbol_doc
-            operator_sc = sbol3.SubComponent(operator_doc)
-            geneproduct_sc = sbol3.SubComponent(geneproduct_doc)
-
+            operator_comp = op.sbol_comp
+            output_comp = op.output.sbol_comp
+            input_comp = op.input.sbol_comp
+            operator_sc = sbol3.SubComponent(operator_comp)
+            output_sc = sbol3.SubComponent(output_comp)
+            input_sc = sbol3.SubComponent(input_comp)
+            # TU Component
             tu = sbol3.Component(f'TU_{op.input.name}_{op}_{op.output.name}', sbol3.SBO_DNA) #generalize to multi input/output TUs
             tu.roles.append(sbol3.SO_ENGINEERED_REGION)
-            tu.features = [operator_sc, geneproduct_sc]                  
-            tu.constraints = [sbol3.Constraint(sbol3.SBOL_PRECEDES, operator_sc, geneproduct_sc)]
+            tu.features = [operator_sc, output_sc, input_sc]                  
+            tu.constraints = [sbol3.Constraint(sbol3.SBOL_PRECEDES, operator_sc, output_sc)]
+            # Interaction
+            input_participation = sbol3.Participation(roles=[sbol3.SBO_INHIBITOR], participant=input_comp)
+            op_participation = sbol3.Participation(roles=[sbol3.SBO_INHIBITED], participant=operator_comp)
+            interaction = sbol3.Interaction(types=[sbol3.SBO_INHIBITION], participations=[input_participation, op_participation])
+            tu.interactions.append(interaction)
+            # Model
+            op_model = sbol3.Model(f'LOICA_{op.input.name}_{op}_{op.output.name}_model', 
+                            source='https://github.com/SynBioUC/LOICA/blob/master/loica/operators/not_.py',
+                            language='http://identifiers.org/EDAM:format_3996', # http://edamontology.org/format_3996
+                            framework='https://github.com/SynBioUC/LOICA'
+                            )
+            doc.add(op_model)
+            tu.models.append(op_model)
+            tu.derived_from = [operator_comp.identity, output_comp.identity, input_comp.identity ]
             doc.add(tu)
             tu_sc = sbol3.SubComponent(tu)
             geneticnetwork.features.append(tu_sc)
