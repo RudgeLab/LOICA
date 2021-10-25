@@ -7,7 +7,7 @@ from .receiver import *
 class Not:
     color = 'skyblue'
     shape = 's'
-    def __init__(self, input, output, a, b, K, n, profile=None, uri=None, sbol_doc=None):
+    def __init__(self, input, output, a, b, K, n, profile=None, uri=None, sbol_comp=None):
         self.a = a
         self.b = b
         self.K = K
@@ -15,7 +15,7 @@ class Not:
         self.input = input
         self.output = output
         self.uri = uri
-        self.sbol_doc = sbol_doc
+        self.sbol_comp = sbol_comp
         if not profile:
             def profile(t):
                 return 1
