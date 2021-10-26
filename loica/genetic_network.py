@@ -108,12 +108,12 @@ class GeneticNetwork():
                             )
             doc.add(op_model)
             tu.models.append(op_model)
-            tu.derived_from = [operator_comp.identity, output_comp.identity, input_comp.identity ]
+            #tu.derived_from = []
             doc.add(tu)
             tu_sc = sbol3.SubComponent(tu)
             geneticnetwork.features.append(tu_sc)
         if len(geneticnetwork.features) > 1:
-            for i in range(len(geneticnetwork.features)):
+            for i in range(len(geneticnetwork.features)-1):
                 geneticnetwork.constraints = [sbol3.Constraint(sbol3.SBOL_PRECEDES, geneticnetwork.features[i], geneticnetwork.features[i+1])]
         else: pass
         doc.add(geneticnetwork)
