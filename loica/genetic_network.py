@@ -1,6 +1,6 @@
 import sbol3
 import networkx as nx
-from .geneproduct import Regulator
+from .geneproduct import Regulator, Reporter
 
 class GeneticNetwork():
     def __init__(self, vector=None):
@@ -50,16 +50,27 @@ class GeneticNetwork():
     def to_graph(self):
         g = nx.DiGraph()
         for op in self.operators:
-            if type(op.output)==Regulator:
-                if type(op.input)==list:
-                    for i in op.input:
-                        g.add_edge(i, op)
-                else:
-                    g.add_edge(op.input, op)
-                g.add_edge(op, op.output)
+            #if type(op.output)==Regulator:
+            if type(op.input)==list:
+                for i in op.input:
+                    g.add_edge(i, op)
+            else:
+                g.add_edge(op.input, op)
+            g.add_edge(op, op.output)
         return g
 
-    def draw(self, node_shape='s', node_size=600, pos=nx.circular_layout):
+    def draw(
+        self,
+        node_shape='o',
+        node_size=200,
+        linewidths=2,
+        alpha=0.75,
+        arrowsize=5,
+        font_size=6,
+        font_family='Tahoma',
+        font_weight='bold',
+        pos=nx.kamada_kawai_layout
+        ):
         g = self.to_graph()
         pos = pos(g)
         nx.draw_networkx_nodes(
@@ -67,16 +78,25 @@ class GeneticNetwork():
             pos=pos, 
             node_color=[n.color for n in g.nodes], 
             node_shape=node_shape, 
-            node_size=node_size
+            node_size=node_size,
+            linewidths=linewidths,
+            alpha=alpha
             )
         nx.draw_networkx_edges(
             g, 
             pos=pos, 
             width=1, 
             node_shape=node_shape, 
-            node_size=node_size
+            node_size=node_size,
+            arrowsize=arrowsize
             )
-        nx.draw_networkx_labels(g, pos=nx.circular_layout(g))
+        nx.draw_networkx_labels(
+            g,
+            pos=pos,
+            font_size=font_size,
+            font_family=font_family,
+            font_weight=font_weight
+            )
 
     def to_sbol(self):
         # prototype for not gate interaction
