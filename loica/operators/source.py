@@ -31,29 +31,37 @@ class Source:
                 nextp1 = p1 + (odval[t]*rate - gamma*p1) * Dt / sim_steps
                 p1 = nextp1
 
-
         ap1 = np.array(p1_list).transpose()
         tt = np.array(t_list).transpose()
         t = np.arange(nt) * Dt
         return ap1,tt
 
-    def residuals(self, data, odval, dt, t): 
+    def residuals(self, df, oddf): 
         def func(x): 
-            nt = len(t)
             p0 = x[0]
             rate = x[1]
-            gamma = 0
-            p,tt = self.forward_model(
-                        Dt=dt,
-                        odval=odval,
-                        rate=rate,
-                        nt=nt,
-                        p0=p0,
-                        gamma=gamma
-                    )
-            model = p[1:]
-            residual = (data[1:] - model)  # / tt.ravel()[1:] 
-            return residual
+            residual_list = []
+            df_sorted = df.sort_values(['Sample', 'Time'])
+            oddf_sorted = oddf.sort_values(['Sample', 'Time'])
+            for samp_id,samp_data in df_sorted.groupby('Sample'):
+                odval = oddf_sorted[oddf_sorted.Sample==samp_id].Measurement.values
+                data = samp_data.Measurement.values
+                t = samp_data.Time.values
+                dt = np.mean(np.diff(t))
+                nt = len(t)
+                gamma = 0
+                p,tt = self.forward_model(
+                            Dt=dt,
+                            odval=odval,
+                            rate=rate,
+                            nt=nt,
+                            p0=p0,
+                            gamma=gamma
+                        )
+                model = p[1:]
+                residual = (data[1:] - model) 
+                residual_list.append(residual) 
+            return np.array(residual_list).ravel()
         return func
 
     def characterize(self, flapjack, vector, media, strain, signal, biomass_signal):
@@ -64,9 +72,6 @@ class Source:
                             type='Background Correct',
                             biomass_signal=biomass_signal
                             ).sort_values(['Sample', 'Time'])
-        t = expression_df.groupby('Time').mean().index.values
-        dt = np.diff(t).mean()
-        expression = expression_df.groupby('Time').mean().Measurement.values
 
         biomass_df = flapjack.analysis(media=media, 
                             strain=strain,
@@ -75,9 +80,6 @@ class Source:
                             type='Background Correct',
                             biomass_signal=biomass_signal
                             ).sort_values(['Sample', 'Time'])
-        biomass = biomass_df.groupby('Time').mean().Measurement.values
-
-        nt = len(t)
 
         # Bounds for fitting
         lower_bounds = [0, 0]
@@ -87,9 +89,8 @@ class Source:
             p0 = x[0]
             rate = x[1]
         '''
-        data = expression.ravel()
         self.residuals_func = self.residuals(
-                    data, biomass, dt=dt, t=t
+                    expression_df, biomass_df
                     )
         res = least_squares(
                 self.residuals_func, 

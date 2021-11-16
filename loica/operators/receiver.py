@@ -37,11 +37,11 @@ class Receiver:
             nt=100
         ):
         p1_list,A_list,t_list = [],[],[]
-        p1 = np.zeros_like(A) + p0
+        p1 = p0
         for t in range(nt):
             p1_list.append(p1)
             A_list.append(A)
-            t_list.append([t * Dt]*len(A))
+            t_list.append(t * Dt)
             od = odval[t]
             tt = t*Dt
             for tt in range(sim_steps):
@@ -55,62 +55,61 @@ class Receiver:
         t = np.arange(nt) * Dt
         return ap1,AA,tt
 
-    def residuals(self, data, p0, A, odval, dt, t): 
+    def residuals(self, df, oddf): 
         def func(x): 
             a = x[0]
             b = x[1]        
             K_A = x[2]
             n_A = x[3]        
-            nt = len(t)
-            p,AA,tt = self.forward_model(
-                        a=a,
-                        b=b,
-                        K_A=K_A,
-                        n_A=n_A,
-                        Dt=dt,
-                        A=A,
-                        odval=odval,
-                        nt=nt,
-                        p0=p0
-                    )
-            model = p.ravel()
-            residual = data - model
-            return residual
+            residual_list = []
+            df_sorted = df.sort_values(['Sample', 'Time'])
+            oddf_sorted = oddf.sort_values(['Sample', 'Time'])
+            for samp_id,samp_data in df_sorted.groupby('Sample'):
+                odval = oddf_sorted[oddf_sorted.Sample==samp_id].Measurement.values
+                data = samp_data.Measurement.values
+                p0 = data[0]
+                A = samp_data.Concentration1.values[0]
+                t = samp_data.Time.values
+                dt = np.mean(np.diff(t))
+                nt = len(t)
+                p,AA,tt = self.forward_model(
+                            a=a,
+                            b=b,
+                            K_A=K_A,
+                            n_A=n_A,
+                            Dt=dt,
+                            A=A,
+                            odval=odval,
+                            nt=nt,
+                            p0=p0
+                        )
+                model = p.ravel()
+                residual = data - model
+                residual_list.append(residual) 
+            return np.array(residual_list).ravel()
         return func
 
 
     def characterize(self, flapjack, vector, media, strain, signal, biomass_signal):
-        expression = flapjack.analysis(media=media, 
+        expression_df = flapjack.analysis(media=media, 
                             strain=strain,
                             vector=vector,
                             signal=signal,
                             type='Background Correct',
                             biomass_signal=biomass_signal
                             )
-        # Inducer concentrations
-        A = expression.groupby('Concentration1').mean().index.values
-        # Group and average data
-        expression = expression.sort_values(['Sample', 'Concentration1', 'Time'])
-        # Time points and interval
-        t = expression.Time.unique()
-        dt = np.diff(t).mean()
-        # Take mean of samples
-        expression = expression.groupby(['Concentration1', 'Time']).mean().Measurement.values
 
-        biomass = flapjack.analysis(media=media, 
+        biomass_df = flapjack.analysis(media=media, 
                             strain=strain,
                             vector=vector,
                             signal=biomass_signal,
                             type='Background Correct',
                             biomass_signal=biomass_signal
                             )
-        biomass = biomass.sort_values(['Sample', 'Concentration1', 'Time'])        
-        biomass = biomass.groupby('Time').mean().Measurement.values
 
-        nt = len(t)
         # Bounds for fitting (a,b,K,n)
         lower_bounds = [0, 0, 0, 0]
-        upper_bounds = [1e8, 1e8, A.max(), 6]
+        upper_bounds = [1e8, 1e8, 1e8, 6]
         bounds = [lower_bounds, upper_bounds]
         '''
             a = x[0]
@@ -119,12 +118,11 @@ class Receiver:
             n_A = x[3]
         '''
 
-        data = expression.ravel()
         res = least_squares(
                 self.residuals(
-                    data, data[0], A, biomass, dt=dt, t=t
+                    expression_df, biomass_df
                     ), 
-                [0, 1, A.mean(), 1], 
+                [0, 1, 1, 1], 
                 bounds=bounds
                 )
         self.res = res
