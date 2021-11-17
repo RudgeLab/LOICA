@@ -3,9 +3,13 @@ from scipy.optimize import least_squares
 from scipy.interpolate import interp1d
 
 class Source:
+    color = 'blue'
     def __init__(self, output, rate):
         self.rate = rate
         self.output = output
+
+    def __str__(self):
+        return 'SRC'
 
     def expression_rate(self, t, dt):
         return self.rate

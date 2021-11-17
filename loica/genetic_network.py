@@ -50,12 +50,12 @@ class GeneticNetwork():
     def to_graph(self):
         g = nx.DiGraph()
         for op in self.operators:
-            #if type(op.output)==Regulator:
-            if type(op.input)==list:
-                for i in op.input:
-                    g.add_edge(i, op)
-            else:
-                g.add_edge(op.input, op)
+            if hasattr(op, 'input'):
+                if type(op.input)==list:
+                    for i in op.input:
+                        g.add_edge(i, op)
+                else:
+                    g.add_edge(op.input, op)
             g.add_edge(op, op.output)
         return g
 
