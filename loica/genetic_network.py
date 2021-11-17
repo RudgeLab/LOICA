@@ -1,10 +1,10 @@
 import sbol3
+import json
 import networkx as nx
 from .geneproduct import Regulator, Reporter
 from .supplement import Supplement
 from .operators.not_ import Not
 from .operators.nor import Nor
-import tyto
 from typing import List #, Dict, Tuple, Optional, Union, Any
 
 class GeneticNetwork():
@@ -107,7 +107,9 @@ class GeneticNetwork():
         # prototype for not gate interaction
         if sbol_doc:
             doc=sbol_doc
-        else: doc = sbol3.Document()
+        else: 
+            print('No SBOL Document provided')
+            doc = sbol3.Document()
         geneticnetwork = sbol3.Component('geneticnetwork', sbol3.SBO_DNA)
         geneticnetwork.roles.append(sbol3.SO_ENGINEERED_REGION)
         loica_set = set()
@@ -115,7 +117,6 @@ class GeneticNetwork():
             operator_comp = op.sbol_comp
             output_comp = op.output.sbol_comp
             input_comp = op.input.sbol_comp
-            #print(f'Input: {input_comp}, Operator {operator_comp}, Output:{output_comp}')
             operator_sc = sbol3.SubComponent(operator_comp)
             output_sc = sbol3.SubComponent(output_comp)
             input_sc = sbol3.SubComponent(input_comp)
@@ -197,14 +198,15 @@ class GeneticNetwork():
                     interaction = sbol3.Interaction(types=[sbol3.SBO_INHIBITION], participations=[input_participation, op_participation])
                     tu.interactions.append(interaction)
             else:
-                print('Unsupported input Type')
+                print('Unsupported operator Type')
             
             # Model
-            # op_model_attachment = sbol3.Attachment()
+            #model_string = str(op.__dict__)
             op_model = sbol3.Model(f'LOICA_{op.input.name}_{op}_{op.output.name}_model', 
-                            source='https://github.com/SynBioUC/LOICA/blob/master/loica/operators/not_.py',
+                            source='https://github.com/SynBioUC/LOICA/blob/master/loica/operators',
                             language='http://identifiers.org/EDAM:format_3996',
-                            framework='http://identifiers.org/SBO:0000062' )#,attachments=[op])
+                            framework='http://identifiers.org/SBO:0000062',)
+                            #attachments=[model_string])
             doc.add(op_model)
             tu.models.append(op_model)
             doc.add(tu)
@@ -212,8 +214,6 @@ class GeneticNetwork():
             geneticnetwork.features.append(tu_sc)
         loica_list = list(loica_set)
         doc.add(loica_list) 
-        #for obj in loica_list:
-        #    doc.add(obj)
         if len(geneticnetwork.features) > 1:
             for i in range(len(geneticnetwork.features)-1):
                 geneticnetwork.constraints = [sbol3.Constraint(sbol3.SBOL_PRECEDES, geneticnetwork.features[i], geneticnetwork.features[i+1])]

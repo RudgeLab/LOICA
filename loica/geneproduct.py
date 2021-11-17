@@ -1,8 +1,9 @@
 import numpy as np
+import pickle
 
 class GeneProduct:
     shape = '^'
-    def __init__(self, name, init_concentration=0, degradation_rate=0, uri=None, sbol_comp=None):
+    def __init__(self, name, init_concentration=0, degradation_rate=0, uri=None, sbol_comp=None, type_='PRO'):
         self.init_concentration = init_concentration
         self.concentration = init_concentration
         self.degradation_rate = degradation_rate
@@ -10,6 +11,7 @@ class GeneProduct:
         self.expression_rate = 0
         self.uri = uri
         self.sbol_comp = sbol_comp
+        self.type_ = type_ # 'PRO' or 'RNA'
 
 
     def initialize(self):
@@ -40,3 +42,4 @@ class Reporter(GeneProduct):
         self.color = color
         self.sbol_comp = sbol_comp
 
+#Producer
