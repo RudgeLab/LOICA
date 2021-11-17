@@ -15,6 +15,9 @@ class Receiver:
         self.n = n
         self.input = input
         self.output = output
+
+    def __str__(self):
+        return 'REC'
         
     def expression_rate(self, t, dt):
         inducer = self.input.concentration

@@ -14,7 +14,7 @@ class Nor:
         self.output = output
 
     def __str__(self):
-        return 'NOR2'
+        return 'NOR'
 
     def expression_rate(self, t, dt):
         input_repressor1 = self.input[0].concentration
