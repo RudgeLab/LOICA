@@ -6,37 +6,31 @@ from .receiver import *
 class Nor:
     color = 'orange'
     shape = 's'
-    def __init__(self, input, output, alpha, a, b, K, n):
+    def __init__(self, input, output, alpha, K, n):
         self.alpha = alpha
-        self.a = a
-        self.b = b
         self.K = K
         self.n = n
         self.input = input
         self.output = output
 
     def __str__(self):
-        return 'NOR'
+        return 'NOR2'
 
     def expression_rate(self, t, dt):
         input_repressor1 = self.input[0].concentration
         input_repressor2 = self.input[1].concentration
         r1 = (input_repressor1/self.K[0])**self.n[0]
         r2 = (input_repressor2/self.K[1])**self.n[1]
-        expression_rate1 = ( self.a[0] + self.b[0]*r1) / (1 + r1)
-        expression_rate2 = (self.a[1] + self.b[1]*r2) / (1 + r2)
-        a0 = self.alpha[0]
-        a1 = expression_rate1
-        a2 = expression_rate2
-        a3 = self.alpha[1] * expression_rate1 * expression_rate2
-        expression_rate = a1 + a2
-        return expression_rate
+        r12 = (input_repressor1 * input_repressor2 / self.K[0] / self.K[1])**(self.n[0] + self.n[1])
+        num = self.alpha[0] + self.alpha[1] * r1 + self.alpha[2] * r2 + self.alpha[3] * r12
+        denom = 1 + r1 + r2 + r12
+        return num / denom
 
     def forward_model(
         self,
-        rep1_a=0, rep1_b=1, rep1_K=1, rep1_n=2,
-        rep2_a=0, rep2_b=1, rep2_K=1, rep2_n=2,
-        #alpha0=0, alpha1=0,
+        rep1_K=1, rep1_n=2,
+        rep2_K=1, rep2_n=2,
+        alpha0=1, alpha1=0, alpha2=0, alpha3=0,
         a_A=1e2, b_A=0, K_A=1, n_A=2,
         a_B=1e2, b_B=0, K_B=1, n_B=2,
         Dt=0.05,
@@ -70,13 +64,10 @@ class Nor:
                 # Reporter output
                 r1 = (rep1/od/rep1_K)**rep1_n
                 r2 = (rep2/od/rep2_K)**rep2_n
-                expression_rate1 = (rep1_a + rep1_b*r1) / (1 + r1)
-                expression_rate2 = (rep2_a + rep2_b*r2) / (1 + r2)
-                #a0 = alpha0
-                a1 = expression_rate1
-                a2 = expression_rate2
-                #a3 = alpha1 * expression_rate1 * expression_rate2
-                expression_rate = a1 + a2
+                r12 = (rep1*rep2/od/od/rep1_K/rep2_K)**(rep1_n+rep2_n)
+                num = alpha0 + alpha1 * r1 + alpha2 * r2 + alpha3 * r12
+                denom = 1 + r1 + r2 + r12
+                expression_rate = num / denom
                 nextfp = fp + ( od * expression_rate) * Dt/sim_steps
 
                 # Update system
@@ -91,9 +82,9 @@ class Nor:
 
     def residuals(self, df, oddf, a_A, b_A, K_A, n_A, a_B, b_B, K_B, n_B, gamma): 
         def func(x): 
-            rep1_a, rep1_b, rep1_K, rep1_n = x[0:4]
-            rep2_a, rep2_b, rep2_K, rep2_n = x[4:8]
-            #alpha0, alpha1 = x[8:10]
+            rep1_K, rep1_n = x[0:2]
+            rep2_K, rep2_n = x[2:4]
+            alpha0, alpha1, alpha2, alpha3 = x[4:8]
             residual_list = []
             df_sorted = df.sort_values(['Sample', 'Time'])
             oddf_sorted = oddf.sort_values(['Sample', 'Time'])
@@ -108,9 +99,9 @@ class Nor:
                 dt = np.mean(np.diff(t))
                 nt = len(t)
                 p,AA,BB,tt = self.forward_model(
-                            rep1_a=rep1_a, rep1_b=rep1_b, rep1_K=rep1_K, rep1_n=rep1_n,
-                            rep2_a=rep2_a, rep2_b=rep2_b, rep2_K=rep2_K, rep2_n=rep2_n,
-                            #alpha0=alpha0, alpha1=alpha1,
+                            rep1_K=rep1_K, rep1_n=rep1_n,
+                            rep2_K=rep2_K, rep2_n=rep2_n,
+                            alpha0=alpha0, alpha1=alpha1, alpha2=alpha2, alpha3=alpha3,
                             a_A=a_A, b_A=b_A, K_A=K_A, n_A=n_A,
                             a_B=a_B, b_B=b_B, K_B=K_B, n_B=n_B,
                             Dt=dt,
@@ -187,13 +178,13 @@ class Nor:
 
         # Bounds for fitting
         lower_bounds = [0]*8
-        upper_bounds = [1e8, 1e8, 1e8, 8] * 2
+        upper_bounds = [1e8, 8, 1e8, 8, 1e8, 1e8, 1e8, 1e8]
         bounds = [lower_bounds, upper_bounds]
 
         '''
-            rep1_a, rep1_b, rep1_K, rep1_n = x[0:4]
-            rep2_a, rep2_b, rep2_K, rep2_n = x[4:8]
-            alpha0, alpha1, alpha2, alpha3 = x[8:12]
+            rep1_K, rep1_n = x[0:2]
+            rep2_K, rep2_n = x[2:4]
+            alpha0, alpha1, alpha2, alpha3 = x[4:8]
         '''
         # Solve for parameters and profile
         residuals = self.residuals(
@@ -202,8 +193,8 @@ class Nor:
                                 self.a_B, self.b_B, self.K_B, self.n_B,
                                 gamma=gamma
                             )
-        res = least_squares(residuals, [1,1,1,0,1,1,1,0], bounds=bounds)
+        res = least_squares(residuals, [1,2,1,2,1,0,0,0], bounds=bounds)
         self.res = res
-        self.rep1_a, self.rep1_b, self.rep1_K, self.rep1_n = res.x[0:4]
-        self.rep2_a, self.rep2_b, self.rep2_K, self.rep2_n = res.x[4:8]
-        #self.alpha0, self.alpha1 = res.x[8:10]
+        self.rep1_K, self.rep1_n = res.x[0:2]
+        self.rep2_K, self.rep2_n = res.x[2:4]
+        self.alpha0, self.alpha1, self.alpha2, self.alpha3 = res.x[4:8]
