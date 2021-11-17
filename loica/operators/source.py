@@ -1,28 +1,21 @@
 import numpy as np
-from numpy.fft import fft, ifft, fftfreq
 from scipy.optimize import least_squares
 from scipy.interpolate import interp1d
 
 class Source:
-    def __init__(self, output, rate, profile=None):
-        if profile:
-            self.profile = profile
-        else:
-            def profile(t):
-                return 1
-            self.profile = profile
+    def __init__(self, output, rate):
         self.rate = rate
         self.output = output
 
     def expression_rate(self, t, dt):
-        return self.rate * self.profile(t)
+        return self.rate
 
     def forward_model(
         self,
         Dt=0.25,
         sim_steps=10,
         odval=[1]*97,
-        profile=[1]*97,
+        rate=1,
         gamma=0,
         p0=0,
         nt=100
@@ -34,46 +27,44 @@ class Source:
             t_list.append([t * Dt])
             od = odval[t]
             tt = t*Dt
-            prof = profile[t]
             for tt in range(sim_steps):
-                nextp1 = p1 + (odval[t]*profile[t] - gamma*p1) * Dt / sim_steps
+                nextp1 = p1 + (odval[t]*rate - gamma*p1) * Dt / sim_steps
                 p1 = nextp1
-
 
         ap1 = np.array(p1_list).transpose()
         tt = np.array(t_list).transpose()
         t = np.arange(nt) * Dt
         return ap1,tt
 
-    def residuals(self, data, odval, dt, t, n_gaussians, epsilon): 
+    def residuals(self, df, oddf): 
         def func(x): 
-            nt = len(t)
-            means = np.linspace(t.min(), t.max()+1, n_gaussians, endpoint=True)
-            vars = [(t.max()+1-t.min())/n_gaussians]*n_gaussians 
             p0 = x[0]
-            heights = x[1:]
-            gamma = 0
-            profile = np.zeros_like(t)
-            for mean,var,height in zip(means, vars, heights):
-                gaussian = height * np.exp(-(t-mean)*(t-mean) / var / 2) / np.sqrt(2 * np.pi * var)
-                profile = profile + gaussian
-            p,tt = self.forward_model(
-                        Dt=dt,
-                        odval=odval,
-                        profile=profile,
-                        nt=nt,
-                        p0=p0,
-                        gamma=gamma
-                    )
-            model = p[1:]
-            tikhonov = heights * epsilon
-            #tikhonov = np.diff(profile) * epsilon
-            ntimes = len(t)*dt - tt.ravel()[1:]
-            residual = (data[1:] - model)  # / tt.ravel()[1:] 
-            return np.concatenate((residual, tikhonov))
+            rate = x[1]
+            residual_list = []
+            df_sorted = df.sort_values(['Sample', 'Time'])
+            oddf_sorted = oddf.sort_values(['Sample', 'Time'])
+            for samp_id,samp_data in df_sorted.groupby('Sample'):
+                odval = oddf_sorted[oddf_sorted.Sample==samp_id].Measurement.values
+                data = samp_data.Measurement.values
+                t = samp_data.Time.values
+                dt = np.mean(np.diff(t))
+                nt = len(t)
+                gamma = 0
+                p,tt = self.forward_model(
+                            Dt=dt,
+                            odval=odval,
+                            rate=rate,
+                            nt=nt,
+                            p0=p0,
+                            gamma=gamma
+                        )
+                model = p[1:]
+                residual = (data[1:] - model) 
+                residual_list.append(residual) 
+            return np.array(residual_list).ravel()
         return func
 
-    def characterize(self, flapjack, vector, media, strain, signal, biomass_signal, n_gaussians, epsilon):
+    def characterize(self, flapjack, vector, media, strain, signal, biomass_signal):
         expression_df = flapjack.analysis(media=media, 
                             strain=strain,
                             vector=vector,
@@ -81,9 +72,6 @@ class Source:
                             type='Background Correct',
                             biomass_signal=biomass_signal
                             ).sort_values(['Sample', 'Time'])
-        t = expression_df.groupby('Time').mean().index.values
-        dt = np.diff(t).mean()
-        expression = expression_df.groupby('Time').mean().Measurement.values
 
         biomass_df = flapjack.analysis(media=media, 
                             strain=strain,
@@ -92,43 +80,26 @@ class Source:
                             type='Background Correct',
                             biomass_signal=biomass_signal
                             ).sort_values(['Sample', 'Time'])
-        biomass = biomass_df.groupby('Time').mean().Measurement.values
-
-        nt = len(t)
 
         # Bounds for fitting
-        lower_bounds = [0] + [0]*n_gaussians
-        upper_bounds = [1e8] + [1e8]*n_gaussians
+        lower_bounds = [0, 0]
+        upper_bounds = [1e8, 1e8]
         bounds = [lower_bounds, upper_bounds]
         '''
             p0 = x[0]
-            profile = x[1:]
+            rate = x[1]
         '''
-        data = expression.ravel()
-        self.residuals_func0 = self.residuals(
-                    data, biomass, epsilon=0, dt=dt, t=t, n_gaussians=n_gaussians
-                    )
         self.residuals_func = self.residuals(
-                    data, biomass, epsilon=epsilon, dt=dt, t=t, n_gaussians=n_gaussians
+                    expression_df, biomass_df
                     )
         res = least_squares(
                 self.residuals_func, 
-                [0] + [100]*n_gaussians, 
+                [0, 1], 
                 bounds=bounds
                 )
         self.res = res
 
         self.p0 = res.x[0]
-
-        profile = np.zeros_like(t)
-        means = np.linspace(t.min(), t.max()+1, n_gaussians, endpoint=True)
-        vars = [(t.max()+1-t.min())/n_gaussians] * n_gaussians 
-        heights = res.x[1:]
-        for mean,var,height in zip(means, vars, heights):
-            gaussian = height * np.exp(-(t-mean)*(t-mean) / var / 2) / np.sqrt(2 * np.pi * var)
-            profile = profile + gaussian
-        self.rate = profile.max()
-        self.profile = interp1d(t, profile/self.rate, fill_value='extrapolate', bounds_error=False)
-
+        self.rate = res.x[1]
 
 
