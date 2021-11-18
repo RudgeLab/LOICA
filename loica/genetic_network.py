@@ -1,5 +1,4 @@
 import sbol3
-import json
 import networkx as nx
 from .geneproduct import Regulator, Reporter
 from .supplement import Supplement
@@ -8,7 +7,14 @@ from .operators.nor import Nor
 from typing import List #, Dict, Tuple, Optional, Union, Any
 
 class GeneticNetwork():
+    """Representation of a genetic netowrk composed by a set of Operators, Regulators and Reporters."""
     def __init__(self, vector=None):
+        """Initialize a GeneticNetwork object.
+        :param vector: Flapjack ID of the vector that the reporter is associated with.
+        :param operators: List of Operators that are part of the Genetic Network.
+        :param regulators: List of Regulators that are part of the Genetic Network.
+        :param reporters: List of Reporters that are part of the Genetic Network.
+        """
         self.operators = []
         self.regulators = []
         self.reporters = []
@@ -55,12 +61,12 @@ class GeneticNetwork():
     def to_graph(self):
         g = nx.DiGraph()
         for op in self.operators:
-            #if type(op.output)==Regulator:
-            if type(op.input)==list:
-                for i in op.input:
-                    g.add_edge(i, op)
-            else:
-                g.add_edge(op.input, op)
+            if hasattr(op, 'input'):
+                if type(op.input)==list:
+                    for i in op.input:
+                        g.add_edge(i, op)
+                else:
+                    g.add_edge(op.input, op)
             g.add_edge(op, op.output)
         return g
 
@@ -103,12 +109,15 @@ class GeneticNetwork():
             font_weight=font_weight
             )
 
-    def to_sbol(self, sbol_doc=None):
-        # prototype for not gate interaction
+    def to_sbol(self, sbol_doc: sbol3.Document = None) -> sbol3.Document:
+        """Convert the genetic network to SBOL.
+        :param sbol_doc: The SBOL document to add the genetic network to.
+        """
         if sbol_doc:
             doc=sbol_doc
         else: 
             print('No SBOL Document provided')
+            print('Generating independent SBOL Document')
             doc = sbol3.Document()
         geneticnetwork = sbol3.Component('geneticnetwork', sbol3.SBO_DNA)
         geneticnetwork.roles.append(sbol3.SO_ENGINEERED_REGION)
@@ -131,29 +140,38 @@ class GeneticNetwork():
             # else error or comment TU sequence can not be generated, provide ways to add it.
 
             # Output GeneProduct Component
-            if type(op.output)==Regulator:
-                if op.output.type_ == 'PRO':
-                    output_gp_comp = sbol3.Component(f'{op.output.name}_protein', sbol3.SBO_PROTEIN)
-                    output_gp_comp.roles.append(sbol3.SO_TRANSCRIPTION_FACTOR)               
-                elif op.output.type_ == 'RNA':
-                    output_gp_comp = sbol3.Component(f'{op.output.name}_rna', sbol3.SBO_RNA)
-                    output_gp_comp.roles.append(sbol3.SO_TRANSCRIPTION_FACTOR)
-                else: 
-                    print('Unsupported output molecule type')
-            elif type(op.output)==Reporter: # For now just support fluorescent reporters
-                if op.output.type_ == 'PRO':
-                    output_gp_comp = sbol3.Component(f'{op.output.name}_protein', sbol3.SBO_PROTEIN)
-                    output_gp_comp.roles.append('http://purl.obolibrary.org/obo/NCIT_C37894')
-                elif op.output.type_ == 'RNA':
-                    output_gp_comp = sbol3.Component(f'{op.output.name}_rna', sbol3.SBO_RNA)
-                    output_gp_comp.roles.append('http://purl.obolibrary.org/obo/NCIT_C37894')  
-                else: 
+            if op.output != List:
+                outputs = [op.output]
+            else: outputs = op.output
+            for op_output in outputs:
+                if type(op_output)==Regulator:
+                    if op_output.type_ == 'PRO':
+                        output_gp_comp = sbol3.Component(f'{op.output.name}_protein', sbol3.SBO_PROTEIN)
+                        output_gp_comp.roles.append(sbol3.SO_TRANSCRIPTION_FACTOR)               
+                    elif op_output.type_ == 'RNA':
+                        output_gp_comp = sbol3.Component(f'{op.output.name}_rna', sbol3.SBO_RNA)
+                        output_gp_comp.roles.append(sbol3.SO_TRANSCRIPTION_FACTOR)
+                    else: 
                         print('Unsupported output molecule type')
-            else:
-                print('Unsupported output Type')
-            output_gp_sc = sbol3.SubComponent(output_gp_comp)
-            tu.features.append(output_gp_sc)
-            loica_set.add(output_gp_comp)
+                elif type(op_output)==Reporter: # For now just support fluorescent reporters
+                    if op_output.type_ == 'PRO':
+                        output_gp_comp = sbol3.Component(f'{op.output.name}_protein', sbol3.SBO_PROTEIN)
+                        output_gp_comp.roles.append('http://purl.obolibrary.org/obo/NCIT_C37894')
+                    elif op_output.type_ == 'RNA':
+                        output_gp_comp = sbol3.Component(f'{op.output.name}_rna', sbol3.SBO_RNA)
+                        output_gp_comp.roles.append('http://purl.obolibrary.org/obo/NCIT_C37894')  
+                    else: 
+                            print('Unsupported output molecule type')
+                else:
+                    print('Unsupported output Type')
+                output_gp_sc = sbol3.SubComponent(output_gp_comp)
+                tu.features.append(output_gp_sc)
+                loica_set.add(output_gp_comp)
+                # Genetic Production Interaction pf the output
+                output_participation = sbol3.Participation(roles=[sbol3.SBO_TEMPLATE], participant=output_sc)
+                gp_participation = sbol3.Participation(roles=[sbol3.SBO_PRODUCT], participant=output_gp_sc)
+                production = sbol3.Interaction(types=[sbol3.SBO_GENETIC_PRODUCTION], participations=[output_participation, gp_participation])
+                tu.interactions.append(production)
             # obtain TU subcomponents sequences, specially CDS and flanking parts sequences
             # look for ATG on the CDS and upstream part sequences (in the case of MoClo the ATG is in the fusion sites)
             # look for stop codons on frame with the ATG.
@@ -185,11 +203,6 @@ class GeneticNetwork():
                 inputs_prod_sc.append(input_prod_sc)
                 loica_set.add(input_prod_comp)
 
-            # Genetic Production Interaction pf the output
-            output_participation = sbol3.Participation(roles=[sbol3.SBO_TEMPLATE], participant=output_sc)
-            gp_participation = sbol3.Participation(roles=[sbol3.SBO_PRODUCT], participant=output_gp_sc)
-            production = sbol3.Interaction(types=[sbol3.SBO_GENETIC_PRODUCTION], participations=[output_participation, gp_participation])
-            tu.interactions.append(production)
             # Inhibition Interaction
             if type(op)==Not or Nor:
                 for input_prod_sc in inputs_prod_sc:

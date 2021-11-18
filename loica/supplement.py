@@ -5,4 +5,6 @@ class Supplement:
         self.concentration = 0
         self.pubchemid = pubchemid
 
+    def __str__(self):
+        return self.name
 
