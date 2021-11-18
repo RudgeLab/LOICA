@@ -1,5 +1,4 @@
 import sbol3
-import json
 import networkx as nx
 from .geneproduct import Regulator, Reporter
 from .supplement import Supplement

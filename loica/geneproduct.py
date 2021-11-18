@@ -1,5 +1,4 @@
 import numpy as np
-import pickle
 
 class GeneProduct:
     shape = '^'
