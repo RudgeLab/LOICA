@@ -1,5 +1,5 @@
 # LOICA
-Logical Operators for Intelligent Cell Algorithms
+Logical Operators for Integarted Cell Algorithms
 
 ## High level idea
 
@@ -9,11 +9,9 @@ Easy progamation of genetic network models
 
 Generation of synthetic data
 
-Generation of Human/Machine readable protocols for DNA assembly
-
 Communication with FlapJack
 
-Use and output SBOL/SBML
+Use and output SBOL
 
 Use all sorts of cellular computation
 
