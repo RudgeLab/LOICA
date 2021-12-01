@@ -22,4 +22,4 @@ Installing is LOICA is way easier than pronuncing it! Please refer to our [Wiki]
 
 ## Tutorials
 
-Now that you have LOICA installed you can familiarize yourself with the tool using the [Jupyter tutorials](https://github.com/RudgeLab/LOICA/tree/master/notebooks) designed for this purpose.
+Now that you have LOICA installed you can familiarize yourself with the tool using the [Jupyter notebook tutorials](https://github.com/RudgeLab/LOICA/tree/master/notebooks) designed for this purpose.
