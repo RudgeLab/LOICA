@@ -4,17 +4,38 @@ from .geneproduct import Regulator, Reporter
 from .supplement import Supplement
 from .operators.not_ import Not
 from .operators.nor import Nor
+from .operators.buffer import Buffer
+from .operators.receiver import Receiver
+from .operators.source import Source
 from typing import List #, Dict, Tuple, Optional, Union, Any
 
 class GeneticNetwork():
-    """Representation of a genetic netowrk composed by a set of Operators, Regulators and Reporters."""
+    """
+    Representation of a genetic netowrk composed by a set of Operators, Regulators and Reporters.
+
+    ...
+
+    Attributes
+    ----------
+    operators : List[Operator]
+        List of Operators that are part of the genetic network
+    regulators : List[Regulator]
+        List of Regulators that are part of the genetic network
+    reporters : List[Reporter]
+        List of Reporters that are part of the genetic network
+    vector : int
+        Flapjack ID of the vector that is associated with the genetic network
+
+    Methods
+    -------
+    to_graph()
+        Builds a graph representation of the genetic netwok
+    draw()
+        Generates a plot of the graph representation builded by to_graph()
+    to_sbol(sbol_doc=None)
+        Generates a SBOL3 Document representation of the genetic network on sbol_doc  
+    """
     def __init__(self, vector=None):
-        """Initialize a GeneticNetwork object.
-        :param vector: Flapjack ID of the vector that the reporter is associated with.
-        :param operators: List of Operators that are part of the Genetic Network.
-        :param regulators: List of Regulators that are part of the Genetic Network.
-        :param reporters: List of Reporters that are part of the Genetic Network.
-        """
         self.operators = []
         self.regulators = []
         self.reporters = []
@@ -117,22 +138,48 @@ class GeneticNetwork():
             doc=sbol_doc
         else: 
             print('No SBOL Document provided')
-            print('Generating independent SBOL Document')
+            print('Generating a new SBOL Document')
             doc = sbol3.Document()
+        products = set()
         geneticnetwork = sbol3.Component('geneticnetwork', sbol3.SBO_DNA)
         geneticnetwork.roles.append(sbol3.SO_ENGINEERED_REGION)
         loica_set = set()
         for op in self.operators:
             operator_comp = op.sbol_comp
             output_comp = op.output.sbol_comp
-            input_comp = op.input.sbol_comp
             operator_sc = sbol3.SubComponent(operator_comp)
             output_sc = sbol3.SubComponent(output_comp)
-            input_sc = sbol3.SubComponent(input_comp)
+            # TODO output string for policistronic operators
+            if type(op)==Source:
+                input_str= 'c'
+                tu = sbol3.Component(f'TU_{op}_{op.output.name}', sbol3.SBO_DNA) #generalize to multi input/output TUs
+                tu.roles.append(sbol3.SO_ENGINEERED_REGION)
+                tu.features = [operator_sc, output_sc] 
+            elif type(op)==Nor: # type(op.input)==List:
+                input_str = ''
+                tu = sbol3.Component(f'TU{input_str}_{op}_{op.output.name}', sbol3.SBO_DNA) #generalize to multi input/output TUs
+                tu.features = [operator_sc, output_sc]
+                for inp in op.input:
+                    input_str += f'_{inp.name}'
+                    input_comp = inp.sbol_comp
+                    if type(input_comp)==sbol3.Component:
+                        input_sc = sbol3.SubComponent(input_comp)
+                        tu.features.append(input_sc)
+                    else:
+                        tu.features.append(input_comp)
+            else:
+                input_str= f'_{op.input.name}'
+                tu = sbol3.Component(f'TU{input_str}_{op}_{op.output.name}', sbol3.SBO_DNA) #generalize to multi input/output TUs
+                tu.features = [operator_sc, output_sc]
+                input_comp = op.input.sbol_comp
+                if type(input_comp)==sbol3.Component:
+                    input_sc = sbol3.SubComponent(input_comp)
+                    tu.features.append(input_sc)
+                else:
+                    tu.features.append(input_comp)                  
+
             # TU Component
-            tu = sbol3.Component(f'TU_{op.input.name}_{op}_{op.output.name}', sbol3.SBO_DNA) #generalize to multi input/output TUs
-            tu.roles.append(sbol3.SO_ENGINEERED_REGION)
-            tu.features = [operator_sc, output_sc, input_sc]                  
+            tu.roles.append(sbol3.SO_ENGINEERED_REGION)              
             tu.constraints = [sbol3.Constraint(sbol3.SBOL_PRECEDES, operator_sc, output_sc)]
             # generate a sequence for the TU assuming assembly by type IIS REsnf both parts will have the fusion sites.
             # compare last 4 bp with thefirst 4 bp of the next part, given the preceds constraint.
@@ -166,7 +213,9 @@ class GeneticNetwork():
                     print('Unsupported output Type')
                 output_gp_sc = sbol3.SubComponent(output_gp_comp)
                 tu.features.append(output_gp_sc)
-                loica_set.add(output_gp_comp)
+                if op_output not in products:
+                    products.add(op_output) 
+                    loica_set.add(output_gp_comp)
                 # Genetic Production Interaction pf the output
                 output_participation = sbol3.Participation(roles=[sbol3.SBO_TEMPLATE], participant=output_sc)
                 gp_participation = sbol3.Participation(roles=[sbol3.SBO_PRODUCT], participant=output_gp_sc)
@@ -179,10 +228,12 @@ class GeneticNetwork():
             #protein.sequence = tu.cds.sequence
 
             # Input Product Component
-            if op.input != List:
-                inputs = [op.input]
-            else: inputs = op.input
-            inputs_prod_sc = []
+            if type(op) == Source:
+                inputs=[]
+            elif type(op) == Nor: #type(op.input) != List:
+                inputs = op.input
+            else: inputs = [op.input]
+            #inputs_prod_sc = []
             for op_input in inputs:
                 if type(op_input)==Regulator:
                     if op_input.type_ == 'PRO':
@@ -198,24 +249,35 @@ class GeneticNetwork():
                     input_prod_comp.roles.append(sbol3.SO_TRANSCRIPTION_FACTOR)     
                 else:
                     print('Unsupported input Type')
+                # adds two times prod comp on the repressilator but necessary for normal circuits
+                if op_input not in products:
+                    products.add(op_input) 
+                    loica_set.add(input_prod_comp)
+                
                 input_prod_sc = sbol3.SubComponent(input_prod_comp)
                 tu.features.append(input_prod_sc)
-                inputs_prod_sc.append(input_prod_sc)
-                loica_set.add(input_prod_comp)
-
-            # Inhibition Interaction
-            if type(op)==Not or Nor:
-                for input_prod_sc in inputs_prod_sc:
+                #inputs_prod_sc.append(input_prod_sc)
+                #how can I not create 2 times the same component?
+                if type(op_input)!=Regulator: # if it is a regulator it is already created
+                    loica_set.add(input_prod_comp)
+                # Input Interaction
+                if type(op)==Not or Nor:
                     input_participation = sbol3.Participation(roles=[sbol3.SBO_INHIBITOR], participant=input_prod_sc)
                     op_participation = sbol3.Participation(roles=[sbol3.SBO_INHIBITED], participant=operator_sc)
                     interaction = sbol3.Interaction(types=[sbol3.SBO_INHIBITION], participations=[input_participation, op_participation])
                     tu.interactions.append(interaction)
-            else:
-                print('Unsupported operator Type')
-            
+                elif type(op)==Buffer or Receiver:
+                    input_participation = sbol3.Participation(roles=[sbol3.SBO_STIMULATOR], participant=input_prod_sc)
+                    op_participation = sbol3.Participation(roles=[sbol3.SBO_STIMULATED], participant=operator_sc)
+                    interaction = sbol3.Interaction(types=[sbol3.SBO_STIMULATION], participations=[input_participation, op_participation])
+                    tu.interactions.append(interaction)
+                elif type(op)==Source:
+                    pass
+                else:
+                    print('Unsupported operator Type')         
             # Model
             #model_string = str(op.__dict__)
-            op_model = sbol3.Model(f'LOICA_{op.input.name}_{op}_{op.output.name}_model', 
+            op_model = sbol3.Model(f'LOICA{input_str}_{op}_{op.output.name}_model', 
                             source='https://github.com/SynBioUC/LOICA/blob/master/loica/operators',
                             language='http://identifiers.org/EDAM:format_3996',
                             framework='http://identifiers.org/SBO:0000062',)

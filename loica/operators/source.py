@@ -3,10 +3,35 @@ from scipy.optimize import least_squares
 from scipy.interpolate import interp1d
 
 class Source:
+    """
+    A class that represents a DNA fragment that encode a genetic operator.
+    The Source Operator is an abstraction of a constitutive promoter that
+    produces output.
+
+    ...
+    
+    Attributes
+    ----------
+    output : Regulator | Reporter
+        The output of the operator that is regulated by the input
+   rate : ?
+        ??
+    uri : str, optional
+        SynBioHub URI
+    sbol_comp : SBOL Component, optional
+        SBOL Component
+
+    Methods
+    -------
+    characterize(flapjack, receiver, inverter, media, strain, signal, biomass_signal, gamma)
+        Parameterize the Operator model that maps Input concentration into Output expression rate
+    """
     color = 'blue'
-    def __init__(self, output, rate):
+    def __init__(self, output, rate, uri=None, sbol_comp=None):
         self.rate = rate
         self.output = output
+        self.uri = uri
+        self.sbol_comp = sbol_comp
 
     def __str__(self):
         return 'SRC'

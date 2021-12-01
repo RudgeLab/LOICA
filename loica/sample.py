@@ -1,34 +1,58 @@
 class Sample:
+    """
+    Representation of a sample that encapsulates GeneticNetwork and Metabolism.
+    Incorporate environment information such as Supplements or chemicals, strain and media. 
+    Ex: 1 well in a plate, single cell.
+    ...
+
+    Attributes
+    ----------
+    genetic_network : GeneticNetwork
+        genetic network that is part of the sample
+    metabolism : Metabolism
+        metabolism that drives the genetic network in the sample
+    assay : Assay
+        assay to which this sample belongs
+    media : str
+        Name of the media in the sample
+    strain : str
+        Name of the strain in the sample
+    
+     Methods
+    -------
+    add_supplement(supplement, concentration)
+        stablishes the concentration of Supplement
+    """
     def __init__(self, 
-            circuit=None, 
+            genetic_network=None, 
             metabolism=None, 
             assay=None,
             media=None,
             strain=None,
             ):
-        self.circuit = circuit
+        self.genetic_network = genetic_network
         self.metabolism = metabolism
         self.media = media
         self.strain = strain
-        self.vector = self.circuit.vector
-        if self.circuit:
-            self.reporters = self.circuit.reporters
+        self.vector = self.genetic_network.vector
+        if self.genetic_network:
+            self.reporters = self.genetic_network.reporters
         if metabolism:
             self.biomass = self.metabolism.biomass
         self.supplements = {}
 
     def initialize(self):
-        self.circuit.initialize()
+        self.genetic_network.initialize()
 
     def add_supplement(self, supplement, concentration):
         self.supplements[supplement] = concentration
 
     def step(self, t, dt):
-        if self.circuit and self.metabolism:
+        if self.genetic_network and self.metabolism:
             growth_rate = self.metabolism.growth_rate(t)
             for supp,conc in self.supplements.items():
                 supp.concentration = conc
-            self.circuit.step(growth_rate, t, dt)
-            self.reporters = self.circuit.reporters
+            self.genetic_network.step(growth_rate, t, dt)
+            self.reporters = self.genetic_network.reporters
 
 
