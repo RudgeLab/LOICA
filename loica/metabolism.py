@@ -1,6 +1,24 @@
 import numpy as np
 from scipy.interpolate import interp1d
 
+def ramp_growth_rate(t, start, slope):
+    gr = np.maximum(0, slope*(t-start))
+    return(gr)
+
+def ramp_biomass(t, od0, start, slope):
+    logod = np.maximum(0, ((t-start)**2)/2)
+    od = od0 * np.exp(logod)
+    return(od)
+
+def step_growth_rate(t, start):
+    gr = 1 * ((t-start)>0)
+    return(gr)
+
+def step_biomass(t, od0, start):
+    logod = np.maximum(0, t-start)
+    od = od0 * np.exp(logod)
+    return(od)
+
 def gompertz_growth_rate(t, y0, ymax, um, l):
     A = np.log(ymax/y0)
     gr = um *np.exp((np.exp(1)* um *(l - t))/A - \
@@ -14,16 +32,55 @@ def gompertz(t, y0, ymax, um, l):
     return(od)
 
 class Metabolism:
+    """
+    Context for gene expression, incorporates biomass and growth rate.
+
+    """
     def __init__(self):
         pass
 
 class SimulatedMetabolism(Metabolism):
+    """
+    Simulated context for gene expression, incorporates biomass and growth rate.
+    ...
+
+    Attributes
+    ----------
+    biomass
+        A function of time that describes biomass f(t)=biomass
+    growth_rate
+        A function of time that describes the growth rate f(t)=growth rate
+    """
     def __init__(self, biomass_func, growth_rate_func):
         super().__init__()
         self.biomass = biomass_func
         self.growth_rate = growth_rate_func
 
 class DataMetabolism(Metabolism):
+    """
+    Characterized context for gene expression, incorporates biomass and growth rate.
+    ...
+
+    Attributes
+    ----------
+    fj : Flapjack
+        Flapjack instance used to fetch data from
+    media : str
+        Name of the media to query
+    strain : str
+        Name of the strain to query
+    vector : str
+        Name of the vector to query
+    biomass_signal : str
+        Name of signal to query and use as biomass
+    
+    Methods
+    -------
+    biomass(t)
+        Return biomass at a given time from characterization data
+    growth:rate(t)
+        Return growth rate at a given time from characterization data
+    """
     def __init__(self, fj, media, strain, vector, biomass_signal):
         super().__init__()
         gr = fj.analysis(media=media.id, 

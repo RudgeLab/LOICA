@@ -1,3 +1,4 @@
+import pickle
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.optimize import least_squares
@@ -101,3 +102,11 @@ def characterize_growth(flapjack,
                 )
     return init_biomass, od, mu_profile
 
+def save_loica(obj, filename):
+    with open(f'{filename}.obj', 'wb') as outp:
+        pickle.dump(obj, outp, pickle.HIGHEST_PROTOCOL)
+
+def load_loica(filename):
+    with open(f'{filename}.obj', 'rb') as inp:
+        loica = pickle.load(inp)
+    return loica
