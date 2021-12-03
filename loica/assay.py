@@ -5,6 +5,34 @@ from . import genetic_network, metabolism
 
 
 class Assay:
+    """
+    Assay measures a set of samples in parallel at a set of timepoints.
+    Connects to flapjack to generate data, and to fit parameters to data.
+    
+    ...
+    
+    Attributes
+    ----------
+    samples : List[Sample]
+        List of Samples that belongs to the Assay
+    n_measurements : int
+        Number of measurements to take
+    interval : int
+        Time in hours between each measurements
+    name : str
+        Name of the Assay
+    description: str
+        Descriptioin of the Assay
+    biomass_signal_id : int
+        Flapjack ID of the Assay that is associated with the Assay
+
+    Methods
+    -------
+    run(substeps=10, nsr=0, biomass_bg=0, fluo_bg=0)
+        Runs the Assay time series
+    upload(flapjack, study)
+        Upload the data produced by running the Assay to Flapjack into the Study
+    """
     def __init__(self, 
             samples, 
             n_measurements, 
