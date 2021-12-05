@@ -82,7 +82,7 @@ class Nor:
         t = np.arange(nt) * Dt
         return afp,AA,BB,tt
 
-    def residuals(self, df, oddf, a_A, b_A, K_A, n_A, a_B, b_B, K_B, n_B, gamma): 
+    def residuals(self, df, oddf, a_A, b_A, K_A, n_A, a_B, b_B, K_B, n_B, chem1, chem2, gamma): 
         def func(x): 
             rep1_K, rep1_n = x[0:2]
             rep2_K, rep2_n = x[2:4]
@@ -95,8 +95,21 @@ class Nor:
                 data = samp_data.Measurement.values
                 p0_1 = 0
                 p0_2 = data[0]
-                A = samp_data.Concentration1.values[0]
-                B = samp_data.Concentration2.values[0]
+                # Get inducer concentrations if any
+                chemical1 = samp_data.Chemical_id1.values[0]
+                chemical2 = samp_data.Chemical_id2.values[0]
+                if chemical1 == chem1:
+                    A = samp_data.Concentration1.values[0]
+                elif chemical2 == chem1:
+                    A = samp_data.Concentration2.values[0]
+                else:
+                    A = 0
+                if chemical1 == chem2:
+                    B = samp_data.Concentration1.values[0]
+                elif chemical2 == chem2:
+                    B = samp_data.Concentration2.values[0]
+                else:
+                    B = 0
                 t = samp_data.Time.values
                 dt = np.mean(np.diff(t))
                 nt = len(t)
@@ -123,6 +136,8 @@ class Nor:
             flapjack, 
             receiver1,
             receiver2, 
+            chemical1,
+            chemical2,
             nor_inverter, 
             media, 
             strain, 
@@ -193,6 +208,7 @@ class Nor:
                                 nor_inverter_df, biomass_df,
                                 self.a_A, self.b_A, self.K_A, self.n_A,
                                 self.a_B, self.b_B, self.K_B, self.n_B,
+                                chemical1, chemical2,
                                 gamma=gamma
                             )
         res = least_squares(residuals, [1,2,1,2,1,0,0,0], bounds=bounds)
