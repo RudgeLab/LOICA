@@ -9,14 +9,16 @@ setup(name='loica',
 	'networkx',
 	'pandas',
     'sbol3',
-    'tyto'
+    'tyto',
+    'tdqm'
         ],
     setup_requires=[
         'numpy',
 	'networkx',
 	'pandas',
     'sbol3',
-    'tyto' 
+    'tyto',
+    'tdqm'
         ],
     packages=['loica'],
     python_requires='>=3',

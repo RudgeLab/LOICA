@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from tqdm import tqdm
 from . import genetic_network, metabolism
 
 
@@ -60,47 +61,52 @@ class Assay:
         '''
         #substeps = self.interval / dt
         dt = self.interval / substeps
-        for sample_id, sample in enumerate(self.samples):
-            sample.initialize()
-            # Integrate models
-            for t in range(self.n_measurements):
-                time = t * self.interval
-                # Record measurements of fluorescence
-                for reporter in sample.reporters:
-                    sig = reporter.concentration
-                    signal_id = reporter.signal_id
-                    signal_name = reporter.name
+        n_samples = len(self.samples)
+        with tqdm(total=100) as pbar:
+            for sample_id, sample in enumerate(self.samples):
+                sample.initialize()
+                # Integrate models
+                for t in range(self.n_measurements):
+                    time = t * self.interval
+                    # Record measurements of fluorescence
+                    for reporter in sample.reporters:
+                        sig = reporter.concentration
+                        signal_id = reporter.signal_id
+                        signal_name = reporter.name
+                        noise = np.random.normal(scale=np.sqrt(nsr))
+                        meas = sig * sample.biomass(time) + fluo_bg
+                        noisy_meas = (1 + noise) * meas
+                        noise_bg = np.random.normal(scale=np.sqrt(nsr))
+                        corr_meas = noisy_meas - (1 + noise_bg) * fluo_bg
+                        row = {
+                                'Time': time, 
+                                'Signal_id': signal_id, 
+                                'Signal':signal_name, 
+                                'Measurement': corr_meas,
+                                'Sample':sample_id
+                                }
+                        self.measurements = self.measurements.append(row, ignore_index=True)
+                    # Record measurement of biomass
                     noise = np.random.normal(scale=np.sqrt(nsr))
-                    meas = sig * sample.biomass(time) + fluo_bg
+                    meas = sample.biomass(time) + biomass_bg
                     noisy_meas = (1 + noise) * meas
                     noise_bg = np.random.normal(scale=np.sqrt(nsr))
-                    corr_meas = noisy_meas - (1 + noise_bg) * fluo_bg
+                    corr_meas = noisy_meas - (1 + noise_bg) * biomass_bg
                     row = {
                             'Time': time, 
-                            'Signal_id': signal_id, 
-                            'Signal':signal_name, 
+                            'Signal_id': self.biomass_signal_id, 
                             'Measurement': corr_meas,
+                            'Signal':'Biomass', 
                             'Sample':sample_id
                             }
                     self.measurements = self.measurements.append(row, ignore_index=True)
-                # Record measurement of biomass
-                noise = np.random.normal(scale=np.sqrt(nsr))
-                meas = sample.biomass(time) + biomass_bg
-                noisy_meas = (1 + noise) * meas
-                noise_bg = np.random.normal(scale=np.sqrt(nsr))
-                corr_meas = noisy_meas - (1 + noise_bg) * biomass_bg
-                row = {
-                        'Time': time, 
-                        'Signal_id': self.biomass_signal_id, 
-                        'Measurement': corr_meas,
-                        'Signal':'Biomass', 
-                        'Sample':sample_id
-                        }
-                self.measurements = self.measurements.append(row, ignore_index=True)
-                # Compute next time step
-                for tt in range(substeps):
-                    time = t * self.interval + tt * dt
-                    sample.step(time, dt)
+                    # Compute next time step
+                    for tt in range(substeps):
+                        time = t * self.interval + tt * dt
+                        sample.step(time, dt)
+                pbar.update(sample_id / n_samples * 100)
+            pbar.update(100)
+            pbar.close()
                 
     def upload(self, flapjack, study):
         assay = flapjack.create('assay', 
@@ -109,30 +115,34 @@ class Assay:
                                     temperature=0, 
                                     machine='Loica',
                                     description=self.description)
-        for sample_id,sample in enumerate(self.samples):
-            fj_sample = flapjack.create('sample',
-                                row=sample_id, col=1,
-                                media=sample.media,
-                                strain=sample.strain,
-                                vector=sample.vector,
-                                assay=assay.id[0],
-                                )
+        n_samples = len(self.samples)
+        with tqdm(total=100) as pbar:
+            for sample_id,sample in enumerate(self.samples):
+                fj_sample = flapjack.create('sample',
+                                    row=sample_id, col=1,
+                                    media=sample.media,
+                                    strain=sample.strain,
+                                    vector=sample.vector,
+                                    assay=assay.id[0],
+                                    )
 
-            supplements = []
-            for supp,conc in sample.supplements.items():
-                chemical = flapjack.get('chemical', name=supp.name)
-                if len(chemical)==0:
-                    chemical = flapjack.create('chemical', name=supp.name, description='Testing')
-                name = supp.name + f' {conc}'
-                s = flapjack.get('supplement', name=name, concentration=conc, chemical=chemical.id[0])
-                if len(s)==0:
-                    s = flapjack.create('supplement', name=name, concentration=conc, chemical=chemical.id[0])
-                supplements.append(s.id[0])
-            if len(supplements):
-                flapjack.patch('sample', fj_sample.id[0], supplements=supplements)
+                supplements = []
+                for supp,conc in sample.supplements.items():
+                    chemical = flapjack.get('chemical', name=supp.name)
+                    if len(chemical)==0:
+                        chemical = flapjack.create('chemical', name=supp.name, description='Testing')
+                    name = supp.name + f' {conc}'
+                    s = flapjack.get('supplement', name=name, concentration=conc, chemical=chemical.id[0])
+                    if len(s)==0:
+                        s = flapjack.create('supplement', name=name, concentration=conc, chemical=chemical.id[0])
+                    supplements.append(s.id[0])
+                if len(supplements):
+                    flapjack.patch('sample', fj_sample.id[0], supplements=supplements)
 
-            meas = self.measurements[self.measurements.Sample==sample_id]
-            for signal_id,data in meas.groupby('Signal_id'):
-                if signal_id:
-                    flapjack.upload_measurements(data, signal=[signal_id], sample=fj_sample.id)
-
+                meas = self.measurements[self.measurements.Sample==sample_id]
+                for signal_id,data in meas.groupby('Signal_id'):
+                    if signal_id:
+                        flapjack.upload_measurements(data, signal=[signal_id], sample=fj_sample.id)
+                pbar.update(sample_id / n_samples * 100)
+            pbar.update(100)
+            pbar.close()
