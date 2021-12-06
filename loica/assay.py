@@ -104,8 +104,7 @@ class Assay:
                     for tt in range(substeps):
                         time = t * self.interval + tt * dt
                         sample.step(time, dt)
-                pbar.update(sample_id / n_samples * 100)
-            pbar.update(100)
+                pbar.update(1 / n_samples * 100)
             pbar.close()
                 
     def upload(self, flapjack, study):
@@ -143,6 +142,5 @@ class Assay:
                 for signal_id,data in meas.groupby('Signal_id'):
                     if signal_id:
                         flapjack.upload_measurements(data, signal=[signal_id], sample=fj_sample.id)
-                pbar.update(sample_id / n_samples * 100)
-            pbar.update(100)
+                pbar.update(1 / n_samples * 100)
             pbar.close()
