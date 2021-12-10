@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.optimize import least_squares
-from scipy.interpolate import interp1d
 
 class Source:
     """
