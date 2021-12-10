@@ -6,6 +6,7 @@ import subprocess
 setup(name='loica',
     install_requires=[        
         'numpy', 
+	'scipy',
 	'networkx',
 	'pandas',
     'sbol3',
@@ -14,6 +15,7 @@ setup(name='loica',
         ],
     setup_requires=[
         'numpy',
+	'scipy',
 	'networkx',
 	'pandas',
     'sbol3',
