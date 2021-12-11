@@ -1,11 +1,11 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 with open('README.md', 'r') as ld:
     long_description = ld.read()
 
 setup(name='loica',
-    version='1.0.0',
+    version='1.0.3',
     author='Gonzalo Vidal',
     author_email='gsvidal@uc.cl',
     description='LOICA: Logical Operators for Integrated Cell Algorithms',
@@ -35,6 +35,6 @@ setup(name='loica',
     	'tyto',
     	'tdqm'
         ],
-    packages=['loica'],
+    packages=find_packages(),
     python_requires='>=3'
 )
