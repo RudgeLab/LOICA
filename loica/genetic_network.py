@@ -71,7 +71,11 @@ class GeneticNetwork():
     def step(self, growth_rate=1, t=0, dt=0.1):
         for op in self.operators:
             expression_rate = op.expression_rate(t, dt)
-            op.output.express(expression_rate)
+            if type(op.output)==list:
+                for o in op.output:
+                    o.express(expression_rate)
+            else:
+                op.output.express(expression_rate)
 
         for regulator in self.regulators:
             regulator.step(growth_rate, dt)
@@ -88,7 +92,11 @@ class GeneticNetwork():
                         g.add_edge(i, op)
                 else:
                     g.add_edge(op.input, op)
-            g.add_edge(op, op.output)
+            if type(op.output)==list:
+                for o in op.output:
+                    g.add_edge(op, o)
+            else:
+                g.add_edge(op, op.output)
         return g
 
     def draw(
@@ -187,9 +195,10 @@ class GeneticNetwork():
             # else error or comment TU sequence can not be generated, provide ways to add it.
 
             # Output GeneProduct Component
-            if op.output != List:
+            if type(op.output) != list:
                 outputs = [op.output]
-            else: outputs = op.output
+            else: 
+                outputs = op.output
             for op_output in outputs:
                 if type(op_output)==Regulator:
                     if op_output.type_ == 'PRO':
