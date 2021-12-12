@@ -2,8 +2,8 @@ import sbol3
 import networkx as nx
 from .geneproduct import Regulator, Reporter
 from .supplement import Supplement
-from .operators.not_ import Not
-from .operators.nor import Nor
+from .operators.hill1 import Hill1
+from .operators.hill2 import Hill2
 from .operators.buffer import Buffer
 from .operators.receiver import Receiver
 from .operators.source import Source
@@ -163,7 +163,7 @@ class GeneticNetwork():
                 tu = sbol3.Component(f'TU_{op}_{op.output.name}', sbol3.SBO_DNA) #generalize to multi input/output TUs
                 tu.roles.append(sbol3.SO_ENGINEERED_REGION)
                 tu.features = [operator_sc, output_sc] 
-            elif type(op)==Nor: # type(op.input)==List:
+            elif type(op)==Hill2: # type(op.input)==List:
                 input_str = ''
                 tu = sbol3.Component(f'TU{input_str}_{op}_{op.output.name}', sbol3.SBO_DNA) #generalize to multi input/output TUs
                 tu.features = [operator_sc, output_sc]

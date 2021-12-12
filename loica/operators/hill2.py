@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import least_squares
 from .receiver import *
 
-class Nor:
+class Hill2:
     color = 'orange'
     shape = 's'
     def __init__(self, input, output, alpha, K, n, uri=None, sbol_comp=None):
@@ -15,7 +15,7 @@ class Nor:
         self.sbol_comp = sbol_comp
 
     def __str__(self):
-        return 'NOR'
+        return 'HILL2'
 
     def expression_rate(self, t, dt):
         input_repressor1 = self.input[0].concentration
