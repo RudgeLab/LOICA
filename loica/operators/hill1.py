@@ -35,8 +35,8 @@ class Hill1:
     color = 'skyblue'
     shape = 's'
     def __init__(self, input, output, alpha, K, n, uri=None, sbol_comp=None):
-        self.a = a
-        self.b = b
+        self.a = alpha[0]
+        self.b = alpha[1]
         self.K = K
         self.n = n
         self.input = input
