@@ -132,7 +132,8 @@ class GeneticNetwork():
             node_shape=node_shape, 
             node_size=node_size,
             arrowsize=arrowsize,
-            edge_color=edge_colors
+            edge_color=edge_colors,
+            connectionstyle='arc3, rad = 0.1'
             )
         nx.draw_networkx_labels(
             g,
