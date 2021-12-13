@@ -35,9 +35,9 @@ class Receiver:
         Parameterize the Operator model that maps Input concentration into Output expression rate
     """
     color = 'orange'
-    def __init__(self, input, output, a, b, K, n, uri=None, sbol_comp=None):
-        self.a = a
-        self.b = b
+    def __init__(self, input, output, alpha, K, n, uri=None, sbol_comp=None):
+        self.a = alpha[0]
+        self.b = alpha[1]
         self.K = K
         self.n = n
         self.input = input
