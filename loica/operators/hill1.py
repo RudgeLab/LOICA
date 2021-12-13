@@ -35,8 +35,7 @@ class Hill1:
     color = 'skyblue'
     shape = 's'
     def __init__(self, input, output, alpha, K, n, uri=None, sbol_comp=None):
-        self.a = alpha[0]
-        self.b = alpha[1]
+        self.alpha = alpha
         self.K = K
         self.n = n
         self.input = input
@@ -50,7 +49,7 @@ class Hill1:
     def expression_rate(self, t, dt):
         input_repressor = self.input.concentration
         r = (input_repressor/self.K)**self.n
-        expression_rate = ( self.a + self.b*r ) / (1 + r)
+        expression_rate = ( self.alpha[0] + self.alpha[1]*r ) / (1 + r)
         return expression_rate
 
     def forward_model(
@@ -198,5 +197,4 @@ class Hill1:
         self.res = res
         self.n = res.x[0]
         self.K = res.x[1]
-        self.a = res.x[2]
-        self.b = res.x[3]
+        self.alpha = res.x[2:4]
