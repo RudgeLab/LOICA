@@ -88,15 +88,17 @@ class GeneticNetwork():
         for op in self.operators:
             if hasattr(op, 'input'):
                 if type(op.input)==list:
-                    for i in op.input:
-                        g.add_edge(i, op)
+                    for i,inp in enumerate(op.input):
+                        color = 'black' if op.alpha[i]>op.alpha[0] else 'red'
+                        g.add_edge(inp, op, color=color)
                 else:
-                    g.add_edge(op.input, op)
+                    color = 'black' if op.alpha[1]>op.alpha[0] else 'red'
+                    g.add_edge(op.input, op, color=color)
             if type(op.output)==list:
                 for o in op.output:
-                    g.add_edge(op, o)
+                    g.add_edge(op, o, color='black')
             else:
-                g.add_edge(op, op.output)
+                g.add_edge(op, op.output, color='black')
         return g
 
     def draw(
@@ -122,13 +124,15 @@ class GeneticNetwork():
             linewidths=linewidths,
             alpha=alpha
             )
+        edge_colors = nx.get_edge_attributes(g,'color').values()
         nx.draw_networkx_edges(
             g, 
             pos=pos, 
             width=1, 
             node_shape=node_shape, 
             node_size=node_size,
-            arrowsize=arrowsize
+            arrowsize=arrowsize,
+            edge_color=edge_colors
             )
         nx.draw_networkx_labels(
             g,
