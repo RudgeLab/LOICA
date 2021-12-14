@@ -4,7 +4,7 @@ Welcome to the LOICA (Logical Operators for Integrated Cell Algorithms) reposito
 
 <img src="/images/LOICA_Logo.svg" alt="LOICA logo" width="250"/>
 
-As you may have noticed, our logo features a beautiful bird—loica _[(Leistes loyca)](https://en.wikipedia.org/wiki/Long-tailed_meadowlark)_; a bird native to Chile known for its particular red chest and with which we share name.
+As you may have noticed, our logo features a beautiful bird—loica _[(Leistes loyca)](https://en.wikipedia.org/wiki/Long-tailed_meadowlark)_; a bird native to Chile known for its particular red chest and legendary kindness, with which we share name.
 
 ## Instalation
 
