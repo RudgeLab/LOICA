@@ -89,7 +89,7 @@ class GeneticNetwork():
             if hasattr(op, 'input'):
                 if type(op.input)==list:
                     for i,inp in enumerate(op.input):
-                        color = 'black' if op.alpha[i]>op.alpha[0] else 'red'
+                        color = 'black' if op.alpha[i+1]>op.alpha[0] else 'red'
                         g.add_edge(inp, op, color=color)
                 else:
                     color = 'black' if op.alpha[1]>op.alpha[0] else 'red'
