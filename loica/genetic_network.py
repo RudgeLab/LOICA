@@ -101,6 +101,29 @@ class GeneticNetwork():
                 g.add_edge(op, op.output, color='black')
         return g
 
+    def to_contracted_graph(self):
+        g = nx.DiGraph()
+        for op in self.operators:
+            if hasattr(op, 'input'):
+                inputs = op.input
+                if type(inputs)!=list:
+                    inputs = [inputs]
+                for i,inp in enumerate(inputs):
+                    color = 'black' if op.alpha[i+1]>op.alpha[0] else 'red'
+                    for op2 in self.operators:
+                        outputs = op2.output
+                        if type(outputs)!=list:
+                            outputs = [outputs]
+                        if inp in outputs:
+                            g.add_edge(op2, op, color=color)
+            outputs = op.output
+            if type(outputs)!=list:
+                outputs = [outputs]
+            for o in outputs:
+                if type(o)==Reporter:
+                    g.add_edge(op, o, color='black')
+        return g
+
     def draw(
         self,
         node_shape='o',
@@ -111,9 +134,13 @@ class GeneticNetwork():
         font_size=6,
         font_family='Tahoma',
         font_weight='bold',
-        pos=nx.kamada_kawai_layout
+        pos=nx.kamada_kawai_layout,
+        contracted=False
         ):
-        g = self.to_graph()
+        if contracted:
+            g = self.to_contracted_graph()
+        else:
+            g = self.to_graph()
         pos = pos(g)
         nx.draw_networkx_nodes(
             g, 
