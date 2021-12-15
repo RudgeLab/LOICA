@@ -89,16 +89,16 @@ class GeneticNetwork():
             if hasattr(op, 'input'):
                 if type(op.input)==list:
                     for i,inp in enumerate(op.input):
-                        color = 'black' if op.alpha[i+1]>op.alpha[0] else 'red'
-                        g.add_edge(inp, op, color=color)
+                        type_ = 'positive' if op.alpha[i+1]>op.alpha[0] else 'negative'
+                        g.add_edge(inp, op, type=type_)
                 else:
-                    color = 'black' if op.alpha[1]>op.alpha[0] else 'red'
+                    type_ = 'positive' if op.alpha[1]>op.alpha[0] else 'negative'
                     g.add_edge(op.input, op, color=color)
             if type(op.output)==list:
                 for o in op.output:
-                    g.add_edge(op, o, color='black')
+                    g.add_edge(op, o, type='positive')
             else:
-                g.add_edge(op, op.output, color='black')
+                g.add_edge(op, op.output, type='positive')
         return g
 
     def to_contracted_graph(self):
@@ -109,19 +109,19 @@ class GeneticNetwork():
                 if type(inputs)!=list:
                     inputs = [inputs]
                 for i,inp in enumerate(inputs):
-                    color = 'black' if op.alpha[i+1]>op.alpha[0] else 'red'
+                    type_ = 'positive' if op.alpha[i+1]>op.alpha[0] else 'negative'
                     for op2 in self.operators:
                         outputs = op2.output
                         if type(outputs)!=list:
                             outputs = [outputs]
                         if inp in outputs:
-                            g.add_edge(op2, op, color=color)
+                            g.add_edge(op2, op, type=type_)
             outputs = op.output
             if type(outputs)!=list:
                 outputs = [outputs]
             for o in outputs:
                 if type(o)==Reporter:
-                    g.add_edge(op, o, color='black')
+                    g.add_edge(op, o, type='positive')
         return g
 
     def draw(
@@ -151,7 +151,8 @@ class GeneticNetwork():
             linewidths=linewidths,
             alpha=alpha
             )
-        edge_colors = nx.get_edge_attributes(g,'color').values()
+        neg_edges = [e for e in g.edges(data=True) if e[2]['type']=='negative']
+        pos_edges = [e for e in g.edges(data=True) if e[2]['type']=='positive']
         nx.draw_networkx_edges(
             g, 
             pos=pos, 
@@ -159,8 +160,19 @@ class GeneticNetwork():
             node_shape=node_shape, 
             node_size=node_size,
             arrowsize=arrowsize,
-            edge_color=edge_colors,
-            connectionstyle='arc3, rad = 0.1'
+            edgelist=neg_edges,
+            connectionstyle='arc3, rad = 0.1',
+            arrowstyle='|-|, widthA=0.0, angleA=0, widthB=0.75, angleB=0'
+            )
+        nx.draw_networkx_edges(
+            g, 
+            pos=pos, 
+            width=1, 
+            node_shape=node_shape, 
+            node_size=node_size,
+            arrowsize=arrowsize,
+            edgelist=pos_edges,
+            connectionstyle='arc3, rad = 0.1',
             )
         nx.draw_networkx_labels(
             g,
