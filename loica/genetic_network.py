@@ -93,7 +93,7 @@ class GeneticNetwork():
                         g.add_edge(inp, op, type=type_)
                 else:
                     type_ = 'positive' if op.alpha[1]>op.alpha[0] else 'negative'
-                    g.add_edge(op.input, op, color=color)
+                    g.add_edge(op.input, op, type=type_)
             if type(op.output)==list:
                 for o in op.output:
                     g.add_edge(op, o, type='positive')
