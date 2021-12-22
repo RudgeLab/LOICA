@@ -127,10 +127,10 @@ class GeneticNetwork():
     def draw(
         self,
         node_shape='o',
-        node_size=200,
-        linewidths=2,
-        alpha=0.75,
-        arrowsize=5,
+        node_size=500,
+        linewidths=0,
+        alpha=0.5,
+        arrowsize=10,
         font_size=6,
         font_family='Tahoma',
         font_weight='bold',
@@ -162,7 +162,7 @@ class GeneticNetwork():
             arrowsize=arrowsize,
             edgelist=neg_edges,
             connectionstyle='arc3, rad = 0.1',
-            arrowstyle='|-|, widthA=0.0, angleA=0, widthB=0.75, angleB=0'
+            arrowstyle='|-|, widthA=0.0, angleA=0, widthB=0.35, angleB=0'
             )
         nx.draw_networkx_edges(
             g, 
