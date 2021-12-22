@@ -8,6 +8,7 @@ from .operators.buffer import Buffer
 from .operators.receiver import Receiver
 from .operators.source import Source
 from typing import List #, Dict, Tuple, Optional, Union, Any
+import numpy as np
 
 class GeneticNetwork():
     """
@@ -68,6 +69,60 @@ class GeneticNetwork():
         for rep in reps:
             self.reporters.append(rep)
 
+    def substep_stochastic(self, t=0, dt=0.1, growth_rate=1):
+        # Propensities
+        a = []
+
+        # Compute expression rates
+        for op in self.operators:
+            expression_rate = op.expression_rate(t, dt)
+            output = op.output
+            if type(op.output)!=list:
+                output = [output]
+            for o in output:
+                o.express(expression_rate)
+
+        # Compute propensities for production and degradation of gene products
+        gene_products = self.regulators + self.reporters
+        for gp in gene_products:
+            # Production reeaction
+            a.append(gp.expression_rate)
+            a.append((gp.degradation_rate + growth_rate) * gp.concentration)
+
+        # Make list of propensities into array
+        a = np.array(a)
+        # Total of propensities
+        A = a.sum()
+        
+        # Time step
+        tau = 1/A * np.log(1/np.random.random())
+        # Random number to select next reaction
+        a_i = np.random.random() * A
+
+        # Find reaction and update gene product levels
+        for i,gp in enumerate(gene_products):
+            if a_i < np.sum(a[:i*2+1]):
+                # Production of geneproduct gp
+                gp.concentration += 1
+                break
+            elif a_i < np.sum(a[:i*2+2]):
+                # Degradation of geneproduct gp
+                gp.concentration -= 1
+                break
+
+        # Reset expression rates for next step
+        for gp in gene_products:
+            gp.expression_rate = 0
+
+        # Return elapsed time
+        return tau
+                
+    def step_stochastic(self, growth_rate=1, t=0, dt=0.1):
+        delta_t = 0
+        while delta_t < dt:
+            #print(f'Elapsed time: {delta_t}')
+            delta_t += self.substep_stochastic(t=t, dt=dt, growth_rate=growth_rate)
+        
     def step(self, growth_rate=1, t=0, dt=0.1):
         for op in self.operators:
             expression_rate = op.expression_rate(t, dt)

@@ -47,12 +47,15 @@ class Sample:
     def add_supplement(self, supplement, concentration):
         self.supplements[supplement] = concentration
 
-    def step(self, t, dt):
+    def step(self, t, dt, stochastic=False):
         if self.genetic_network and self.metabolism:
             growth_rate = self.metabolism.growth_rate(t)
             for supp,conc in self.supplements.items():
                 supp.concentration = conc
-            self.genetic_network.step(growth_rate, t, dt)
+            if stochastic:
+                self.genetic_network.step_stochastic(growth_rate, t, dt)
+            else:
+                self.genetic_network.step(growth_rate, t, dt)
             self.reporters = self.genetic_network.reporters
 
 
