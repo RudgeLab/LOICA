@@ -47,6 +47,12 @@ class Sample:
     def add_supplement(self, supplement, concentration):
         self.supplements[supplement] = concentration
 
+    def add_regulator(self, name, concentration):
+        for reg in self.genetic_network.regulators:
+            if reg.name == name:
+                reg.init_concentration = concentration
+            else: pass
+
     def step(self, t, dt):
         if self.genetic_network and self.metabolism:
             growth_rate = self.metabolism.growth_rate(t)
