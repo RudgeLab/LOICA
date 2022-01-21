@@ -12,7 +12,7 @@ class Colony:
 
     def fun(self, x):
         # Compute growth rates on mesh
-        mu = np.exp(-x)
+        mu = np.exp(-x/self.r0)
         vel = 0.5 * (1 -np.exp(-x/self.r0))
         dx = np.mean(np.diff(x))
         geneprods =  self.circuit.reporters + self.circuit.regulators
@@ -28,17 +28,20 @@ class Colony:
 
             for o,op in enumerate(self.circuit.operators):
                 expression_rate = op.expression_rate(t, 0)
-                op.output.express(expression_rate)
+                if type(op.output)==list:
+                    for oo in op.output:
+                        oo.express(expression_rate)        
+                else:
+                    op.output.express(expression_rate)
 
             for g,prod in enumerate(geneprods):
                 pi = prod.concentration
                 # Finite difference spatial derivatives
                 dpidx = np.zeros_like(x)
-                for i in range(1, len(x)-1):
+                for i in range(1, len(x)):
                     dpidx[i] = (pi[i] - pi[i-1]) / dx
-                dpidx[-1] = (pi[-1] - pi[-2]) / dx
-                dpidx[0] = (pi[1] - pi[0]) / dx
-
+                dpidx[0] = pi[0] / dx
+                
                 # Update protein concs
                 dpidt =  prod.expression_rate - (prod.degradation_rate + mu*self.mu0) * pi - vel*dpidx
                 dy[:,g] = dpidt
@@ -51,7 +54,7 @@ class Colony:
         nx,nt,_ = kymo.shape
         for t in range(nt):
             for xx in range(((t*nx)//nt)):
-                rkymo[-xx+((t*nx)//nt),t,:] = kymo[xx,t,:]
+                rkymo[-xx+((t*nx)//nt)-1,t,:] = kymo[xx,t,:]
         return rkymo
 
     def norm_kymo(self, kymo):
@@ -64,10 +67,10 @@ class Colony:
         geneprods =  self.circuit.reporters + self.circuit.regulators
         nprods = len(geneprods)
         L = (tmax - t0) / 2
-        x = np.linspace(0, L, nx)
+        x = np.linspace(0, L, nx, endpoint=True)
 
         dx = np.diff(x).mean()
-        dt = dx * 0.5
+        dt = dx * 0.1
         nt = int((tmax-t0) // dt)
         dydt = self.fun(x)
         y = np.zeros((nx,nprods,nt))

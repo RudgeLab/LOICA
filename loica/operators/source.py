@@ -12,9 +12,9 @@ class Source:
     Attributes
     ----------
     output : Regulator | Reporter
-        The output of the operator that is regulated by the input
-   rate : ?
-        ??
+        The output of the operator that is constitutively expressed
+   rate : float
+        Output constitutive expression rate
     uri : str, optional
         SynBioHub URI
     sbol_comp : SBOL Component, optional
