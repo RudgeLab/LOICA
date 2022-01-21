@@ -1,10 +1,6 @@
 import numpy as np
-from numpy.fft import fft, ifft, fftfreq
 from scipy.optimize import least_squares
-from scipy.interpolate import interp1d
-
 from .source import *
-from flapjack import *
 
 class Receiver:
     """
