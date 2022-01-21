@@ -338,7 +338,7 @@ class GeneticNetwork():
             # Input Product Component
             if type(op) == Source:
                 inputs=[]
-            elif type(op) == Nor: #type(op.input) != List:
+            elif type(op.input) == list:
                 inputs = op.input
             else: inputs = [op.input]
             #inputs_prod_sc = []
