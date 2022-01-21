@@ -142,7 +142,10 @@ class Hill2:
             strain, 
             signal, 
             biomass_signal,
-            gamma
+            gamma,
+            lower_bounds=[0]*8,
+            upper_bounds=[1e8, 8, 1e8, 8, 1e8, 1e8, 1e8, 1e8],
+            init_x = [1,2,1,2,1,0,0,0]
             ):
         # Get biomass time series
         biomass_df = flapjack.analysis(type='Background Correct', 
@@ -193,8 +196,8 @@ class Hill2:
                          )
 
         # Bounds for fitting
-        lower_bounds = [0]*8
-        upper_bounds = [1e8, 8, 1e8, 8, 1e8, 1e8, 1e8, 1e8]
+        #lower_bounds = [0]*8
+        #upper_bounds = [1e8, 8, 1e8, 8, 1e8, 1e8, 1e8, 1e8]
         bounds = [lower_bounds, upper_bounds]
 
         '''
@@ -210,7 +213,7 @@ class Hill2:
                                 chemical1, chemical2,
                                 gamma=gamma
                             )
-        res = least_squares(residuals, [1,2,1,2,1,0,0,0], bounds=bounds)
+        res = least_squares(residuals, init_x, bounds=bounds)
         self.res = res
         self.rep1_K, self.rep1_n = res.x[0:2]
         self.rep2_K, self.rep2_n = res.x[2:4]
