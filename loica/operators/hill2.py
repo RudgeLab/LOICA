@@ -3,9 +3,7 @@ from scipy.optimize import least_squares
 from .receiver import *
 
 class Hill2:
-    color = 'orange'
-    shape = 's'
-    def __init__(self, input, output, alpha, K, n, uri=None, sbol_comp=None):
+    def __init__(self, input, output, alpha, K, n, name=None, uri=None, sbol_comp=None, color='orange'):
         self.alpha = alpha
         self.K = K
         self.n = n
@@ -13,9 +11,13 @@ class Hill2:
         self.output = output
         self.uri = uri
         self.sbol_comp = sbol_comp
+        self.name = name
+        self.color = color
 
     def __str__(self):
-        return 'HILL2'
+        if self.name == None:
+            return 'HILL2'
+        else: return self.name
 
     def expression_rate(self, t, dt):
         input_repressor1 = self.input[0].concentration
