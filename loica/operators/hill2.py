@@ -24,7 +24,8 @@ class Hill2:
         input_repressor2 = self.input[1].concentration
         r1 = (input_repressor1/self.K[0])**self.n[0]
         r2 = (input_repressor2/self.K[1])**self.n[1]
-        r12 = (input_repressor1 * input_repressor2 / self.K[0] / self.K[1])**(self.n[0] + self.n[1])
+        #r12 = (input_repressor1 * input_repressor2 / self.K[0] / self.K[1])**(self.n[0] + self.n[1])
+        r12 = r1 * r2
         num = self.alpha[0] + self.alpha[1] * r1 + self.alpha[2] * r2 + self.alpha[3] * r12
         denom = 1 + r1 + r2 + r12
         return num / denom
@@ -67,7 +68,8 @@ class Hill2:
                 # Reporter output
                 r1 = (rep1/od/rep1_K)**rep1_n
                 r2 = (rep2/od/rep2_K)**rep2_n
-                r12 = (rep1*rep2/od/od/rep1_K/rep2_K)**(rep1_n+rep2_n)
+                #r12 = (rep1*rep2/od/od/rep1_K/rep2_K)**(rep1_n+rep2_n)
+                r12 = r1 * r2
                 num = alpha0 + alpha1 * r1 + alpha2 * r2 + alpha3 * r12
                 denom = 1 + r1 + r2 + r12
                 expression_rate = num / denom
@@ -168,8 +170,8 @@ class Hill2:
             signal=signal,
             biomass_signal=biomass_signal
         )
-        self.a_A = rec1.a
-        self.b_A = rec1.b
+        self.a_A = rec1.alpha[0]
+        self.b_A = rec1.alpha[1]
         self.K_A = rec1.K
         self.n_A = rec1.n
 
@@ -183,8 +185,8 @@ class Hill2:
             signal=signal,
             biomass_signal=biomass_signal
         )
-        self.a_B = rec2.a
-        self.b_B = rec2.b
+        self.a_B = rec2.alpha[0]
+        self.b_B = rec2.alpha[1]
         self.K_B = rec2.K
         self.n_B = rec2.n
 

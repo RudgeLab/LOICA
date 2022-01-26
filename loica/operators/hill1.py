@@ -165,8 +165,8 @@ class Hill1:
             signal=signal,
             biomass_signal=biomass_signal
         )
-        self.a_A = rec.a
-        self.b_A = rec.b
+        self.a_A = rec.alpha[0]
+        self.b_A = rec.alpha[1]
         self.K_A = rec.K
         self.n_A = rec.n
 
