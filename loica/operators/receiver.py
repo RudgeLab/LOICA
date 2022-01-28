@@ -34,24 +34,26 @@ class Receiver:
     characterize(flapjack, receiver, inverter, media, strain, signal, biomass_signal, gamma)
         Parameterize the Operator model that maps Input concentration into Output expression rate
     """
-    color = 'orange'
-    def __init__(self, input, output, a, b, K, n, uri=None, sbol_comp=None):
-        self.a = a
-        self.b = b
+    def __init__(self, input, output, alpha, K, n, name=None, uri=None, sbol_comp=None, color='skyblue'):
+        self.alpha = alpha
         self.K = K
         self.n = n
         self.input = input
         self.output = output
+        self.name = name
         self.uri = uri
         self.sbol_comp = sbol_comp
+        self.color = color
 
     def __str__(self):
-        return 'REC'
+        if self.name == None:
+            return 'REC'
+        else: return self.name
         
     def expression_rate(self, t, dt):
         inducer = self.input.concentration
         i = (inducer/self.K)**self.n
-        expression_rate = ( self.a + self.b*i ) / (1 + i)
+        expression_rate = ( self.alpha[0] + self.alpha[1]*i ) / (1 + i)
         return expression_rate
 
     def forward_model(
@@ -158,7 +160,6 @@ class Receiver:
                 bounds=bounds
                 )
         self.res = res
-        self.a = res.x[0]
-        self.b = res.x[1]
+        self.alpha = res.x[0:2]
         self.K = res.x[2]
         self.n = res.x[3]

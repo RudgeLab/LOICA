@@ -55,7 +55,7 @@ class Assay:
         self.description = description
         self.biomass_signal_id = biomass_signal_id
 
-    def run(self, substeps=10, nsr=0, biomass_bg=0, fluo_bg=0):
+    def run(self, substeps=10, nsr=0, biomass_bg=0, fluo_bg=0, stochastic=False):
         '''
         Run the assay measuring at specified time points, with simulation time step dt
         '''
@@ -101,9 +101,13 @@ class Assay:
                             }
                     self.measurements = self.measurements.append(row, ignore_index=True)
                     # Compute next time step
-                    for tt in range(substeps):
-                        time = t * self.interval + tt * dt
-                        sample.step(time, dt)
+                    if stochastic:
+                        time = t * self.interval
+                        sample.step(time, self.interval, stochastic=True)
+                    else:
+                        for tt in range(substeps):
+                            time = t * self.interval + tt * dt
+                            sample.step(time, dt)
                 pbar.update(1 / n_samples * 100)
             pbar.close()
                 

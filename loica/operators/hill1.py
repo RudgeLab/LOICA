@@ -2,10 +2,10 @@ import numpy as np
 from scipy.optimize import least_squares
 from .receiver import *
 
-class Not:
+class Hill1:
     """
     A class that represents a DNA fragment that encode a genetic operator.
-    The Not Operator is an abstraction of a repressible promoter that
+    The Not Operator is an abstraction of a repressible or inducible promoter that
     maps an input into an output using a Hill function.
 
     ...
@@ -16,10 +16,8 @@ class Not:
         The input of the operator that regulates the expression of the output
     output : Regulator | Reporter
         The output of the operator that is regulated by the input
-    a : int | float
-        Basal expression rate, HIGH
-    b : int | float
-        Regulated expression rate, LOW
+    alpha : List
+        [Basal expression rate, Regulated expression rate]
     K : int | float
         Half expression input concentration
     n : int | float
@@ -36,23 +34,26 @@ class Not:
     """
     color = 'skyblue'
     shape = 's'
-    def __init__(self, input, output, a, b, K, n, uri=None, sbol_comp=None):
-        self.a = a
-        self.b = b
+    def __init__(self, input, output, alpha, K, n, name=None, uri=None, sbol_comp=None, color='skyblue'):
+        self.alpha = alpha
         self.K = K
         self.n = n
         self.input = input
         self.output = output
+        self.name = name
         self.uri = uri
         self.sbol_comp = sbol_comp
+        self.color = color
 
     def __str__(self):
-        return 'NOT'
+        if self.name == None:
+            return 'HILL1'
+        else: return self.name
         
     def expression_rate(self, t, dt):
         input_repressor = self.input.concentration
         r = (input_repressor/self.K)**self.n
-        expression_rate = ( self.a + self.b*r ) / (1 + r)
+        expression_rate = ( self.alpha[0] + self.alpha[1]*r ) / (1 + r)
         return expression_rate
 
     def forward_model(
@@ -164,8 +165,8 @@ class Not:
             signal=signal,
             biomass_signal=biomass_signal
         )
-        self.a_A = rec.a
-        self.b_A = rec.b
+        self.a_A = rec.alpha[0]
+        self.b_A = rec.alpha[1]
         self.K_A = rec.K
         self.n_A = rec.n
 
@@ -200,5 +201,4 @@ class Not:
         self.res = res
         self.n = res.x[0]
         self.K = res.x[1]
-        self.a = res.x[2]
-        self.b = res.x[3]
+        self.alpha = res.x[2:4]

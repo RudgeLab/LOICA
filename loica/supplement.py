@@ -18,11 +18,11 @@ class Supplement:
     sbol_comp : str
         SBOL component of the supplement.
     """
-    color = 'pink'
-    def __init__(self, name, pubchemid=None, supplier_id=None, sbol_comp=None):
+    def __init__(self, name, pubchemid=None, supplier_id=None, sbol_comp=None, color='pink'):
         self.name = name
         self.concentration = 0
         self.pubchemid = pubchemid
+        self.color = color
         if type(supplier_id) == list:
             self.supplier_id = supplier_id[0]
             self.supplier_catalog_number = supplier_id[1]

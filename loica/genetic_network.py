@@ -2,12 +2,13 @@ import sbol3
 import networkx as nx
 from .geneproduct import Regulator, Reporter
 from .supplement import Supplement
-from .operators.not_ import Not
-from .operators.nor import Nor
+from .operators.hill1 import Hill1
+from .operators.hill2 import Hill2
 from .operators.buffer import Buffer
 from .operators.receiver import Receiver
 from .operators.source import Source
 from typing import List #, Dict, Tuple, Optional, Union, Any
+import numpy as np
 
 class GeneticNetwork():
     """
@@ -68,6 +69,60 @@ class GeneticNetwork():
         for rep in reps:
             self.reporters.append(rep)
 
+    def substep_stochastic(self, t=0, dt=0.1, growth_rate=1):
+        # Propensities
+        a = []
+
+        # Compute expression rates
+        for op in self.operators:
+            expression_rate = op.expression_rate(t, dt)
+            output = op.output
+            if type(op.output)!=list:
+                output = [output]
+            for o in output:
+                o.express(expression_rate)
+
+        # Compute propensities for production and degradation of gene products
+        gene_products = self.regulators + self.reporters
+        for gp in gene_products:
+            # Production reeaction
+            a.append(gp.expression_rate)
+            a.append((gp.degradation_rate + growth_rate) * gp.concentration)
+
+        # Make list of propensities into array
+        a = np.array(a)
+        # Total of propensities
+        A = a.sum()
+        
+        # Time step
+        tau = 1/A * np.log(1/np.random.random())
+        # Random number to select next reaction
+        a_i = np.random.random() * A
+
+        # Find reaction and update gene product levels
+        for i,gp in enumerate(gene_products):
+            if a_i < np.sum(a[:i*2+1]):
+                # Production of geneproduct gp
+                gp.concentration += 1
+                break
+            elif a_i < np.sum(a[:i*2+2]):
+                # Degradation of geneproduct gp
+                gp.concentration -= 1
+                break
+
+        # Reset expression rates for next step
+        for gp in gene_products:
+            gp.expression_rate = 0
+
+        # Return elapsed time
+        return tau
+                
+    def step_stochastic(self, growth_rate=1, t=0, dt=0.1):
+        delta_t = 0
+        while delta_t < dt:
+            #print(f'Elapsed time: {delta_t}')
+            delta_t += self.substep_stochastic(t=t, dt=dt, growth_rate=growth_rate)
+        
     def step(self, growth_rate=1, t=0, dt=0.1):
         for op in self.operators:
             expression_rate = op.expression_rate(t, dt)
@@ -88,30 +143,59 @@ class GeneticNetwork():
         for op in self.operators:
             if hasattr(op, 'input'):
                 if type(op.input)==list:
-                    for i in op.input:
-                        g.add_edge(i, op)
+                    for i,inp in enumerate(op.input):
+                        type_ = 'positive' if op.alpha[i+1]>op.alpha[0] else 'negative'
+                        g.add_edge(inp, op, type=type_)
                 else:
-                    g.add_edge(op.input, op)
+                    type_ = 'positive' if op.alpha[1]>op.alpha[0] else 'negative'
+                    g.add_edge(op.input, op, type=type_)
             if type(op.output)==list:
                 for o in op.output:
-                    g.add_edge(op, o)
+                    g.add_edge(op, o, type='positive')
             else:
-                g.add_edge(op, op.output)
+                g.add_edge(op, op.output, type='positive')
+        return g
+
+    def to_contracted_graph(self):
+        g = nx.DiGraph()
+        for op in self.operators:
+            if hasattr(op, 'input'):
+                inputs = op.input
+                if type(inputs)!=list:
+                    inputs = [inputs]
+                for i,inp in enumerate(inputs):
+                    type_ = 'positive' if op.alpha[i+1]>op.alpha[0] else 'negative'
+                    for op2 in self.operators:
+                        outputs = op2.output
+                        if type(outputs)!=list:
+                            outputs = [outputs]
+                        if inp in outputs:
+                            g.add_edge(op2, op, type=type_)
+            outputs = op.output
+            if type(outputs)!=list:
+                outputs = [outputs]
+            for o in outputs:
+                if type(o)==Reporter:
+                    g.add_edge(op, o, type='positive')
         return g
 
     def draw(
         self,
         node_shape='o',
-        node_size=200,
-        linewidths=2,
-        alpha=0.75,
-        arrowsize=5,
+        node_size=500,
+        linewidths=0,
+        alpha=0.5,
+        arrowsize=10,
         font_size=6,
         font_family='Tahoma',
         font_weight='bold',
-        pos=nx.kamada_kawai_layout
+        pos=nx.kamada_kawai_layout,
+        contracted=False
         ):
-        g = self.to_graph()
+        if contracted:
+            g = self.to_contracted_graph()
+        else:
+            g = self.to_graph()
         pos = pos(g)
         nx.draw_networkx_nodes(
             g, 
@@ -122,13 +206,28 @@ class GeneticNetwork():
             linewidths=linewidths,
             alpha=alpha
             )
+        neg_edges = [e for e in g.edges(data=True) if e[2]['type']=='negative']
+        pos_edges = [e for e in g.edges(data=True) if e[2]['type']=='positive']
         nx.draw_networkx_edges(
             g, 
             pos=pos, 
             width=1, 
             node_shape=node_shape, 
             node_size=node_size,
-            arrowsize=arrowsize
+            arrowsize=arrowsize,
+            edgelist=neg_edges,
+            connectionstyle='arc3, rad = 0.1',
+            arrowstyle='|-|, widthA=0.0, angleA=0, widthB=0.35, angleB=0'
+            )
+        nx.draw_networkx_edges(
+            g, 
+            pos=pos, 
+            width=1, 
+            node_shape=node_shape, 
+            node_size=node_size,
+            arrowsize=arrowsize,
+            edgelist=pos_edges,
+            connectionstyle='arc3, rad = 0.1',
             )
         nx.draw_networkx_labels(
             g,
@@ -163,7 +262,7 @@ class GeneticNetwork():
                 tu = sbol3.Component(f'TU_{op}_{op.output.name}', sbol3.SBO_DNA) #generalize to multi input/output TUs
                 tu.roles.append(sbol3.SO_ENGINEERED_REGION)
                 tu.features = [operator_sc, output_sc] 
-            elif type(op)==Nor: # type(op.input)==List:
+            elif type(op)==Hill2: # type(op.input)==List:
                 input_str = ''
                 tu = sbol3.Component(f'TU{input_str}_{op}_{op.output.name}', sbol3.SBO_DNA) #generalize to multi input/output TUs
                 tu.features = [operator_sc, output_sc]
@@ -239,7 +338,7 @@ class GeneticNetwork():
             # Input Product Component
             if type(op) == Source:
                 inputs=[]
-            elif type(op) == Nor: #type(op.input) != List:
+            elif type(op) == Hill2: #type(op.input) != List:
                 inputs = op.input
             else: inputs = [op.input]
             #inputs_prod_sc = []
@@ -270,7 +369,12 @@ class GeneticNetwork():
                 if type(op_input)!=Regulator: # if it is a regulator it is already created
                     loica_set.add(input_prod_comp)
                 # Input Interaction
-                if type(op)==Not or Nor:
+                if type(op)==Hill1 and op.alpha[0]>op.alpha[1]:
+                    input_participation = sbol3.Participation(roles=[sbol3.SBO_INHIBITOR], participant=input_prod_sc)
+                    op_participation = sbol3.Participation(roles=[sbol3.SBO_INHIBITED], participant=operator_sc)
+                    interaction = sbol3.Interaction(types=[sbol3.SBO_INHIBITION], participations=[input_participation, op_participation])
+                    tu.interactions.append(interaction)
+                if type(op)==Hill2 and op.alpha[0]== max(op.alpha):
                     input_participation = sbol3.Participation(roles=[sbol3.SBO_INHIBITOR], participant=input_prod_sc)
                     op_participation = sbol3.Participation(roles=[sbol3.SBO_INHIBITED], participant=operator_sc)
                     interaction = sbol3.Interaction(types=[sbol3.SBO_INHIBITION], participations=[input_participation, op_participation])
