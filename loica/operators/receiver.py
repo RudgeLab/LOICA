@@ -34,7 +34,6 @@ class Receiver:
     characterize(flapjack, receiver, inverter, media, strain, signal, biomass_signal, gamma)
         Parameterize the Operator model that maps Input concentration into Output expression rate
     """
-    color = 'orange'
     def __init__(self, input, output, alpha, K, n, name=None, uri=None, sbol_comp=None, color='skyblue'):
         self.alpha = alpha
         self.K = K
@@ -47,7 +46,9 @@ class Receiver:
         self.color = color
 
     def __str__(self):
-        return 'REC'
+        if self.name == None:
+            return 'REC'
+        else: return self.name
         
     def expression_rate(self, t, dt):
         inducer = self.input.concentration

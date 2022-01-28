@@ -338,7 +338,7 @@ class GeneticNetwork():
             # Input Product Component
             if type(op) == Source:
                 inputs=[]
-            elif type(op) == Nor: #type(op.input) != List:
+            elif type(op) == Hill2: #type(op.input) != List:
                 inputs = op.input
             else: inputs = [op.input]
             #inputs_prod_sc = []
@@ -369,7 +369,12 @@ class GeneticNetwork():
                 if type(op_input)!=Regulator: # if it is a regulator it is already created
                     loica_set.add(input_prod_comp)
                 # Input Interaction
-                if type(op)==Not or Nor:
+                if type(op)==Hill1 and op.alpha[0]>op.alpha[1]:
+                    input_participation = sbol3.Participation(roles=[sbol3.SBO_INHIBITOR], participant=input_prod_sc)
+                    op_participation = sbol3.Participation(roles=[sbol3.SBO_INHIBITED], participant=operator_sc)
+                    interaction = sbol3.Interaction(types=[sbol3.SBO_INHIBITION], participations=[input_participation, op_participation])
+                    tu.interactions.append(interaction)
+                if type(op)==Hill2 and op.alpha[0]== max(op.alpha):
                     input_participation = sbol3.Participation(roles=[sbol3.SBO_INHIBITOR], participant=input_prod_sc)
                     op_participation = sbol3.Participation(roles=[sbol3.SBO_INHIBITED], participant=operator_sc)
                     interaction = sbol3.Interaction(types=[sbol3.SBO_INHIBITION], participations=[input_participation, op_participation])
