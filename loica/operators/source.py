@@ -19,6 +19,10 @@ class Source:
         SynBioHub URI
     sbol_comp : SBOL Component, optional
         SBOL Component
+    name : str, optional
+        Name of the operator displayed on the network representation
+    color: str, optional
+        Color displayed on the network representation
 
     Methods
     -------

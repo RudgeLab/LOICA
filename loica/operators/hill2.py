@@ -3,6 +3,39 @@ from scipy.optimize import least_squares
 from .receiver import *
 
 class Hill2:
+    """
+    A class that represents a DNA fragment that encode a genetic operator.
+    The Hill2 Operator is an abstraction of a set of two repressible or inducible promoters that
+    maps an  2 inputs into an output using a Hill function.
+
+    ...
+    
+    Attributes
+    ----------
+    input : List [Regulator | Supplement]
+        The inputs of the operator that regulates the expression of the output
+    output : Regulator | Reporter | List
+        The output of the operator that is regulated by the input
+    alpha : List
+        [Basal expression rate, Regulated expression rate]
+    K : int | float
+        Half expression input concentration
+    n : int | float
+        Hill coefficient, cooperative degree
+    uri : str, optional
+        SynBioHub URI
+    sbol_comp : SBOL Component, optional
+        SBOL Component
+    name : str, optional
+        Name of the operator displayed on the network representation
+    color: str, optional
+        Color displayed on the network representation
+
+    Methods
+    -------
+    characterize(flapjack, receiver, inverter, media, strain, signal, biomass_signal, gamma)
+        Parameterize the Operator model that maps Input concentration into Output expression rate
+    """
     def __init__(self, input, output, alpha, K, n, name=None, uri=None, sbol_comp=None, color='orange'):
         self.alpha = alpha
         self.K = K
