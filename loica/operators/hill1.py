@@ -5,7 +5,7 @@ from .receiver import *
 class Hill1:
     """
     A class that represents a DNA fragment that encode a genetic operator.
-    The Not Operator is an abstraction of a repressible or inducible promoter that
+    The Hill1 Operator is an abstraction of a repressible or inducible promoter that
     maps an input into an output using a Hill function.
 
     ...
@@ -26,14 +26,17 @@ class Hill1:
         SynBioHub URI
     sbol_comp : SBOL Component, optional
         SBOL Component
+    name : str, optional
+        Name of the operator displayed on the network representation
+    color: str, optional
+        Color displayed on the network representation
 
     Methods
     -------
     characterize(flapjack, receiver, inverter, media, strain, signal, biomass_signal, gamma)
         Parameterize the Operator model that maps Input concentration into Output expression rate
     """
-    color = 'skyblue'
-    shape = 's'
+
     def __init__(self, input, output, alpha, K, n, name=None, uri=None, sbol_comp=None, color='skyblue'):
         self.alpha = alpha
         self.K = K
