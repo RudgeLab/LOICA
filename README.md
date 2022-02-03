@@ -4,6 +4,10 @@ Welcome to the LOICA (Logical Operators for Integrated Cell Algorithms) reposito
 
 <img src="/images/LOICA_Logo.svg" alt="LOICA logo" width="250"/>
 
+![PyPI](https://img.shields.io/pypi/v/loica)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/loica)
+![PyPI - License](https://img.shields.io/pypi/l/loica)
+
 As you may have noticed, our logo features a beautiful bird—loica _[(Leistes loyca)](https://en.wikipedia.org/wiki/Long-tailed_meadowlark)_; a bird native to Chile known for its particular red chest and legendary kindness, with which we share name[.](https://youtu.be/qDL3zhB8-MM)
 
 ## Instalation
