@@ -30,6 +30,8 @@ class Hill1:
         Name of the operator displayed on the network representation
     color: str, optional
         Color displayed on the network representation
+    unit: str, optional
+        Units of the characterization data
 
     Methods
     -------
@@ -37,16 +39,12 @@ class Hill1:
         Parameterize the Operator model that maps Input concentration into Output expression rate
     """
 
-    def __init__(self, input, output, alpha, K, n, name=None, uri=None, sbol_comp=None, color='skyblue'):
+    def __init__(self, input, output, alpha, K, n, unit, name=None, uri=None, sbol_comp=None, color='skyblue'):
+        super().__init__(output, name, uri, sbol_comp, color, unit)
         self.alpha = alpha
         self.K = K
         self.n = n
         self.input = input
-        self.output = output
-        self.name = name
-        self.uri = uri
-        self.sbol_comp = sbol_comp
-        self.color = color
 
     def __str__(self):
         if self.name == None:

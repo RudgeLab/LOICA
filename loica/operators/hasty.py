@@ -1,17 +1,17 @@
-class Hasty:
-    color = 'orange'
-    shape = 's'
-    def __init__(self, input, output, alpha, sigma, tau, uri=None, sbol_comp=None):
+from .operator import *
+
+class Hasty(Operator):
+    def __init__(self, input, output, alpha, sigma, tau, unit, name=None, uri=None, sbol_comp=None, color='orange'):
+        super().__init__(output, name, uri, sbol_comp, color, unit)
         self.alpha = alpha
         self.sigma = sigma
         self.tau = tau
         self.input = input
-        self.output = output
-        self.uri = uri
-        self.sbol_comp = sbol_comp
 
     def __str__(self):
-        return 'HASTY'
+        if self.name == None:
+            return 'Hasty'
+        else: return self.name
 
     def expression_rate(self, t, dt):
         r1 = self.input[0].concentration
