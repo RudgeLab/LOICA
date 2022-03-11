@@ -4,7 +4,6 @@ from .geneproduct import Regulator, Reporter
 from .supplement import Supplement
 from .operators.hill1 import Hill1
 from .operators.hill2 import Hill2
-from .operators.buffer import Buffer
 from .operators.receiver import Receiver
 from .operators.source import Source
 from typing import List #, Dict, Tuple, Optional, Union, Any
