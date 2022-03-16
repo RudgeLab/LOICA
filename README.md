@@ -29,3 +29,6 @@ Installing LOICA is way easier than pronuncing it! Please refer to our [Wiki](ht
 ## Tutorials
 
 Now that you have LOICA installed you can familiarize yourself with the tool using the [Jupyter notebook tutorials](https://github.com/RudgeLab/LOICA/tree/master/notebooks) designed for this purpose.
+
+## Class Diagram
+<img src="https://github.com/RudgeLab/LOICA/blob/units/images/LOICA%20class%20diagram3.png" alt="LOICA class diagram" width="800"/>
