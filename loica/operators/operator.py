@@ -16,17 +16,15 @@ class Operator:
         Name of the operator displayed on the network representation
     color: str, optional
         Color displayed on the network representation
-    unit: str, optional
-        Units of the characterization data
+
     """
 
-    def __init__(self, output, name=None, uri=None, sbol_comp=None, color='skyblue', unit='mefl'):
+    def __init__(self, output, name=None, uri=None, sbol_comp=None, color='skyblue'):
         self.output = output
         self.name = name
         self.uri = uri
         self.sbol_comp = sbol_comp
         self.color = color
-        self.unit = unit
 
     def __str__(self):
         if self.name == None:

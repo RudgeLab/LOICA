@@ -14,8 +14,8 @@ class Source(Operator):
     ----------
     output : Regulator | Reporter
         The output of the operator that is constitutively expressed
-   rate : float
-        Output constitutive expression rate
+    rate : float
+        Output constitutive expression rate in MEFL/second
     uri : str, optional
         SynBioHub URI
     sbol_comp : SBOL Component, optional
@@ -24,8 +24,6 @@ class Source(Operator):
         Name of the operator displayed on the network representation
     color: str, optional
         Color displayed on the network representation
-    unit: str, optional
-        Units of the characterization data
 
     Methods
     -------
@@ -33,8 +31,8 @@ class Source(Operator):
         Parameterize the Operator model that maps Input concentration into Output expression rate
     """
 
-    def __init__(self, output, rate, unit, uri=None, sbol_comp=None, color='blue', name=None):
-        super().__init__(output, name, uri, sbol_comp, color, unit)
+    def __init__(self, output, rate, uri=None, sbol_comp=None, color='blue', name=None):
+        super().__init__(output, name, uri, sbol_comp, color)
         self.rate = rate
 
     def __str__(self):

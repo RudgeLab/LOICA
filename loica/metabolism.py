@@ -36,8 +36,8 @@ class Metabolism:
     Context for gene expression, incorporates biomass and growth rate.
 
     """
-    def __init__(self):
-        pass
+    def __init__(self, biomass_units=None):
+        self.biomass_units = biomass_units
 
 class SimulatedMetabolism(Metabolism):
     """
@@ -51,7 +51,7 @@ class SimulatedMetabolism(Metabolism):
     growth_rate
         A function of time that describes the growth rate f(t)=growth rate
     """
-    def __init__(self, biomass_func, growth_rate_func):
+    def __init__(self, biomass_func, growth_rate_func, biomass_units):
         super().__init__()
         self.biomass = biomass_func
         self.growth_rate = growth_rate_func

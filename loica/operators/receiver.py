@@ -17,14 +17,12 @@ class Receiver(Operator):
         The input of the operator that regulates the expression of the output
     output : Regulator | Reporter
         The output of the operator that is regulated by the input
-    a : int | float
-        Basal expression rate, LOW
-    b : int | float
-        Regulated expression rate, HIGH
+    alpha : List
+        [Basal expression rate, Regulated expression rate in MEFL/second]
     K : int | float
-        Half expression input concentration
+        Half expression input concentration in Molar 
     n : int | float
-        Hill coefficient, cooperative degree
+        Hill coefficient, cooperative degree (unitless)
     uri : str, optional
         SynBioHub URI
     sbol_comp : SBOL Component, optional
@@ -41,8 +39,8 @@ class Receiver(Operator):
     characterize(flapjack, receiver, inverter, media, strain, signal, biomass_signal, gamma)
         Parameterize the Operator model that maps Input concentration into Output expression rate
     """
-    def __init__(self, input, output, alpha, K, n, unit, name=None, uri=None, sbol_comp=None, color='skyblue'):
-        super().__init__(output, name, uri, sbol_comp, color, unit)
+    def __init__(self, input, output, alpha, K, n, name=None, uri=None, sbol_comp=None, color='skyblue'):
+        super().__init__(output, name, uri, sbol_comp, color)
         self.alpha = alpha
         self.K = K
         self.n = n

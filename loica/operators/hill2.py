@@ -18,11 +18,11 @@ class Hill2(Operator):
     output : Regulator | Reporter | List
         The output of the operator that is regulated by the input
     alpha : List
-        [Basal expression rate, Regulated expression rate]
+        [Basal expression rate, Regulated expression rate in MEFL/second]
     K : int | float
-        Half expression input concentration
+        Half expression input concentration in Molar 
     n : int | float
-        Hill coefficient, cooperative degree
+        Hill coefficient, cooperative degree (unitless)
     uri : str, optional
         SynBioHub URI
     sbol_comp : SBOL Component, optional
@@ -31,16 +31,14 @@ class Hill2(Operator):
         Name of the operator displayed on the network representation
     color: str, optional
         Color displayed on the network representation
-    unit: str, optional
-        Units of the characterization data
 
     Methods
     -------
     characterize(flapjack, receiver, inverter, media, strain, signal, biomass_signal, gamma)
         Parameterize the Operator model that maps Input concentration into Output expression rate
     """
-    def __init__(self, input, output, alpha, K, n, unit, name=None, uri=None, sbol_comp=None, color='orange'):
-        super().__init__(output, name, uri, sbol_comp, color, unit)
+    def __init__(self, input, output, alpha, K, n, name=None, uri=None, sbol_comp=None, color='orange'):
+        super().__init__(output, name, uri, sbol_comp, color)
         self.alpha = alpha
         self.K = K
         self.n = n

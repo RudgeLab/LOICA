@@ -1,10 +1,10 @@
 import sbol3
 import networkx as nx
+from .operators.operator import Operator
 from .geneproduct import Regulator, Reporter
 from .supplement import Supplement
 from .operators.hill1 import Hill1
 from .operators.hill2 import Hill2
-from .operators.buffer import Buffer
 from .operators.receiver import Receiver
 from .operators.source import Source
 from typing import List #, Dict, Tuple, Optional, Union, Any
@@ -48,26 +48,35 @@ class GeneticNetwork():
         for reporter in self.reporters:
             reporter.initialize()
 
-    def add_operator(self, op):
-        self.operators.append(op)
+    def add_operator(self, ops):
+        if issubclass(type(ops), Operator):
+            self.operators.append(ops)
+        elif type(ops)==list:
+            for op in ops:
+                if issubclass(type(op), Operator):
+                    self.operators.append(op)
+                else: print('Unsupported Type, it should be an Operator')
+        else: print('Unsupported Type, it should be an Operator')
 
-    def add_regulator(self, reg):
-        self.regulators.append(reg)
+    def add_regulator(self, regs):
+        if issubclass(type(regs), Regulator):
+            self.regulators.append(regs)
+        elif type(regs)==list:
+            for reg in regs:
+                if issubclass(type(reg), Regulator):
+                    self.regulators.append(reg)
+                else: print('Unsupported Type, it should be an Regulator')
+        else: print('Unsupported Type, it should be an Regulator')
 
-    def add_reporter(self, rep):
-        self.reporters.append(rep)
-
-    def add_operators(self, ops):
-        for op in ops:
-            self.operators.append(op)
-
-    def add_regulators(self, regs):
-        for reg in regs:
-            self.regulators.append(reg)
-
-    def add_reporters(self, reps):
-        for rep in reps:
-            self.reporters.append(rep)
+    def add_reporter(self, reps):
+        if issubclass(type(reps), Reporter):
+            self.reporters.append(reps)
+        elif type(reps)==list:
+            for rep in reps:
+                if issubclass(type(rep), Reporter):
+                    self.reporters.append(rep)
+                else: print('Unsupported Type, it should be an Reporter')
+        else: print('Unsupported Type, it should be an Reporter')
 
     def substep_stochastic(self, t=0, dt=0.1, growth_rate=1):
         # Propensities
@@ -257,6 +266,7 @@ class GeneticNetwork():
             operator_sc = sbol3.SubComponent(operator_comp)
             output_sc = sbol3.SubComponent(output_comp)
             # TODO output string for policistronic operators
+            # TU Component
             if type(op)==Source:
                 input_str= 'c'
                 tu = sbol3.Component(f'TU_{op}_{op.output.name}', sbol3.SBO_DNA) #generalize to multi input/output TUs
@@ -285,7 +295,6 @@ class GeneticNetwork():
                 else:
                     tu.features.append(input_comp)                  
 
-            # TU Component
             tu.roles.append(sbol3.SO_ENGINEERED_REGION)              
             tu.constraints = [sbol3.Constraint(sbol3.SBOL_PRECEDES, operator_sc, output_sc)]
             # generate a sequence for the TU assuming assembly by type IIS REsnf both parts will have the fusion sites.
@@ -368,18 +377,23 @@ class GeneticNetwork():
                 #how can I not create 2 times the same component?
                 if type(op_input)!=Regulator: # if it is a regulator it is already created
                     loica_set.add(input_prod_comp)
-                # Input Interaction
+                 # Input Interaction
                 if type(op)==Hill1 and op.alpha[0]>op.alpha[1]:
                     input_participation = sbol3.Participation(roles=[sbol3.SBO_INHIBITOR], participant=input_prod_sc)
                     op_participation = sbol3.Participation(roles=[sbol3.SBO_INHIBITED], participant=operator_sc)
                     interaction = sbol3.Interaction(types=[sbol3.SBO_INHIBITION], participations=[input_participation, op_participation])
                     tu.interactions.append(interaction)
-                if type(op)==Hill2 and op.alpha[0]== max(op.alpha):
+                elif type(op)==Hill2 and op.alpha[0]== max(op.alpha):
                     input_participation = sbol3.Participation(roles=[sbol3.SBO_INHIBITOR], participant=input_prod_sc)
                     op_participation = sbol3.Participation(roles=[sbol3.SBO_INHIBITED], participant=operator_sc)
                     interaction = sbol3.Interaction(types=[sbol3.SBO_INHIBITION], participations=[input_participation, op_participation])
                     tu.interactions.append(interaction)
-                elif type(op)==Buffer or Receiver:
+                elif type(op)==Receiver:
+                    input_participation = sbol3.Participation(roles=[sbol3.SBO_STIMULATOR], participant=input_prod_sc)
+                    op_participation = sbol3.Participation(roles=[sbol3.SBO_STIMULATED], participant=operator_sc)
+                    interaction = sbol3.Interaction(types=[sbol3.SBO_STIMULATION], participations=[input_participation, op_participation])
+                    tu.interactions.append(interaction)
+                elif type(op)==Hill1 and op.alpha[0]<op.alpha[1]:
                     input_participation = sbol3.Participation(roles=[sbol3.SBO_STIMULATOR], participant=input_prod_sc)
                     op_participation = sbol3.Participation(roles=[sbol3.SBO_STIMULATED], participant=operator_sc)
                     interaction = sbol3.Interaction(types=[sbol3.SBO_STIMULATION], participations=[input_participation, op_participation])

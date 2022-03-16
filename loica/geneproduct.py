@@ -2,7 +2,7 @@ import numpy as np
 
 class GeneProduct:
     """
-    A class that represents a gene product, like RNA and protein.
+    A class that represents a gene product, protein or RNA.
 
     ...
     
@@ -11,7 +11,7 @@ class GeneProduct:
     name : str
         Name of the gene product
     init_concentration : int | float
-        Initial concentration of the gene product
+        Initial concentration of the gene product in Molar
     degradation_rate : int | float
         Degradation rate of the gene product
     type_ : str, optional
@@ -22,7 +22,7 @@ class GeneProduct:
         SBOL Component
     """
     shape = '^'
-    def __init__(self, name, init_concentration=0, degradation_rate=0, uri=None, sbol_comp=None, type_='PRO'):
+    def __init__(self, name, init_concentration=0, degradation_rate=0, uri=None, sbol_comp=None, type_='PRO', color='silver'):
         self.init_concentration = init_concentration
         self.concentration = init_concentration
         self.degradation_rate = degradation_rate
@@ -31,6 +31,7 @@ class GeneProduct:
         self.uri = uri
         self.sbol_comp = sbol_comp
         self.type_ = type_ 
+        self.color = color
 
 
     def initialize(self):
@@ -53,9 +54,8 @@ class Regulator(GeneProduct):
     Representation of a regulatory gene product.
     Child of GeneProduct.
     """
-    color = 'lightgreen'
-    def __init__(self, name, init_concentration=0, degradation_rate=0, sbol_comp=None):
-        super().__init__(name, init_concentration, degradation_rate)
+    def __init__(self, name, init_concentration=0, degradation_rate=0, sbol_comp=None, color='lightgreen'):
+        super().__init__(name, init_concentration, degradation_rate, sbol_comp,color='lightgreen')
         self.sbol_comp = sbol_comp
 
 class Reporter(GeneProduct):
@@ -70,7 +70,7 @@ class Reporter(GeneProduct):
         Color of the reporter
     """
     def __init__(self, name, init_concentration=0, degradation_rate=0, signal_id=None, color='w', sbol_comp=None):
-        super().__init__(name, init_concentration, degradation_rate, sbol_comp=None)
+        super().__init__(name, init_concentration, degradation_rate, sbol_comp)
         self.signal_id = signal_id
         self.color = color
         self.sbol_comp = sbol_comp
