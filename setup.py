@@ -5,7 +5,7 @@ with open('README.md', 'r') as ld:
     long_description = ld.read()
 
 setup(name='loica',
-    version='1.0.4',
+    version='1.0.5',
     author='Gonzalo Vidal',
     author_email='gsvidal@uc.cl',
     description='LOICA: Logical Operators for Integrated Cell Algorithms',
