@@ -34,10 +34,15 @@ def gompertz(t, y0, ymax, um, l):
 class Metabolism:
     """
     Context for gene expression, incorporates biomass and growth rate.
-
+    ...
+    
+    Attributes
+    ----------
+    name : str, optional
+        Name of the metabolism or correponding strain
     """
-    def __init__(self, biomass_units=None):
-        self.biomass_units = biomass_units
+    def __init__(self, name=None):
+        self.name = name
 
 class SimulatedMetabolism(Metabolism):
     """
@@ -46,15 +51,17 @@ class SimulatedMetabolism(Metabolism):
 
     Attributes
     ----------
+    name : str, optional
+        Name of the metabolism or correponding strain
     biomass
         A function of time that describes biomass f(t)=biomass
     growth_rate
         A function of time that describes the growth rate f(t)=growth rate
     """
-    def __init__(self, biomass_func, growth_rate_func, biomass_units):
-        super().__init__()
-        self.biomass = biomass_func
-        self.growth_rate = growth_rate_func
+    def __init__(self, name, biomass, growth_rate):
+        super().__init__(name)
+        self.biomass = biomass
+        self.growth_rate = growth_rate
 
 class DataMetabolism(Metabolism):
     """
@@ -63,6 +70,8 @@ class DataMetabolism(Metabolism):
 
     Attributes
     ----------
+    name : str, optional
+        Name of the metabolism or correponding strain
     fj : Flapjack
         Flapjack instance used to fetch data from
     media : str
@@ -81,8 +90,8 @@ class DataMetabolism(Metabolism):
     growth:rate(t)
         Return growth rate at a given time from characterization data
     """
-    def __init__(self, fj, media, strain, vector, biomass_signal):
-        super().__init__()
+    def __init__(self, name, fj, media, strain, vector, biomass_signal):
+        super().__init__(name)
         gr = fj.analysis(media=media.id, 
                     strain=strain.id,
                     vector=vector.id,

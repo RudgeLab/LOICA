@@ -261,23 +261,38 @@ class GeneticNetwork():
         geneticnetwork.roles.append(sbol3.SO_ENGINEERED_REGION)
         loica_set = set()
         for op in self.operators:
+            # Operator Component
             operator_comp = op.sbol_comp
-            output_comp = op.output.sbol_comp
             operator_sc = sbol3.SubComponent(operator_comp)
-            output_sc = sbol3.SubComponent(output_comp)
+            # GeneProduct Outputs Component 
+            output_str = ''
+            output_scs = []
+            if type(op.output) != list:
+                outputs = [op.output]
+            else: 
+                outputs = op.output
+            for op_output in outputs:
+                output_comp = op_output.sbol_comp
+                output_scs.append(sbol3.SubComponent(output_comp))
+                output_str += f'_{op_output.name}'
             # TODO output string for policistronic operators
             # TU Component
             if type(op)==Source:
                 input_str= 'c'
-                tu = sbol3.Component(f'TU_{op}_{op.output.name}', sbol3.SBO_DNA) #generalize to multi input/output TUs
+                tu = sbol3.Component(f'TU_{input_str}_{op}{output_str}', sbol3.SBO_DNA) #generalize to multi input/output TUs
                 tu.roles.append(sbol3.SO_ENGINEERED_REGION)
-                tu.features = [operator_sc, output_sc] 
+                tu.features = [operator_sc] 
+                for sc in output_scs:
+                    tu.features.append(sc)
             elif type(op)==Hill2: # type(op.input)==List:
                 input_str = ''
-                tu = sbol3.Component(f'TU{input_str}_{op}_{op.output.name}', sbol3.SBO_DNA) #generalize to multi input/output TUs
-                tu.features = [operator_sc, output_sc]
                 for inp in op.input:
                     input_str += f'_{inp.name}'
+                tu = sbol3.Component(f'TU{input_str}_{op}{output_str}', sbol3.SBO_DNA) #generalize to multi input/output TUs
+                tu.features = [operator_sc] 
+                for sc in output_scs:
+                    tu.features.append(sc)
+                for inp in op.input:
                     input_comp = inp.sbol_comp
                     if type(input_comp)==sbol3.Component:
                         input_sc = sbol3.SubComponent(input_comp)
@@ -286,8 +301,10 @@ class GeneticNetwork():
                         tu.features.append(input_comp)
             else:
                 input_str= f'_{op.input.name}'
-                tu = sbol3.Component(f'TU{input_str}_{op}_{op.output.name}', sbol3.SBO_DNA) #generalize to multi input/output TUs
-                tu.features = [operator_sc, output_sc]
+                tu = sbol3.Component(f'TU{input_str}_{op}{output_str}', sbol3.SBO_DNA) #generalize to multi input/output TUs
+                tu.features = [operator_sc] 
+                for sc in output_scs:
+                    tu.features.append(sc)
                 input_comp = op.input.sbol_comp
                 if type(input_comp)==sbol3.Component:
                     input_sc = sbol3.SubComponent(input_comp)
@@ -295,34 +312,33 @@ class GeneticNetwork():
                 else:
                     tu.features.append(input_comp)                  
 
-            tu.roles.append(sbol3.SO_ENGINEERED_REGION)              
-            tu.constraints = [sbol3.Constraint(sbol3.SBOL_PRECEDES, operator_sc, output_sc)]
+            tu.roles.append(sbol3.SO_ENGINEERED_REGION)
+            for i in range(len(tu.features)-1):
+                constraint = sbol3.Constraint(sbol3.SBOL_PRECEDES, tu.features[i], tu.features[i + 1])
+                tu.constraints = [constraint]              
+            #tu.constraints = [sbol3.Constraint(sbol3.SBOL_PRECEDES, operator_sc, output_sc)]
             # generate a sequence for the TU assuming assembly by type IIS REsnf both parts will have the fusion sites.
             # compare last 4 bp with thefirst 4 bp of the next part, given the preceds constraint.
             # if they are the same then delete one of them and concatenate the rest.
             # else error or comment TU sequence can not be generated, provide ways to add it.
 
             # Output GeneProduct Component
-            if type(op.output) != list:
-                outputs = [op.output]
-            else: 
-                outputs = op.output
-            for op_output in outputs:
+            for op_output, sc in zip(outputs, output_scs): #make list of tuples? for output_participation
                 if type(op_output)==Regulator:
                     if op_output.type_ == 'PRO':
-                        output_gp_comp = sbol3.Component(f'{op.output.name}_protein', sbol3.SBO_PROTEIN)
+                        output_gp_comp = sbol3.Component(f'{op_output.name}_protein', sbol3.SBO_PROTEIN)
                         output_gp_comp.roles.append(sbol3.SO_TRANSCRIPTION_FACTOR)               
                     elif op_output.type_ == 'RNA':
-                        output_gp_comp = sbol3.Component(f'{op.output.name}_rna', sbol3.SBO_RNA)
+                        output_gp_comp = sbol3.Component(f'{op_output.name}_rna', sbol3.SBO_RNA)
                         output_gp_comp.roles.append(sbol3.SO_TRANSCRIPTION_FACTOR)
                     else: 
                         print('Unsupported output molecule type')
                 elif type(op_output)==Reporter: # For now just support fluorescent reporters
                     if op_output.type_ == 'PRO':
-                        output_gp_comp = sbol3.Component(f'{op.output.name}_protein', sbol3.SBO_PROTEIN)
+                        output_gp_comp = sbol3.Component(f'{op_output.name}_protein', sbol3.SBO_PROTEIN)
                         output_gp_comp.roles.append('http://purl.obolibrary.org/obo/NCIT_C37894')
                     elif op_output.type_ == 'RNA':
-                        output_gp_comp = sbol3.Component(f'{op.output.name}_rna', sbol3.SBO_RNA)
+                        output_gp_comp = sbol3.Component(f'{op_output.name}_rna', sbol3.SBO_RNA)
                         output_gp_comp.roles.append('http://purl.obolibrary.org/obo/NCIT_C37894')  
                     else: 
                             print('Unsupported output molecule type')
@@ -334,7 +350,7 @@ class GeneticNetwork():
                     products.add(op_output) 
                     loica_set.add(output_gp_comp)
                 # Genetic Production Interaction pf the output
-                output_participation = sbol3.Participation(roles=[sbol3.SBO_TEMPLATE], participant=output_sc)
+                output_participation = sbol3.Participation(roles=[sbol3.SBO_TEMPLATE], participant=sc)
                 gp_participation = sbol3.Participation(roles=[sbol3.SBO_PRODUCT], participant=output_gp_sc)
                 production = sbol3.Interaction(types=[sbol3.SBO_GENETIC_PRODUCTION], participations=[output_participation, gp_participation])
                 tu.interactions.append(production)
@@ -404,7 +420,7 @@ class GeneticNetwork():
                     print('Unsupported operator Type')         
             # Model
             #model_string = str(op.__dict__)
-            op_model = sbol3.Model(f'LOICA{input_str}_{op}_{op.output.name}_model', 
+            op_model = sbol3.Model(f'LOICA{input_str}_{op}{output_str}_model', 
                             source='https://github.com/SynBioUC/LOICA/blob/master/loica/operators',
                             language='http://identifiers.org/EDAM:format_3996',
                             framework='http://identifiers.org/SBO:0000062',)
