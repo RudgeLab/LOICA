@@ -9,7 +9,7 @@ class Supplement:
     name : str
         Name of the supplement
     concentration : int | float
-        concentration of the supplement
+        concentration of the supplement in Molar
     pubchemid : str
         PubChemID URI of the supplement
     supplier_id : str

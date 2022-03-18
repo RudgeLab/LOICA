@@ -1,8 +1,9 @@
+from .operator import *
 import numpy as np
 from scipy.optimize import least_squares
 from .receiver import *
 
-class Hill1:
+class Hill1(Operator):
     """
     A class that represents a DNA fragment that encode a genetic operator.
     The Hill1 Operator is an abstraction of a repressible or inducible promoter that
@@ -17,11 +18,11 @@ class Hill1:
     output : Regulator | Reporter
         The output of the operator that is regulated by the input
     alpha : List
-        [Basal expression rate, Regulated expression rate]
+        [Basal expression rate, Regulated expression rate in MEFL/second]
     K : int | float
-        Half expression input concentration
+        Half expression input concentration in Molar 
     n : int | float
-        Hill coefficient, cooperative degree
+        Hill coefficient, cooperative degree (unitless)
     uri : str, optional
         SynBioHub URI
     sbol_comp : SBOL Component, optional
@@ -38,15 +39,11 @@ class Hill1:
     """
 
     def __init__(self, input, output, alpha, K, n, name=None, uri=None, sbol_comp=None, color='skyblue'):
+        super().__init__(output, name, uri, sbol_comp, color)
         self.alpha = alpha
         self.K = K
         self.n = n
         self.input = input
-        self.output = output
-        self.name = name
-        self.uri = uri
-        self.sbol_comp = sbol_comp
-        self.color = color
 
     def __str__(self):
         if self.name == None:
