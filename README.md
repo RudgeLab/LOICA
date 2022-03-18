@@ -3,7 +3,7 @@
 Welcome to the LOICA (Logical Operators for Integrated Cell Algorithms) repository, our Python package for designing, modeling and characterizing genetic networks.
 
 <img src="https://github.com/RudgeLab/LOICA/blob/master/images/LOICA_Logo.svg#gh-light-mode-only" alt="LOICA logo" width="250"/>
-<img src="https://github.com/RudgeLab/LOICA/blob/units/images/LOICA_Logo_night.svg#gh-dark-mode-only" alt="LOICA night logo" width="250"/>
+<img src="https://github.com/RudgeLab/LOICA/blob/master/images/LOICA_Logo_night.svg#gh-dark-mode-only" alt="LOICA night logo" width="250"/>
 
 
 ![PyPI](https://img.shields.io/pypi/v/loica)
@@ -37,4 +37,4 @@ For more details please refer to our [Wiki](https://github.com/RudgeLab/LOICA/wi
 Now that you have LOICA installed you can familiarize yourself with the tool using the [Jupyter notebook tutorials](https://github.com/RudgeLab/LOICA/tree/master/notebooks) designed for this purpose.
 
 ## Class Diagram
-<img src="https://github.com/RudgeLab/LOICA/blob/units/images/LOICA%20class%20diagram3.png" alt="LOICA class diagram" width="800"/>
+<img src="https://github.com/RudgeLab/LOICA/blob/master/images/LOICA%20class%20diagram3.png" alt="LOICA class diagram" width="800"/>
