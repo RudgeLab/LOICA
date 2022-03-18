@@ -14,7 +14,13 @@ As you may have noticed, our logo features a beautiful bird—loica _[(Leistes l
 
 ## Instalation
 
-Installing LOICA is way easier than pronuncing it! Please refer to our [Wiki](https://github.com/RudgeLab/LOICA/wiki) for installation instructions.
+Installing LOICA is way easier than pronuncing it! 
+
+Do:
+
+pip install loica
+
+For more details please refer to our [Wiki](https://github.com/RudgeLab/LOICA/wiki) for installation instructions.
 
 ## LOICA allows you to:
 
