@@ -18,9 +18,9 @@ Installing LOICA is way easier than pronuncing it!
 
 Do:
 
-pip install loica
+`pip install loica`
 
-For more details please refer to our [Wiki](https://github.com/RudgeLab/LOICA/wiki) for installation instructions.
+For more details please refer to our [Wiki](https://github.com/RudgeLab/LOICA/wiki) for installation instructions adn developer guides.
 
 ## LOICA allows you to:
 
