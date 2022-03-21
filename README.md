@@ -20,7 +20,7 @@ Do:
 
 `pip install loica`
 
-For more details please refer to our [Wiki](https://github.com/RudgeLab/LOICA/wiki) for installation instructions adn developer guides.
+For more details please refer to our [Wiki](https://github.com/RudgeLab/LOICA/wiki) for installation instructions and developer guides.
 
 ## LOICA allows you to:
 
