@@ -67,7 +67,7 @@ Now that you have LOICA installed you can familiarize yourself with the tool usi
 Class Diagram
 =============
 
-.. image:: images/LOICA%20class%20diagram3.png
+.. image:: https://github.com/RudgeLab/LOICA/blob/master/images/LOICA%20class%20diagram3.png
    :width: 300
 
 
