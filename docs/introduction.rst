@@ -4,6 +4,9 @@ Introduction
 
 Welcome to the LOICA (Logical Operators for Integrated Cell Algorithms) repository, our Python package for designing, modeling and characterizing genetic networks.
 
+.. figure:: ../images/LOICA_Logo.svg
+   :width: 250
+
 As you may have noticed, our logo features a beautiful bird—loica `(Leistes loyca) <https://en.wikipedia.org/wiki/Long-tailed_meadowlark>`_; a bird native to Chile known for its particular red chest and legendary kindness, with which we share name.
 
 
