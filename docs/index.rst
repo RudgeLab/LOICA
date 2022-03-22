@@ -30,7 +30,7 @@ Welcome to the LOICA (Logical Operators for Integrated Cell Algorithms) reposito
    :width: 250
 
 
-As you may have noticed, our logo features a beautiful bird—loica (Leistes loyca); a bird native to Chile known for its particular red chest and legendary kindness, with which we share name.
+As you may have noticed, our logo features a beautiful bird—loica `(Leistes loyca) <https://en.wikipedia.org/wiki/Long-tailed_meadowlark>`_; a bird native to Chile known for its particular red chest and legendary kindness, with which we share name.
 
 
 ============
@@ -43,7 +43,7 @@ Installing LOICA is way easier than pronuncing it!
 
    pip install loica
    
-For more details please refer to our Wiki for installation instructions and developer guides.
+For more details please refer to our `Wiki <https://github.com/RudgeLab/LOICA/wiki>`_ for installation instructions and developer guides.
 
 ====================
 LOICA allows you to:
@@ -61,7 +61,7 @@ LOICA allows you to:
 Tutorials
 =========
 
-Now that you have LOICA installed you can familiarize yourself with the tool using the Jupyter notebook tutorials designed for this purpose.
+Now that you have LOICA installed you can familiarize yourself with the tool using the `Jupyter notebook <https://github.com/RudgeLab/LOICA/tree/master/notebooks>`_ tutorials designed for this purpose.
 
 =============
 Class Diagram
