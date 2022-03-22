@@ -26,10 +26,6 @@ Introduction
 
 Welcome to the LOICA (Logical Operators for Integrated Cell Algorithms) repository, our Python package for designing, modeling and characterizing genetic networks.
 
-.. image:: images/LOICA_Logo.svg
-   :width: 250
-
-
 As you may have noticed, our logo features a beautiful bird—loica `(Leistes loyca) <https://en.wikipedia.org/wiki/Long-tailed_meadowlark>`_; a bird native to Chile known for its particular red chest and legendary kindness, with which we share name.
 
 
@@ -62,13 +58,6 @@ Tutorials
 =========
 
 Now that you have LOICA installed you can familiarize yourself with the tool using the `Jupyter notebook <https://github.com/RudgeLab/LOICA/tree/master/notebooks>`_ tutorials designed for this purpose.
-
-=============
-Class Diagram
-=============
-
-.. image:: https://github.com/RudgeLab/LOICA/blob/master/images/LOICA%20class%20diagram3.png
-   :width: 300
 
 
 
