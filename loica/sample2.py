@@ -7,7 +7,7 @@ class Sample:
 
     Attributes
     ----------
-    genetic_network : GeneticNetwork
+    genetic_network : List[GeneticNetwork]
         genetic network that is part of the sample
     metabolism : Metabolism
         metabolism that drives the genetic network in the sample
@@ -23,6 +23,7 @@ class Sample:
     add_supplement(supplement, concentration)
         stablishes the concentration of Supplement
     """
+    # TODO: determine whether I need different metabolism for each strain (in general)
     def __init__(self, 
             genetic_network=None, 
             metabolism=None, 
@@ -35,8 +36,11 @@ class Sample:
         self.media = media
         self.strain = strain
         self.vector = self.genetic_network.vector
+        self.reporters = []
         if self.genetic_network:
-            self.reporters = self.genetic_network.reporters
+            for genetic_network in self.genetic_network:
+                for reporter in genetic_network.reporters:
+                    self.reporters.append(reporter)
         if metabolism:
             self.biomass = self.metabolism.biomass
         self.supplements = {}
