@@ -22,20 +22,21 @@ class Consortium(Sample):
 
     """ 
     I need to have something similar to metabolism here
-    So there will be either nested list or dictionary containing wires and their 
-    extracelllar concentration
+    So there will be either nested list or dictionary containing reporters and their 
+    extracelllar concentration, or I need to make gene products to have extracellular
+    concentration
 
-    For example, extracellular_conc = [[wire1, conc1], [wire2, conc2]]
+    For example, extracellular_conc = [[reporter1, conc1], [reporter2, conc2]]
     And each extracellular concentration will be set to 0 in the beginning
-    extracellular_conc = [[wire1, 0], [wire2, 0]]
+    extracellular_conc = [[reporter1, 0], [reporter2, 0]]
 
-    Since supplement can be a wire, I need to change wire concentration to be equal 
-    to supplement
+    Since supplement can be a reporter, I need to change reporter concentration to be 
+    equal to supplement
 
-    so let's say supplement = lc.Supplement(name="wire1", concentration=5)
-    and wire1.name = "wire1"
-    since supplement.name == wire1.name
-    extracellular_conc = [[wire1, 5], [wire2, 0] at time 0
+    so let's say supplement = lc.Supplement(name="Reporter1", concentration=5)
+    and reporter1.name = "Reporter1"
+    since supplement.name == reporter1.name
+    extracellular_conc = [[reporter1, 5], [reporter2, 0] at time 0
     """
     def __init__(self,
             strains=None, 
@@ -61,8 +62,11 @@ class Consortium(Sample):
         self.supplements = {} 
 
 
-    # function that checks whether supplement is the same as wire
-    # if yes, set the extracellular concentration of the wire 
-    def supplement_is_wire(self, supplement, wire):
-        if supplement.name == wire.name:
-            extracellular_conc[wire]=supplement.concentration
+    # function that checks whether supplement is the same as reporter
+    # if yes, set the extracellular concentration of the reporter to be equal 
+    # to supplemet
+    def supplement_is_reporter(self, supplement):
+        for reporter in self.reporters:
+            if supplement.name == reporter.name:
+                reporter.extracellular_conc=supplement.concentration
+
