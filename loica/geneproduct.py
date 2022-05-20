@@ -25,6 +25,9 @@ class GeneProduct:
     def __init__(self, name, init_concentration=0, degradation_rate=0, uri=None, sbol_comp=None, type_='PRO', color='silver'):
         # diffusion_rate=None
         # self.diffusion_rate=diffusion_rate
+        # if self.diffusion_rate:
+        #     self.extracellular_conc = 0
+        #     self.dextr_conc_dt = None
         self.init_concentration = init_concentration
         self.concentration = init_concentration
         self.degradation_rate = degradation_rate
@@ -51,14 +54,16 @@ class GeneProduct:
     """ 
     I need this method to account for diffusion.
     So if self.diffusion_rate == None, nothing happens even if the same supplement is added
-    however, if self.diffusion_rate == True, then extracellular concentration needs to be
-    taken from Consortium
-    Not sure how to go about it
+    however, if self.diffusion_rate == True, then extracellular concentration is used.
+
+    To avoid dragging metabolism in here, instead of setting extracellular concentration
+    set the difference one cell makes (dextr_conc_dt) (might change name)
     """
     # def step(self, growth_rate, dt):
     #     if self.diffusion_rate:
     #         dconcdt0 = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
     #         dconcdt = dconcdt0 - self.diffusion_rate*(dconcdt0-self.extracellular_conc)
+    #         self.dextr_conc_dt = self.diffusion_rate*(dconcdt0-self.extracellular_conc)
     #     else:
     #         dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
     #     self.next_concentration = self.concentration + dconcdt * dt
