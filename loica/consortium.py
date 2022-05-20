@@ -53,13 +53,17 @@ class Consortium(Sample):
             # code that pulls reporters from all strains, and removes repeating
             # add code for latter (not sure if I need to remove repeating)
             self.reporters = []
-            for cons_strain in self.strains:
-                self.reporters.append(cons_strain.reporters)
+            for strain in self.strains:
+                self.reporters.append(strain.reporters)
+            # removing duplicates
+            self.reporters = list(dict.fromkeys(self.reporters))
         if metabolism:
             self.biomass = []
             for strain_metabolism in self.metabolism:
                 self.biomass.append(strain_metabolism.biomass)
         self.supplements = {} 
+
+        self.extracellular_conc = {}
 
 
     # function that checks whether supplement is the same as reporter
@@ -70,3 +74,8 @@ class Consortium(Sample):
             if supplement.name == reporter.name:
                 reporter.extracellular_conc=supplement.concentration
 
+    # method that sets all concentrations to zero both within and outside cells
+    def initialize_both(self):
+        for strain in self.strains:
+            strain.initialize()
+            for reporter in strain.reporters
