@@ -1,15 +1,22 @@
+from .sample import Sample
+
+
 class Consortium(Sample):
     """
-    Representation of microbial consortium (written either to substitute Sample or 
-    is a child of sample). Consortium contains Strains, which are connected through 
-    extracellular space/medium.
+    Representation of microbial consortium (a child of Sample)
+    Consortium contains GeneticNetworks (which equal strains) and their respective 
+    Metabolism. The strains are connected through extracellular space/medium.
     
     Attributes
     ----------
-    strain : Strain
-        strain that is part of the consortium
-    sample : Sample
-        sample to which this consortium belongs
+    strains : List[GeneticNetwork]
+        strains that form consortium
+    metabolism : List[Metabolism]
+        metabolism that drives the genetic network of each strain
+    media : str
+        Name of the media in the consortium
+    strain : List[str]
+        Name of the strains in the consortium
     
     """
 
@@ -30,14 +37,28 @@ class Consortium(Sample):
     since supplement.name == wire1.name
     extracellular_conc = [[wire1, 5], [wire2, 0] at time 0
     """
-    def __init__(self, 
-            strain=None, 
-            sample=None
+    def __init__(self,
+            strains=None, 
+            metabolism=None, 
+            media=None,
+            strain=None,
             ):
-        # need to determine that strains can be list
-        self.strain = []
-        self.extracellular_concentration = []
+        super().__init__(metabolism, media)
+        self.strains = strains
+        self.strain = strain
+        #self.vector = self.genetic_network.vector
 
+        if self.strains:
+            # code that pulls reporters from all strains, and removes repeating
+            # add code for latter (not sure if I need to remove repeating)
+            self.reporters = []
+            for cons_strain in self.strains:
+                self.reporters.append(cons_strain.reporters)
+        if metabolism:
+            self.biomass = []
+            for strain_metabolism in self.metabolism:
+                self.biomass.append(strain_metabolism.biomass)
+        self.supplements = {} 
 
 
     # function that checks whether supplement is the same as wire
