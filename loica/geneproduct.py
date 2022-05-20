@@ -46,6 +46,19 @@ class GeneProduct:
         self.concentration = self.next_concentration
         self.expression_rate = 0
 
+    """ 
+    I need this method to account for diffusion.
+    So if self.diffusion_rate == 0, nothing happens even if the same supplement is added
+    however, if self.diffusion_rate != 0, then extracellular concentration needs to be
+    taken from Consortium
+    """
+    # def step(self, growth_rate, dt):
+    #     dconcdt0 = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
+    #     dconcdt = dconcdt0 - self.diffusion_rate*(dconcdt0-self.extracellular_conc)
+    #     self.next_concentration = self.concentration + dconcdt * dt
+    #     self.concentration = self.next_concentration
+    #     self.expression_rate = 0
+
     def __str__(self):
         return self.name
 
