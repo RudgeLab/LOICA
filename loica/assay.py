@@ -72,10 +72,14 @@ class Assay:
                     # Record measurements of fluorescence
                     for reporter in sample.reporters:
                         sig = reporter.concentration
+                        # fluorescence of etracellular medium
+                        # extr_sig = reporter.extr_conc
                         signal_id = reporter.signal_id
                         signal_name = reporter.name
                         noise = np.random.normal(scale=np.sqrt(nsr))
-                        meas = sig * sample.biomass(time) + fluo_bg
+                        # add fluorescence of medium
+                        meas = sig * sample.biomass(time) + fluo_bg # + extr_sig
+                        # TODO: do I need to add noise of medium?
                         noisy_meas = (1 + noise) * meas
                         noise_bg = np.random.normal(scale=np.sqrt(nsr))
                         corr_meas = noisy_meas - (1 + noise_bg) * fluo_bg
