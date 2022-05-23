@@ -41,20 +41,41 @@ class Sample2:
         # adding all reporters into list
         if self.genetic_network:
             for genetic_network in self.genetic_network:
-                for reporter in genetic_network.reporters:
-                    self.reporters.append(reporter)
+                self.reporters.append(genetic_network.reporters)
             # TODO: ensure that reporters are in nested list, so
             #   [[reporters in genetic_network1], [reporters in genetic_network2], ...]
             # and then maybe make array?
         
         # setting up extracellular space
-        for reporter in self.reporters:
-            if reporter.diffusion_rate != 0:
-                self.extracellular_space=True
-                break
+        self.extr_conc = []
+        for gn in self.genetic_network:
+            genetic_producs = gn.reporters + gn.regulators
+
+            """ 
+            make an array or dictionary which looks like this:
+
+            {gp:conc, gp2:conc2} - dictionary. 
+            [conc1, conc2, conc3, etc]
+            
+            however, I need to make sure that:
+            a) gene products with the same identity are not repeated
+            I could add attribute "extracellular_conc" to GeneProduct, set it to 0 by 
+            default. Then when gene products from different strains are "merged", 
+
+            maybe:
+            [ [[gene products with the same identity], extracellular concentration],
+              [[gene products with the same identity], extracellular concentration],
+                ]  
+
+            at the moment I am not sure what is the best way to go about this, I need
+            to decide later.
+            
+            """
+
         
         if metabolism:
             self.biomass = self.metabolism.biomass
+
         self.supplements = {}
 
     def initialize(self):
