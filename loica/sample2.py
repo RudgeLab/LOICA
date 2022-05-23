@@ -117,9 +117,16 @@ class Sample2:
             for supp,conc in self.supplements.items():
                 supp.concentration = conc
             if stochastic:
-                self.genetic_network.step_stochastic(growth_rate, t, dt)
+                # I need for all strains to have steps either simultaneously or
+                # randomly, with the simultaneous change extracellularly
+                for gn in self.genetic_network:
+                    gn.step_stochastic(growth_rate, t, dt)
+                self.sub_step
             else:
-                self.genetic_network.step(growth_rate, t, dt)
+                # I need for all strains to have steps either simultaneously or
+                # randomly, with the simultaneous change extracellularly
+                for gn in self.genetic_network:
+                    gn.step(growth_rate, t, dt)
             self.reporters = self.genetic_network.reporters
 
 
