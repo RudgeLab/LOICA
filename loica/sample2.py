@@ -1,4 +1,4 @@
-class Sample:
+class Sample2:
     """
     Representation of a sample that encapsulates GeneticNetwork and Metabolism.
     Incorporate environment information such as Supplements or chemicals, strain and media. 
@@ -37,10 +37,21 @@ class Sample:
         self.strain = strain
         self.vector = self.genetic_network.vector
         self.reporters = []
+
+        # adding all reporters into list
         if self.genetic_network:
             for genetic_network in self.genetic_network:
                 for reporter in genetic_network.reporters:
                     self.reporters.append(reporter)
+            # removing duplicates
+            self.reporters = list(dict.fromkeys(self.reporters))
+        
+        # setting up extracellular space
+        for reporter in self.reporters:
+            if reporter.diffusion_rate != 0:
+                self.extracellular_space=True
+                break
+        
         if metabolism:
             self.biomass = self.metabolism.biomass
         self.supplements = {}
