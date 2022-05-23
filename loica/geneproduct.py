@@ -45,11 +45,11 @@ class GeneProduct:
     def express(self, rate):
         self.expression_rate += rate
 
-    # def step(self, growth_rate, dt):
-    #     dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
-    #     self.next_concentration = self.concentration + dconcdt * dt
-    #     self.concentration = self.next_concentration
-    #     self.expression_rate = 0
+    def step(self, growth_rate, dt):
+        dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
+        self.next_concentration = self.concentration + dconcdt * dt
+        self.concentration = self.next_concentration
+        self.expression_rate = 0
 
     """ 
     I need this method to account for diffusion.
@@ -59,13 +59,13 @@ class GeneProduct:
     To avoid dragging metabolism in here, instead of setting extracellular concentration
     set the difference one cell makes (dextr_conc_dt) (might change name)
     """
-    def step(self, growth_rate, dt):
-        dconcdt0 = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
-        dconcdt = dconcdt0 - self.diffusion_rate*(dconcdt0-self.extracellular_conc)
-        self.dextr_conc_dt = self.diffusion_rate*(dconcdt0-self.extracellular_conc)
-        self.next_concentration = self.concentration + dconcdt * dt
-        self.concentration = self.next_concentration
-        self.expression_rate = 0
+    # def step(self, growth_rate, dt):
+    #     dconcdt0 = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
+    #     dconcdt = dconcdt0 - self.diffusion_rate*(dconcdt0-self.extracellular_conc)
+    #     self.dextr_conc_dt = self.diffusion_rate*(dconcdt0-self.extracellular_conc)
+    #     self.next_concentration = self.concentration + dconcdt * dt
+    #     self.concentration = self.next_concentration
+    #     self.expression_rate = 0
 
     def __str__(self):
         return self.name
