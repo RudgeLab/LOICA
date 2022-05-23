@@ -108,6 +108,9 @@ class Sample2:
                 rep.init_concentration = concentration
             else: pass
 
+    def sub_step(self):
+        """ method that calculates change is extracellular concentration"""
+
     def step(self, t, dt, stochastic=False):
         if self.genetic_network and self.metabolism:
             growth_rate = self.metabolism.growth_rate(t)
