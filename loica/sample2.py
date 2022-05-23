@@ -72,7 +72,9 @@ class Sample2:
             
             """
 
-        
+        # this assumes that metabolism is the same for all 3 strains.
+        # might want to change it in the future, and code interactions between strains
+        # into metabolism.py
         if metabolism:
             self.biomass = self.metabolism.biomass
 
