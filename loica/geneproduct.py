@@ -22,15 +22,14 @@ class GeneProduct:
         SBOL Component
     """
     shape = '^'
-    def __init__(self, name, init_concentration=0, degradation_rate=0, uri=None, sbol_comp=None, type_='PRO', color='silver'):
-        # diffusion_rate=None
-        # self.diffusion_rate=diffusion_rate
+    def __init__(self, name, init_concentration=0, degradation_rate=0, diffusion_rate=0, uri=None, sbol_comp=None, type_='PRO', color='silver'):
         # if self.diffusion_rate:
         #     self.extracellular_conc = 0
         #     self.dextr_conc_dt = None
         self.init_concentration = init_concentration
         self.concentration = init_concentration
         self.degradation_rate = degradation_rate
+        self.diffusion_rate=diffusion_rate
         self.name = name
         self.expression_rate = 0
         self.uri = uri
@@ -45,27 +44,22 @@ class GeneProduct:
     def express(self, rate):
         self.expression_rate += rate
 
-    def step(self, growth_rate, dt):
-        dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
-        self.next_concentration = self.concentration + dconcdt * dt
-        self.concentration = self.next_concentration
-        self.expression_rate = 0
 
     """ 
     I need this method to account for diffusion.
-    So if self.diffusion_rate == None, nothing happens even if the same supplement is added
-    however, if self.diffusion_rate == True, then extracellular concentration is used.
 
-    To avoid dragging metabolism in here, instead of setting extracellular concentration
-    set the difference one cell makes (dextr_conc_dt) (might change name)
+    To avoid dragging Sample in here, allow input of extracellular concentration and
+    determine the difference in extracellular concentration that one cell makes
+    (dextr_conc_dt) (might change name)
     """
-    # def step(self, growth_rate, dt):
-    #     dconcdt0 = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
-    #     dconcdt = dconcdt0 - self.diffusion_rate*(dconcdt0-self.extracellular_conc)
-    #     self.dextr_conc_dt = self.diffusion_rate*(dconcdt0-self.extracellular_conc)
-    #     self.next_concentration = self.concentration + dconcdt * dt
-    #     self.concentration = self.next_concentration
-    #     self.expression_rate = 0
+    def step(self, growth_rate, dt, extracellular_conc):
+        dconcdt0 = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
+        dconcdt = dconcdt0 - self.diffusion_rate*(dconcdt0-extracellular_conc)
+        # this is how much diffused out of the cell
+        self.dextr_conc_dt = self.diffusion_rate*(dconcdt0-extracellular_conc)
+        self.next_concentration = self.concentration + dconcdt * dt
+        self.concentration = self.next_concentration
+        self.expression_rate = 0
 
     def __str__(self):
         return self.name

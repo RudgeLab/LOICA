@@ -127,6 +127,7 @@ class Sample2:
                 # randomly, with the simultaneous change extracellularly
                 for gn in self.genetic_network:
                     gn.step(growth_rate, t, dt)
+                self.sub_step
             self.reporters = self.genetic_network.reporters
 
 
