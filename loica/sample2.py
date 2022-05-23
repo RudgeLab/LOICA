@@ -43,8 +43,9 @@ class Sample2:
             for genetic_network in self.genetic_network:
                 for reporter in genetic_network.reporters:
                     self.reporters.append(reporter)
-            # removing duplicates
-            self.reporters = list(dict.fromkeys(self.reporters))
+            # TODO: ensure that reporters are in nested list, so
+            #   [[reporters in genetic_network1], [reporters in genetic_network2], ...]
+            # and then maybe make array?
         
         # setting up extracellular space
         for reporter in self.reporters:
