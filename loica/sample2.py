@@ -81,10 +81,20 @@ class Sample2:
         self.supplements = {}
 
     def initialize(self):
-        self.genetic_network.initialize()
+        for gn in self.genetic_network:
+            gn.initialize()
+        # and initialise extracellular concentrations if needed
 
     def set_supplement(self, supplement, concentration):
         self.supplements[supplement] = concentration
+
+    # add function that checks whether supplement is the same as gene product
+    # if yes, add the supplement concentration to the concentration of gp in the
+    # extracellular space
+    def supplement_is_gp(self, supplement):
+        for gp in self.extracellular_space:
+            if supplement.name == gp.name:
+                gp.extracellular_conc=supplement.concentration
 
     def set_regulator(self, name, concentration):
         for reg in self.genetic_network.regulators:
