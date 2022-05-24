@@ -53,7 +53,7 @@ class GeneProduct:
 
     # added cells - number of cells that create this gene product. I want to conncect 
     # this to OD
-    def step(self, growth_rate, dt, cells=1):
+    def step(self, growth_rate, dt, biomass):
         dconcdt0 = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
         dconcdt = dconcdt0 - self.diffusion_rate*(dconcdt0-self.ext_conc)
         # this is how much diffused out of the cell
@@ -63,9 +63,9 @@ class GeneProduct:
         # then external concentration gets updated based on number of cells that produce
         # or intake this molecule
         # It should be enough with my current notebook, but I will need to make sure that
-        # extrernal concentration of geneproducts with the same identity from different 
+        # extrernal concentration of geneproducts with the same identity froms different 
         # strains will get summed up and updated, maybe in sample
-        self.next_ext_conc = self.ext_conc + self.dext_conc_dt * dt * cells
+        self.next_ext_conc = self.ext_conc + self.dext_conc_dt * dt * biomass
         self.ext_conc = self.next_ext_conc
         self.expression_rate = 0
 
