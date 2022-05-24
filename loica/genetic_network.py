@@ -97,6 +97,7 @@ class GeneticNetwork():
             # Production reeaction
             a.append(gp.expression_rate)
             a.append((gp.degradation_rate + growth_rate) * gp.concentration)
+            # TODO: add propensity for diffusion??
 
         # Make list of propensities into array
         a = np.array(a)
@@ -131,8 +132,10 @@ class GeneticNetwork():
         while delta_t < dt:
             #print(f'Elapsed time: {delta_t}')
             delta_t += self.substep_stochastic(t=t, dt=dt, growth_rate=growth_rate)
-        
-    def step(self, growth_rate=1, t=0, dt=0.1):
+
+    # added cells parameter to follow on changes in geneproduct step
+    # this parameter is related to OD of the strain-genetic network   
+    def step(self, growth_rate=1, t=0, dt=0.1, cells=1):
         for op in self.operators:
             expression_rate = op.expression_rate(t, dt)
             if type(op.output)==list:
@@ -142,10 +145,10 @@ class GeneticNetwork():
                 op.output.express(expression_rate)
 
         for regulator in self.regulators:
-            regulator.step(growth_rate, dt)
+            regulator.step(growth_rate, dt, cells)
 
         for reporter in self.reporters:
-            reporter.step(growth_rate, dt)
+            reporter.step(growth_rate, dt, cells)
 
     def to_graph(self):
         g = nx.DiGraph()
