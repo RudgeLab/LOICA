@@ -23,9 +23,7 @@ class GeneProduct:
     """
     shape = '^'
     def __init__(self, name, init_concentration=0, degradation_rate=0, diffusion_rate=0, uri=None, sbol_comp=None, type_='PRO', color='silver'):
-        # if self.diffusion_rate:
-        #     self.extracellular_conc = 0
-        #     self.dextr_conc_dt = None
+        self.ext_conc = 0
         self.init_concentration = init_concentration
         self.concentration = init_concentration
         self.degradation_rate = degradation_rate
@@ -50,15 +48,25 @@ class GeneProduct:
 
     To avoid dragging Sample in here, allow input of extracellular concentration and
     determine the difference in extracellular concentration that one cell makes
-    (dextr_conc_dt) (might change name)
+    (dext_conc_dt) (might change name)
     """
-    def step(self, growth_rate, dt, extracellular_conc):
+
+    # added cells - number of cells that create this gene product. I want to conncect 
+    # this to OD
+    def step(self, growth_rate, dt, cells=1):
         dconcdt0 = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
-        dconcdt = dconcdt0 - self.diffusion_rate*(dconcdt0-extracellular_conc)
+        dconcdt = dconcdt0 - self.diffusion_rate*(dconcdt0-self.ext_conc)
         # this is how much diffused out of the cell
-        self.dextr_conc_dt = self.diffusion_rate*(dconcdt0-extracellular_conc)
+        self.dext_conc_dt= self.diffusion_rate*(dconcdt0-self.ext_conc)
         self.next_concentration = self.concentration + dconcdt * dt
         self.concentration = self.next_concentration
+        # then external concentration gets updated based on number of cells that produce
+        # or intake this molecule
+        # It should be enough with my current notebook, but I will need to make sure that
+        # extrernal concentration of geneproducts with the same identity from different 
+        # strains will get summed up and updated, maybe in sample
+        self.next_ext_conc = self.ext_conc + self.dext_conc_dt * dt * cells
+        self.ext_conc = self.next_ext_conc
         self.expression_rate = 0
 
     def __str__(self):
