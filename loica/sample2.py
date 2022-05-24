@@ -114,6 +114,7 @@ class Sample2:
     def step(self, t, dt, stochastic=False):
         if self.genetic_network and self.metabolism:
             growth_rate = self.metabolism.growth_rate(t)
+            biomass = self.metabolism.biomass(t)
             for supp,conc in self.supplements.items():
                 supp.concentration = conc
             if stochastic:
@@ -126,7 +127,7 @@ class Sample2:
                 # I need for all strains to have steps either simultaneously or
                 # randomly, with the simultaneous change extracellularly
                 for gn in self.genetic_network:
-                    gn.step(growth_rate, t, dt)
+                    gn.step(biomass, growth_rate, t, dt)
                 self.sub_step
             self.reporters = self.genetic_network.reporters
 
