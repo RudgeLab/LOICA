@@ -112,17 +112,22 @@ class Sample:
                 rep.init_concentration = concentration
             else: pass
 
-    def sub_step(self):
-        """ method that calculates change is extracellular concentration"""
-
     def step(self, t, dt, stochastic=False):
         if self.genetic_network and self.metabolism:
-            # I might assign self.metabolism to each self.genetic_network
-            # so each could have a separate growth rate and biomass
-            growth_rate = self.metabolism.growth_rate(t)
-            biomass = self.metabolism.biomass(t)
+            # check if metabolism is list
+            if type(self.metabolism)==list:
+                growth_rate = []
+                biomass = []
+                for m in self.metabolism:
+                    growth_rate.append(m.growth_rate(t))
+                    biomass.append(m.biomass(t))
+            else:
+                growth_rate = self.metabolism.growth_rate(t)
+                biomass = self.metabolism.biomass(t)
+
             for supp,conc in self.supplements.items():
                 supp.concentration = conc
+
             if stochastic:
                 # I need for all strains to have steps either simultaneously or
                 # randomly, with the simultaneous change extracellularly
@@ -131,16 +136,15 @@ class Sample:
                         gn.step_stochastic(growth_rate, t, dt)
                 else:
                     self.genetic_network.step_stochastic(growth_rate, t, dt)
-                self.sub_step
             else:
-                # I need for all strains to have steps either simultaneously or
-                # randomly, with the simultaneous change extracellularly
-                if type(self.genetic_network)==list:
+                if type(self.genetic_network)==list and type(biomass)==list:
+                    for (gn, b) in zip(self.genetic_network, biomass):
+                        gn.step(b, growth_rate, t, dt)
+                elif type(self.genetic_network)==list:
                     for gn in self.genetic_network:
-                        gn.step(biomass, growth_rate, t, dt)
+                        gn.step(biomass, growth_rate, t, dt) 
                 else:
                     self.genetic_network.step(biomass, growth_rate, t, dt)
-                self.sub_step
             
             if type(self.genetic_network)==list:
                 for gn in self.genetic_network:
