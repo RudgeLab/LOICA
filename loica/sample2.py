@@ -46,38 +46,13 @@ class Sample:
         else:
             self.reporters = self.genetic_network.reporters
 
-        
-        # setting up extracellular space
-        # self.extr_conc = []
-        # for gn in self.genetic_network:
-        #     genetic_producs = gn.reporters + gn.regulators
-
-            """ 
-            make an array or dictionary which looks like this:
-
-            {gp:conc, gp2:conc2} - dictionary. 
-            [conc1, conc2, conc3, etc]
-            
-            however, I need to make sure that:
-            a) gene products with the same identity are not repeated
-            I could add attribute "extracellular_conc" to GeneProduct, set it to 0 by 
-            default. Then when gene products from different strains are "merged", 
-
-            maybe:
-            [ [[gene products with the same identity], extracellular concentration],
-              [[gene products with the same identity], extracellular concentration],
-                ]  
-
-            at the moment I am not sure what is the best way to go about this, I need
-            to decide later.
-            
-            """
-
-        # this assumes that metabolism is the same for all 3 strains.
-        # might want to change it in the future, and code interactions between strains
-        # into metabolism.py
-        if metabolism:
-            self.biomass = self.metabolism.biomass
+        if self.metabolism:
+            if type(self.metabolism)==list:
+                self.biomass = []
+                for m in metabolism:
+                    self.biomass.append(m.biomass)
+            else:       
+                self.biomass = self.metabolism.biomass
 
         self.supplements = {}
 
