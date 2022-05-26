@@ -1,4 +1,4 @@
-class Sample2:
+class Sample:
     """
     Representation of a sample that encapsulates GeneticNetwork and Metabolism.
     Incorporate environment information such as Supplements or chemicals, strain and media. 
@@ -39,17 +39,18 @@ class Sample2:
         self.reporters = []
 
         # adding all reporters into list
-        if self.genetic_network:
+        if self.genetic_network is list:
             for genetic_network in self.genetic_network:
-                self.reporters.append(genetic_network.reporters)
-            # TODO: ensure that reporters are in nested list, so
-            #   [[reporters in genetic_network1], [reporters in genetic_network2], ...]
-            # and then maybe make array?
+                for reporter in genetic_network.reporters:
+                    self.reporters.append(reporter)
+        else:
+            self.reporters = self.genetic_network.reporters
+
         
         # setting up extracellular space
-        self.extr_conc = []
-        for gn in self.genetic_network:
-            genetic_producs = gn.reporters + gn.regulators
+        # self.extr_conc = []
+        # for gn in self.genetic_network:
+        #     genetic_producs = gn.reporters + gn.regulators
 
             """ 
             make an array or dictionary which looks like this:
@@ -81,8 +82,11 @@ class Sample2:
         self.supplements = {}
 
     def initialize(self):
-        for gn in self.genetic_network:
-            gn.initialize()
+        if self.genetic_network is list:
+            for gn in self.genetic_network:
+                gn.initialize()
+        else:
+            self.genetic_network.initialize()
         # and initialise extracellular concentrations if needed
 
     def set_supplement(self, supplement, concentration):
@@ -120,15 +124,28 @@ class Sample2:
             if stochastic:
                 # I need for all strains to have steps either simultaneously or
                 # randomly, with the simultaneous change extracellularly
-                for gn in self.genetic_network:
-                    gn.step_stochastic(growth_rate, t, dt)
+                if self.genetic_network is list:
+                    for gn in self.genetic_network:
+                        gn.step_stochastic(growth_rate, t, dt)
+                else:
+                    self.genetic_network.step_stochastic(growth_rate, t, dt)
                 self.sub_step
             else:
                 # I need for all strains to have steps either simultaneously or
                 # randomly, with the simultaneous change extracellularly
-                for gn in self.genetic_network:
-                    gn.step(biomass, growth_rate, t, dt)
+                
+                if self.genetic_network is list:
+                    for gn in self.genetic_network:
+                        gn.step(biomass, growth_rate, t, dt)
+                else:
+                    self.genetic_network.step(biomass, growth_rate, t, dt)
                 self.sub_step
-            self.reporters = self.genetic_network.reporters
+            
+            if self.genetic_network is list:
+                for gn in self.genetic_network:
+                    for reporter in gn.reporters:
+                        self.reporters.append(reporter)
+            else:
+                self.reporters = self.genetic_network.reporters
 
 
