@@ -39,7 +39,7 @@ class Sample:
         self.reporters = []
 
         # adding all reporters into list
-        if self.genetic_network is list:
+        if type(self.genetic_network)==list:
             for genetic_network in self.genetic_network:
                 for reporter in genetic_network.reporters:
                     self.reporters.append(reporter)
@@ -82,7 +82,7 @@ class Sample:
         self.supplements = {}
 
     def initialize(self):
-        if self.genetic_network is list:
+        if type(self.genetic_network)==list:
             for gn in self.genetic_network:
                 gn.initialize()
         else:
@@ -118,7 +118,7 @@ class Sample:
     def step(self, t, dt, stochastic=False):
         if self.genetic_network and self.metabolism:
             # I might assign self.metabolism to each self.genetic_network
-            # so each could have a separate growth rate and biomass measurement
+            # so each could have a separate growth rate and biomass
             growth_rate = self.metabolism.growth_rate(t)
             biomass = self.metabolism.biomass(t)
             for supp,conc in self.supplements.items():
@@ -126,7 +126,7 @@ class Sample:
             if stochastic:
                 # I need for all strains to have steps either simultaneously or
                 # randomly, with the simultaneous change extracellularly
-                if self.genetic_network is list:
+                if type(self.genetic_network)==list:
                     for gn in self.genetic_network:
                         gn.step_stochastic(growth_rate, t, dt)
                 else:
@@ -135,15 +135,14 @@ class Sample:
             else:
                 # I need for all strains to have steps either simultaneously or
                 # randomly, with the simultaneous change extracellularly
-                
-                if self.genetic_network is list:
+                if type(self.genetic_network)==list:
                     for gn in self.genetic_network:
                         gn.step(biomass, growth_rate, t, dt)
                 else:
                     self.genetic_network.step(biomass, growth_rate, t, dt)
                 self.sub_step
             
-            if self.genetic_network is list:
+            if type(self.genetic_network)==list:
                 for gn in self.genetic_network:
                     for reporter in gn.reporters:
                         self.reporters.append(reporter)
