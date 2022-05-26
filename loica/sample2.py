@@ -117,6 +117,8 @@ class Sample:
 
     def step(self, t, dt, stochastic=False):
         if self.genetic_network and self.metabolism:
+            # I might assign self.metabolism to each self.genetic_network
+            # so each could have a separate growth rate and biomass measurement
             growth_rate = self.metabolism.growth_rate(t)
             biomass = self.metabolism.biomass(t)
             for supp,conc in self.supplements.items():
