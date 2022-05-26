@@ -92,6 +92,8 @@ class Assay:
                                 }
                         self.measurements = self.measurements.append(row, ignore_index=True)
                     # Record measurement of biomass
+                    # might want to add code to distinguish between biomass of each 
+                    # strain
                     noise = np.random.normal(scale=np.sqrt(nsr))
                     meas = sample.biomass(time) + biomass_bg
                     noisy_meas = (1 + noise) * meas
