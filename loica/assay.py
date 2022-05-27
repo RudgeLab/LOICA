@@ -95,18 +95,49 @@ class Assay:
                     # might want to add code to distinguish between biomass of each 
                     # strain
                     noise = np.random.normal(scale=np.sqrt(nsr))
-                    meas = sample.biomass(time) + biomass_bg
-                    noisy_meas = (1 + noise) * meas
                     noise_bg = np.random.normal(scale=np.sqrt(nsr))
-                    corr_meas = noisy_meas - (1 + noise_bg) * biomass_bg
-                    row = {
-                            'Time': time, 
-                            'Signal_id': self.biomass_signal_id, 
-                            'Measurement': corr_meas,
-                            'Signal':'Biomass', 
-                            'Sample':sample_id
-                            }
-                    self.measurements = self.measurements.append(row, ignore_index=True)
+                    # if there are multiple strains with different metabolisms, then each biomass
+                    # is recorded separately (as if others do not exist) and then all together
+                    # TODO: find out if I need to change self.biomass_signal_id
+                    if type(sample.biomass)==list:
+                        total = 0
+                        # biomass of each strain recorded separately
+                        for i, biomass in enumerate(sample.biomass):
+                            meas = biomass(time) + biomass_bg
+                            noisy_meas = (1 + noise) * meas
+                            corr_meas = noisy_meas - (1 + noise_bg) * biomass_bg
+                            row = {
+                                    'Time': time, 
+                                    'Signal_id': self.biomass_signal_id, 
+                                    'Measurement': corr_meas,
+                                    'Signal':f'Biomass{i}', 
+                                    'Sample':sample_id
+                                    }
+                            self.measurements = self.measurements.append(row, ignore_index=True)
+                            total += biomass(time) * (1 + noise)
+                        # total biomass
+                        noisy_meas = total + biomass_bg * (1 + noise)
+                        corr_meas = noisy_meas - (1 + noise_bg) * biomass_bg
+                        row = {
+                                'Time': time, 
+                                'Signal_id': self.biomass_signal_id, 
+                                'Measurement': corr_meas,
+                                'Signal':'Biomass', 
+                                'Sample':sample_id
+                                }
+                        self.measurements = self.measurements.append(row, ignore_index=True)
+                    else:
+                        meas = sample.biomass(time) + biomass_bg
+                        noisy_meas = (1 + noise) * meas
+                        corr_meas = noisy_meas - (1 + noise_bg) * biomass_bg
+                        row = {
+                                'Time': time, 
+                                'Signal_id': self.biomass_signal_id, 
+                                'Measurement': corr_meas,
+                                'Signal':'Biomass', 
+                                'Sample':sample_id
+                                }
+                        self.measurements = self.measurements.append(row, ignore_index=True)
                     # Compute next time step
                     if stochastic:
                         time = t * self.interval
