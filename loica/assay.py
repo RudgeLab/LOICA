@@ -72,36 +72,27 @@ class Assay:
 
                     # Record measurements of fluorescence
                     for reporter in sample.reporters:
+                        sig = reporter.concentration
                         signal_id = reporter.signal_id
                         signal_name = reporter.name
                         noise = np.random.normal(scale=np.sqrt(nsr))
                         if type(sample.biomass) == list:
+                            meas = fluo_bg + reporter.ext_conc 
                             for (gn, b) in zip(sample.genetic_network, sample.biomass):
-                                # for r in sample.reporters:
-                                #         if r.name == reporter.name and r in gn.reporters:
-                                #             sig = r.concentration
-                                #             meas += sig * b(time) 
                                 if reporter in gn.reporters:
-                                    sig = reporter.concentration
-                                    meas = sig * b(time) 
-                                    # check if there are the same reporters (or regulators) in 
-                                    # other cells and add the signal up
-                                    # TODO: there must be a way to simplify this 
-                                    for r in sample.reporters:
-                                        if r.name == reporter.name:
-                                            for (g_n, b_) in zip(sample.genetic_network, sample.biomass):
-                                                if r in g_n.reporters:
-                                                    meas += r.concentration * b_(time)
-                                    # defining "duplicated" reporters as regulators will mean
-                                    # less measurements taken
-                                    for r in sample.regulators:
-                                        if r.name == reporter.name:
-                                            for (g_n, b_) in zip(sample.genetic_network, sample.biomass):
-                                                if r in g_n.regulators:
-                                                    meas += r.concentration * b_(time)
-                                    meas += fluo_bg + reporter.ext_conc
+                                    meas += sig * b(time)
+                                # check if there are the same reporters (or regulators) in 
+                                # the cell and add the measurement up
+                                # defining "duplicated" reporters as regulators will mean
+                                # less measurements taken
+                                else:
+                                    for rep in gn.reporters:
+                                        if rep.name == reporter.name:
+                                            meas += reg.concentration * b(time)
+                                for reg in gn.regulators:
+                                    if reg.name == reporter.name:
+                                        meas += reg.concentration * b(time)          
                         else:
-                            sig = reporter.concentration 
                             meas = sig * sample.biomass(time) + fluo_bg + reporter.ext_conc
                         noisy_meas = (1 + noise) * meas
                         noise_bg = np.random.normal(scale=np.sqrt(nsr))
