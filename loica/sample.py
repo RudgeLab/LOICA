@@ -35,7 +35,8 @@ class Sample:
         self.metabolism = metabolism
         self.media = media
         self.strain = strain
-        self.vector = self.genetic_network.vector
+        # TODO: fix
+        # self.vector = self.genetic_network.vector
         self.reporters = []
 
         # adding all reporters into list
@@ -112,9 +113,9 @@ class Sample:
                 else:
                     self.genetic_network.step_stochastic(growth_rate, t, dt)
             else:
-                if type(self.genetic_network)==list and type(biomass)==list:
-                    for (gn, b) in zip(self.genetic_network, biomass):
-                        gn.step(b, growth_rate, t, dt)
+                if type(self.genetic_network)==list and type(self.metabolism)==list:
+                    for (gn, b, g_rate) in zip(self.genetic_network, biomass, growth_rate):
+                        gn.step(b, g_rate, t, dt)
                 elif type(self.genetic_network)==list:
                     for gn in self.genetic_network:
                         gn.step(biomass, growth_rate, t, dt) 
