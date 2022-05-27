@@ -69,17 +69,40 @@ class Assay:
                 # Integrate models
                 for t in range(self.n_measurements):
                     time = t * self.interval
+
                     # Record measurements of fluorescence
                     for reporter in sample.reporters:
-                        sig = reporter.concentration
-                        # fluorescence of etracellular medium
-                        # extr_sig = reporter.extr_conc
                         signal_id = reporter.signal_id
                         signal_name = reporter.name
                         noise = np.random.normal(scale=np.sqrt(nsr))
-                        # add fluorescence of medium
-                        meas = sig * sample.biomass(time) + fluo_bg # + extr_sig
-                        # TODO: do I need to add noise of medium?
+                        if type(sample.biomass) == list:
+                            for (gn, b) in zip(sample.genetic_network, sample.biomass):
+                                # for r in sample.reporters:
+                                #         if r.name == reporter.name and r in gn.reporters:
+                                #             sig = r.concentration
+                                #             meas += sig * b(time) 
+                                if reporter in gn.reporters:
+                                    sig = reporter.concentration
+                                    meas = sig * b(time) 
+                                    # check if there are the same reporters (or regulators) in 
+                                    # other cells and add the signal up
+                                    # TODO: there must be a way to simplify this 
+                                    for r in sample.reporters:
+                                        if r.name == reporter.name:
+                                            for (g_n, b_) in zip(sample.genetic_network, sample.biomass):
+                                                if r in g_n.reporters:
+                                                    meas += r.concentration * b_(time)
+                                    # defining "duplicated" reporters as regulators will mean
+                                    # less measurements taken
+                                    for r in sample.regulators:
+                                        if r.name == reporter.name:
+                                            for (g_n, b_) in zip(sample.genetic_network, sample.biomass):
+                                                if r in g_n.regulators:
+                                                    meas += r.concentration * b_(time)
+                                    meas += fluo_bg + reporter.ext_conc
+                        else:
+                            sig = reporter.concentration 
+                            meas = sig * sample.biomass(time) + fluo_bg + reporter.ext_conc
                         noisy_meas = (1 + noise) * meas
                         noise_bg = np.random.normal(scale=np.sqrt(nsr))
                         corr_meas = noisy_meas - (1 + noise_bg) * fluo_bg
@@ -91,6 +114,7 @@ class Assay:
                                 'Sample':sample_id
                                 }
                         self.measurements = self.measurements.append(row, ignore_index=True)
+
                     # Record measurement of biomass
                     # might want to add code to distinguish between biomass of each 
                     # strain
