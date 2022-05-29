@@ -38,14 +38,18 @@ class Sample:
         # TODO: fix
         # self.vector = self.genetic_network.vector
         self.reporters = []
+        self.gene_products = []
 
         # adding all reporters into list
         if type(self.genetic_network)==list:
             for genetic_network in self.genetic_network:
-                for reporter in genetic_network.reporters:
-                    self.reporters.append(reporter)
+                self.reporters += genetic_network.reporters
+                self.gene_products += genetic_network.reporters + genetic_network.regulators
         else:
             self.reporters = self.genetic_network.reporters
+            self.gene_products = self.reporters + self.genetic_network.regulators
+        # sort by name so gene products with the same identity would be together
+        self.gene_products.sort(key=lambda x: x.name)
 
         if self.metabolism:
             if type(self.metabolism)==list:
@@ -121,12 +125,22 @@ class Sample:
                         gn.step(biomass, growth_rate, t, dt) 
                 else:
                     self.genetic_network.step(biomass, growth_rate, t, dt)
-            
-            if type(self.genetic_network)==list:
-                for gn in self.genetic_network:
-                    for reporter in gn.reporters:
-                        self.reporters.append(reporter)
-            else:
-                self.reporters = self.genetic_network.reporters
+                
+                # add degradation of extracellular signal
+                for i, gene_product in enumerate(self.gene_products):
+                    if gene_product.name != self.gene_products[i-1].name:
+                        ext_degr = gene_product.ext_conc * gene_product.ext_degr_rate
+                        new_ext_conc = gene_product.ext_conc - ext_degr
+                        gene_product.ext_conc = new_ext_conc
+                    else: 
+                        gene_product.ext_conc = self.gene_products[i-1].ext_conc
+                        
+
+            # if type(self.genetic_network)==list:
+            #     for gn in self.genetic_network:
+            #         for reporter in gn.reporters:
+            #             self.reporters.append(reporter)
+            # else:
+            #     self.reporters = self.genetic_network.reporters
 
 
