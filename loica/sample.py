@@ -51,6 +51,9 @@ class Sample:
         # sort by name so gene products with the same identity would be together
         self.gene_products.sort(key=lambda x: x.name)
 
+        # TODO: add code that throws an error if degradation rates of geneproducts with
+        # the same identity are different
+
         if self.metabolism:
             if type(self.metabolism)==list:
                 self.biomass = []
