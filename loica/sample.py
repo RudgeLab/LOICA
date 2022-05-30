@@ -1,3 +1,5 @@
+from itertools import groupby
+
 class Sample:
     """
     Representation of a sample that encapsulates GeneticNetwork and Metabolism.
@@ -95,6 +97,22 @@ class Sample:
                 rep.init_concentration = concentration
             else: pass
 
+    def external_step(gene_products):
+        """ 
+        method that calculates the total change in the extracellular concentration
+        and updates it
+
+        deterministic
+        """
+        for name, identical_gproducts in groupby(gene_products, lambda x: x.name):
+            concentration_change = 0
+            for gp in identical_gproducts:
+                concentration_change += gp.ext_difference
+            ext_degr = identical_gproducts[0].ext_conc * identical_gproducts[0].ext_degr_rate
+            new_ext_conc = identical_gproducts[0].ext_conc - ext_degr + concentration_change
+            for gp in identical_gproducts:
+                gp.ext_conc = new_ext_conc
+
     def step(self, t, dt, stochastic=False):
         if self.genetic_network and self.metabolism:
             # check if metabolism is list
@@ -128,50 +146,8 @@ class Sample:
                         gn.step(biomass, growth_rate, t, dt) 
                 else:
                     self.genetic_network.step(biomass, growth_rate, t, dt)
-                
-                # add degradation of extracellular signal
-                # TODO: but here is an issue. The extracellular concentration should 
-                # update once it changes, therefore during each iteration of 
-                # genetic_network.step. There should be something like 
-                # for gp in gn.gene_products:
-                #   if gp.name in self.gene_products.name:
-                #       all gene products with the same name get the concentration 
-                #       updated.
-                # TODO: make this a function and then stick after each step?
-                for i, gp in enumerate(self.gene_products):
-                    if gp in gn.gene_product:
-                        if gp.name == self.gene_products[i-1]:
-                            self.gene_products[i-1].ext_conc = gp.ext_conc
-                        if gp.name == self.gene_products[i+1]:
-                            self.gene_products[i+1].ext_conc = gp.ext_conc
-                #  
-                for i, gene_product in enumerate(self.gene_products):
-                    if gene_product.name != self.gene_products[i-1].name:
-                        ext_degr = gene_product.ext_conc * gene_product.ext_degr_rate
-                        new_ext_conc = gene_product.ext_conc - ext_degr
-                        gene_product.ext_conc = new_ext_conc
-                    else: 
-                        gene_product.ext_conc = self.gene_products[i-1].ext_conc
-                        self.gene_products[i-1].ext_conc = gene_product.ext_conc
-
-                # option for changing external concentration based on the gp.ext_difference
-                for i, gp in enumerate(self.gene_products):
-                    # problem - will apply degradation rate at each step
-                    ext_degr = gp.ext_conc * gp.ext_degr_rate
-                    new_ext_conc = gp.ext_conc - ext_degr + gp.ext_difference
-                    gp.ext_conc = new_ext_conc
-                    if gp.name == self.gene_products[i-1].name:
-                        new_ext_conc = gp.ext_conc + gp.ext_difference
-                        gp.ext_conc = new_ext_conc
-                        self.gene_products[i-1].ext_conc = new_ext_conc
-                    if gp.name == self.gene_products[i+1].name:
-                        new_ext_conc = gp.ext_conc + gp.ext_difference
-                        gp.ext_conc = new_ext_conc
-                        self.gene_products[i+1].ext_conc = new_ext_conc  
-                    #  problem - will update only adjacent two 
-
-                
-                    
+                # update the exctracellular concentration
+                self.external_step(self.gene_products)
 
             # if type(self.genetic_network)==list:
             #     for gn in self.genetic_network:
