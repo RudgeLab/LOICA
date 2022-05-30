@@ -68,6 +68,7 @@ class Assay:
                 sample.initialize()
                 # Integrate models
                 for t in range(self.n_measurements):
+                    print(f'Current t={t}')
                     time = t * self.interval
 
                     # Record measurements of fluorescence
@@ -85,6 +86,8 @@ class Assay:
                                 # the cell and add the measurement up
                                 # defining "duplicated" reporters as regulators will mean
                                 # less measurements taken
+                                # TODO: are next 4 lines needed? maybe need to ensure earlier 
+                                # that reporters don't repeat when iterated through on line 75
                                 else:
                                     for rep in gn.reporters:
                                         if rep.name == reporter.name:

@@ -72,7 +72,6 @@ class Sample:
                 gn.initialize()
         else:
             self.genetic_network.initialize()
-        # and initialise extracellular concentrations if needed
 
     def set_supplement(self, supplement, concentration):
         self.supplements[supplement] = concentration
@@ -85,6 +84,7 @@ class Sample:
             if supplement.name == gp.name:
                 gp.extracellular_conc=supplement.concentration
 
+    # TODO: update these two methods
     def set_regulator(self, name, concentration):
         for reg in self.genetic_network.regulators:
             if reg.name == name:
