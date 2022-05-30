@@ -146,22 +146,10 @@ class GeneticNetwork():
 
         for regulator in self.regulators:
             regulator.step(growth_rate, dt, biomass)
-            # this makes sure that regulators with the same name have the same 
-            # extracellular concentration
-            if regulator.diffusion_rate!=0:
-                for r in self.regulators:
-                    if r.name == regulator.name:
-                        r.ext_conc = regulator.ext_conc
-
 
         for reporter in self.reporters:
             reporter.step(growth_rate, dt, biomass)
-            # this makes sure that reporters with the same name have the same 
-            # extracellular concentration
-            if reporter.diffusion_rate!=0:
-                for r in self.reporters:
-                    if r.name == reporter.name:
-                        r.ext_conc = reporter.ext_conc
+
 
     def to_graph(self):
         g = nx.DiGraph()
