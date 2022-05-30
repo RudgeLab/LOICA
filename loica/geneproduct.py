@@ -61,10 +61,9 @@ class GeneProduct:
         dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration - dext_conc_dt
         self.next_concentration = self.concentration + dconcdt * dt
         self.concentration = self.next_concentration
-        # then external concentration gets updated based on number of cells that produce
+        # then external concentration change based on number of cells that produce
         # or intake this molecule
-        self.next_ext_conc = self.ext_conc + dext_conc_dt * dt * biomass
-        self.ext_conc = self.next_ext_conc
+        self.ext_difference = dext_conc_dt * dt * biomass
         self.expression_rate = 0
 
     def __str__(self):
