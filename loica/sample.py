@@ -44,14 +44,19 @@ class Sample:
 
         # adding all reporters into list
         if type(self.genetic_network)==list:
+            list_gp = []
             for genetic_network in self.genetic_network:
                 self.reporters += genetic_network.reporters
-                self.gene_products += genetic_network.reporters + genetic_network.regulators
+                list_gp += genetic_network.reporters + genetic_network.regulators
+            # sort by name so gene products with the same identity would be together
+            list_gp.sort(key=lambda x: x.name)
+            # group into sublists based on the identity and add to self.gene_products
+            for name, identical_gproducts in groupby(list_gp, lambda x: x.name):
+                self.gene_products.append(list(identical_gproducts))
         else:
             self.reporters = self.genetic_network.reporters
             self.gene_products = self.reporters + self.genetic_network.regulators
-        # sort by name so gene products with the same identity would be together
-        self.gene_products.sort(key=lambda x: x.name)
+    
 
         # TODO: add code that throws an error if extracelluar degradation rates of 
         # geneproducts with the same identity are different
@@ -97,21 +102,30 @@ class Sample:
                 rep.init_concentration = concentration
             else: pass
 
-    def external_step(gene_products):
+    def external_step(self, gene_products):
         """ 
         method that calculates the total change in the extracellular concentration
         and updates it
 
         deterministic
         """
-        for name, identical_gproducts in groupby(gene_products, lambda x: x.name):
-            concentration_change = 0
-            for gp in identical_gproducts:
-                concentration_change += gp.ext_difference
-            ext_degr = identical_gproducts[0].ext_conc * identical_gproducts[0].ext_degr_rate
-            new_ext_conc = identical_gproducts[0].ext_conc - ext_degr + concentration_change
-            for gp in identical_gproducts:
+        if type(gene_products[0])==list:
+            for group in gene_products:
+                concentration_change = 0
+                for gp in group:
+                    concentration_change += gp.ext_difference   
+                ext_degr = group[0].ext_conc * group[0].ext_degr_rate
+                new_ext_conc = group[0].ext_conc - ext_degr + concentration_change
+                for gp in group:
+                    gp.ext_conc = new_ext_conc
+                # test
+                print(f'New ext_conc of {group[0].name} = {new_ext_conc}')
+        else:
+            for gp in gene_products:
+                ext_degr = gp.ext_conc * gp.ext_degr_rate
+                new_ext_conc = gp.ext_conc - ext_degr + gp.ext_difference
                 gp.ext_conc = new_ext_conc
+
 
     def step(self, t, dt, stochastic=False):
         if self.genetic_network and self.metabolism:
@@ -141,6 +155,8 @@ class Sample:
                 if type(self.genetic_network)==list and type(self.metabolism)==list:
                     for (gn, b, g_rate) in zip(self.genetic_network, biomass, growth_rate):
                         gn.step(b, g_rate, t, dt)
+                        # test
+                        print(f'In network {gn} at biomass {b}')
                 elif type(self.genetic_network)==list:
                     for gn in self.genetic_network:
                         gn.step(biomass, growth_rate, t, dt) 
