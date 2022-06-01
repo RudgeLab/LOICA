@@ -40,3 +40,7 @@ For more details please refer to our [Wiki](https://github.com/RudgeLab/LOICA/wi
 ## Tutorials
 
 Now that you have LOICA installed you can familiarize yourself with the tool using the [Jupyter notebook tutorials](https://github.com/RudgeLab/LOICA/tree/master/notebooks) designed for this purpose.
+
+Run LOICA on the web without any installation! [LOICA Colab Notebook](https://drive.google.com/file/d/1xxxMS5amaTGY2Z09i5h03zMr2J2zGiwg/view?usp=sharing)
+
+You can use and modify this code by saving a copy in Drive.
