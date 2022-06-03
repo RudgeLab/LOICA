@@ -20,12 +20,24 @@ def step_biomass(t, od0, start):
     return(od)
 
 def gompertz_growth_rate(t, y0, ymax, um, l):
+    ''' 
+        y0 - starting biomass
+        ymax - maximum biomass
+        um - maximum growth rate
+        l - length of lag phase
+    '''
     A = np.log(ymax/y0)
     gr = um *np.exp((np.exp(1)* um *(l - t))/A - \
             np.exp((np.exp(1)* um *(l - t))/A + 1) + 2)
     return(gr)
 
 def gompertz(t, y0, ymax, um, l):
+    ''' 
+        y0 - starting biomass
+        ymax - maximum biomass
+        um - maximum growth rate
+        l - length of lag phase
+    '''
     A = np.log(ymax/y0)
     log_rel_od = (A*np.exp(-np.exp((((um*np.exp(1))/A)*(l-t))+1)))
     od = y0 * np.exp(log_rel_od)
