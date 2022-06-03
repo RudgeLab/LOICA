@@ -22,8 +22,9 @@ class GeneProduct:
         SBOL Component
     """
     shape = '^'
-    def __init__(self, name, init_concentration=0, degradation_rate=0, diffusion_rate=0, ext_degr_rate=0, uri=None, sbol_comp=None, type_='PRO', color='silver'):
+    def __init__(self, name, init_concentration=0, degradation_rate=0, diffusion_rate=0, uri=None, sbol_comp=None, type_='PRO', color='silver'):
         self.ext_conc = 0
+        self.ext_degr_rate = 0
         self.init_concentration = init_concentration
         self.concentration = init_concentration
         self.degradation_rate = degradation_rate
@@ -34,7 +35,6 @@ class GeneProduct:
         self.sbol_comp = sbol_comp
         self.type_ = type_ 
         self.color = color
-        self.ext_degr_rate = ext_degr_rate
 
 
     def initialize(self):
@@ -65,6 +65,9 @@ class GeneProduct:
         # or intake this molecule
         self.ext_difference = dext_conc_dt * dt * biomass
         self.expression_rate = 0
+        # test
+        print(f'{self.name} new concentration = {self.concentration}')
+        print(f'{self.name} ext change = {self.ext_difference}')
 
     def __str__(self):
         return self.name
@@ -74,8 +77,8 @@ class Regulator(GeneProduct):
     Representation of a regulatory gene product.
     Child of GeneProduct.
     """
-    def __init__(self, name, init_concentration=0, degradation_rate=0, diffusion_rate=0, ext_degr_rate=0, sbol_comp=None, color='lightgreen'):
-        super().__init__(name, init_concentration, degradation_rate, diffusion_rate, ext_degr_rate, sbol_comp,color='lightgreen')
+    def __init__(self, name, init_concentration=0, degradation_rate=0, diffusion_rate=0, sbol_comp=None, color='lightgreen'):
+        super().__init__(name, init_concentration, degradation_rate, diffusion_rate, sbol_comp,color='lightgreen')
         self.sbol_comp = sbol_comp
 
 class Reporter(GeneProduct):
@@ -89,8 +92,8 @@ class Reporter(GeneProduct):
     color : str, optional
         Color of the reporter
     """
-    def __init__(self, name, init_concentration=0, degradation_rate=0, diffusion_rate=0, ext_degr_rate=0, signal_id=None, color='w', sbol_comp=None):
-        super().__init__(name, init_concentration, degradation_rate, diffusion_rate, ext_degr_rate, sbol_comp)
+    def __init__(self, name, init_concentration=0, degradation_rate=0, diffusion_rate=0, signal_id=None, color='w', sbol_comp=None):
+        super().__init__(name, init_concentration, degradation_rate, diffusion_rate, sbol_comp)
         self.signal_id = signal_id
         self.color = color
         self.sbol_comp = sbol_comp
