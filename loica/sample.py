@@ -117,15 +117,15 @@ class Sample:
                 rep.init_concentration = concentration
             else: pass
 
-    def external_step(self, gene_products):
+    def external_step(self):
         """ 
         method that calculates the total change in the extracellular concentration
         and updates it
 
         deterministic
         """
-        if type(gene_products[0])==list:
-            for group in gene_products:
+        if type(self.gene_products[0])==list:
+            for group in self.gene_products:
                 concentration_change = 0
                 for gp in group:
                     concentration_change += gp.ext_difference   
@@ -136,7 +136,7 @@ class Sample:
                 # test
                 print(f'New ext_conc of {group[0].name} = {new_ext_conc}')
         else:
-            for gp in gene_products:
+            for gp in self.gene_products:
                 ext_degr = gp.ext_conc * gp.ext_degr_rate
                 new_ext_conc = gp.ext_conc - ext_degr + gp.ext_difference
                 gp.ext_conc = new_ext_conc
@@ -178,13 +178,7 @@ class Sample:
                 else:
                     self.genetic_network.step(biomass, growth_rate, t, dt)
                 # update the exctracellular concentration
-                self.external_step(self.gene_products)
+                self.external_step()
 
-            # if type(self.genetic_network)==list:
-            #     for gn in self.genetic_network:
-            #         for reporter in gn.reporters:
-            #             self.reporters.append(reporter)
-            # else:
-                self.reporters = self.genetic_network.reporters
 
 
