@@ -41,6 +41,29 @@ class Sample:
         # self.vector = self.genetic_network.vector
         self.reporters = []
         self.gene_products = []
+        
+        '''
+        add resources - which are depleted by all cells, thus limiting growth.
+        it could be something like
+
+        parameter (resources = 1000000)
+        self.resources = resources
+
+        # this can be put in metabolism
+        Metabolism(consumption_rate=2)
+        def deplete(self, resources)
+            consumption = self.biomass * self.consumption_rate
+            new_resources = resources - consumption
+            resources = new_resources
+            if resources <= 0:
+                self.growth_rate = 0
+        
+        so each strain can have different consumption rate
+
+        and then it can be incorporated here or in assay.
+
+        TODO: think about it further. most likely will be in assay
+        '''
 
         # adding all reporters into list
         if type(self.genetic_network)==list:
@@ -56,10 +79,6 @@ class Sample:
         else:
             self.reporters = self.genetic_network.reporters
             self.gene_products = self.reporters + self.genetic_network.regulators
-    
-
-        # TODO: add code that throws an error if extracelluar degradation rates of 
-        # geneproducts with the same identity are different
 
         if self.metabolism:
             if type(self.metabolism)==list:
