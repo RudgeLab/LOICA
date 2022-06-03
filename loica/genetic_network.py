@@ -97,7 +97,7 @@ class GeneticNetwork():
             # Production reeaction
             a.append(gp.expression_rate)
             a.append((gp.degradation_rate + growth_rate) * gp.concentration)
-            # TODO: add propensity for diffusion??
+            a.append(gp.diffusion_rate*(gp.concentration-gp.ext_conc))
 
         # Make list of propensities into array
         a = np.array(a)
@@ -111,14 +111,28 @@ class GeneticNetwork():
 
         # Find reaction and update gene product levels
         for i,gp in enumerate(gene_products):
-            if a_i < np.sum(a[:i*2+1]):
+            # if a_i < np.sum(a[:i*2+1]):
+            if a_i < np.sum(a[:i*3+1]):
                 # Production of geneproduct gp
                 gp.concentration += 1
                 break
-            elif a_i < np.sum(a[:i*2+2]):
+            # elif a_i < np.sum(a[:i*2+2]):
+            elif a_i < np.sum(a[:i*3+2]):
                 # Degradation of geneproduct gp
                 gp.concentration -= 1
                 break
+            elif a_i < np.sum(a[:i*3+3]):
+                # Diffusion of geneproduct gp
+                if (gp.concentration-gp.ext_conc) > 0:
+                    gp.concentration -= 1
+                    # gp.ext_difference += biomass
+                    break
+                elif (gp.concentration-gp.ext_conc) < 0:
+                    gp.concentration += 1
+                    # gp.ext_difference -= biomass
+                    break
+                elif (gp.concentration-gp.ext_conc) == 0:
+                    break
 
         # Reset expression rates for next step
         for gp in gene_products:
