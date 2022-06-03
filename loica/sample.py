@@ -71,6 +71,21 @@ class Sample:
 
         self.supplements = {}
 
+    def set_extracel_degr(self, chemical_name, ext_degr_rate):
+        ''' 
+            this method ensures that all gene products with the same identity 
+            have the same extracellular degradation rate
+        '''
+        if type(self.gene_products[0])==list:
+            for group in self.gene_products:
+                if group[0].name == chemical_name:
+                    for gp in group:
+                        gp.ext_degr_rate = ext_degr_rate
+        else:
+            for gp in self.gene_products:
+                if gp.name == chemical_name:
+                    gp.ext_degr_rate = ext_degr_rate
+
     def initialize(self):
         if type(self.genetic_network)==list:
             for gn in self.genetic_network:
@@ -154,9 +169,9 @@ class Sample:
             else:
                 if type(self.genetic_network)==list and type(self.metabolism)==list:
                     for (gn, b, g_rate) in zip(self.genetic_network, biomass, growth_rate):
-                        gn.step(b, g_rate, t, dt)
                         # test
                         print(f'In network {gn} at biomass {b}')
+                        gn.step(b, g_rate, t, dt)
                 elif type(self.genetic_network)==list:
                     for gn in self.genetic_network:
                         gn.step(biomass, growth_rate, t, dt) 
@@ -170,6 +185,6 @@ class Sample:
             #         for reporter in gn.reporters:
             #             self.reporters.append(reporter)
             # else:
-            #     self.reporters = self.genetic_network.reporters
+                self.reporters = self.genetic_network.reporters
 
 
