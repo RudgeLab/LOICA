@@ -160,6 +160,48 @@ class Sample:
                 new_ext_conc = gp.ext_conc - ext_degr + gp.ext_difference
                 gp.ext_conc = new_ext_conc
 
+    def st_external_substep(self, t=0, dt=0.1, growth_rate=1, tau=None):
+        """ 
+        method similar to GeneticNetwork.substep()
+
+        stochastic
+        """
+        
+        
+    def total_substep_stochastic(self):
+        '''
+            method that links stochastic substeps for each genetic network and 
+            extracellular space
+        '''
+        # create a list with all genetic networks and extracellular space
+        if type(self.genetic_network)==list:
+            options = self.genetic_network 
+        else:
+            options = []
+            options.append(self.genetic_network)
+        options.append("extracellular space")
+
+        # shuffle the list
+        from random import shuffle
+        shuffle(options)
+
+        # get tau by running substep for the first item in the shuffled list
+        # and then use this tau in other substeps
+        if options[0]=="extracellular space":
+            tau = self.st_external_substep()
+            for gn in options[1:len(options)]:
+                gn.substep_stochastic(tau=tau)
+            # and update extracellular concentrations
+        else:
+            tau = self.substep_stochastic
+            for gn in options[1:len(options)]:
+                if gn == "extracellular space":
+                    self.st_external_substep(tau=tau)
+                    # and update extracellular concentrations
+                else:
+                    gn.substep_stochastic(tau=tau)
+                    # and update extracellular concentrations
+
 
     def step(self, t, dt, stochastic=False):
         if self.genetic_network and self.metabolism:
