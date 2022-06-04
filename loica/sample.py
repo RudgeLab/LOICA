@@ -161,6 +161,27 @@ class Sample:
                 new_ext_conc = gp.ext_conc - ext_degr + gp.ext_difference
                 gp.ext_conc = new_ext_conc
 
+    def update_ext_conc(self):
+        '''
+            Method to update external concentration of all gene products based on the
+            geneproduct.ext_difference 
+            TODO: check whether I need self.ext_difference = 0 in geneproduct.py
+            TODO: can I remove this code from external_step and then just call 
+            additional update_ext_conc() in self.step(stochastic=False) ?
+        '''
+        if type(self.gene_products[0])==list:
+            for group in self.gene_products:
+                concentration_change = 0
+                for gp in group:
+                    concentration_change += gp.ext_difference   
+                new_ext_conc = group[0].ext_conc + concentration_change
+                for gp in group:
+                    gp.ext_conc = new_ext_conc
+        else:
+            for gp in self.gene_products:
+                new_ext_conc = gp.ext_conc + gp.ext_difference
+                gp.ext_conc = new_ext_conc
+
     def st_external_substep(self, t=0, dt=0.1, growth_rate=1, tau_=None):
         """ 
         method similar to GeneticNetwork.substep()
@@ -230,16 +251,16 @@ class Sample:
             tau = self.st_external_substep()
             for gn in options[1:len(options)]:
                 gn.substep_stochastic(tau_=tau)
-            # and update extracellular concentrations
+            self.update_ext_conc()
         else:
             tau = self.substep_stochastic
             for gn in options[1:len(options)]:
                 if gn == "extracellular space":
                     self.st_external_substep(tau_=tau)
-                    # and update extracellular concentrations
+                    self.update_ext_conc()
                 else:
                     gn.substep_stochastic(tau_=tau)
-                    # and update extracellular concentrations
+                    self.update_ext_conc()
 
     def step_stochastic(self, growth_rate=1, t=0, dt=0.1):
         ''' 
