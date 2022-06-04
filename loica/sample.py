@@ -1,4 +1,5 @@
 from itertools import groupby
+import numpy as np
 
 class Sample:
     """
@@ -160,12 +161,50 @@ class Sample:
                 new_ext_conc = gp.ext_conc - ext_degr + gp.ext_difference
                 gp.ext_conc = new_ext_conc
 
-    def st_external_substep(self, t=0, dt=0.1, growth_rate=1, tau=None):
+    def st_external_substep(self, t=0, dt=0.1, growth_rate=1, tau_=None):
         """ 
         method similar to GeneticNetwork.substep()
-
+        but only for extracellular degradation
         stochastic
         """
+        # Propensities
+        a = []
+
+        # Compute propensities for degradation of gene products
+        if type(self.gene_products[0])==list:
+            for group in self.gene_products:
+                # degradation reaction
+                a.append(group[0].ext_degr_rate * group[0].ext_conc)
+        else:
+            for gp in self.gene_products:
+                # degradation reaction
+                a.append(gp.ext_degr_rate * gp.ext_conc)
+        
+        # Make list of propensities into array
+        a = np.array(a)
+        # Total of propensities
+        A = a.sum()
+        
+        # Time step
+        if tau_:
+            tau = tau_
+        else:
+            tau = 1/A * np.log(1/np.random.random())
+
+        # Random number to select next reaction
+        a_i = np.random.random() * A
+
+        # Find reaction and update gene product levels
+        for i, group in enumerate(self.gene_products):
+            if a_i < np.sum(a[:i+1]):
+                # Extracellular degradation of geneproduct gp
+                for gp in group:
+                    gp.ext_conc -= 1
+                break
+
+        # Return elapsed time if it was not predefined
+        if not tau_:
+            return tau
         
         
     def total_substep_stochastic(self):
