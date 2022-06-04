@@ -78,7 +78,7 @@ class GeneticNetwork():
                 else: print('Unsupported Type, it should be an Reporter')
         else: print('Unsupported Type, it should be an Reporter')
 
-    def substep_stochastic(self, t=0, dt=0.1, growth_rate=1):
+    def substep_stochastic(self, t=0, dt=0.1, growth_rate=1, tau_=None):
         # Propensities
         a = []
 
@@ -105,7 +105,10 @@ class GeneticNetwork():
         A = a.sum()
         
         # Time step
-        tau = 1/A * np.log(1/np.random.random())
+        if tau_:
+            tau = tau_
+        else:
+            tau = 1/A * np.log(1/np.random.random())
         # Random number to select next reaction
         a_i = np.random.random() * A
 
@@ -138,14 +141,18 @@ class GeneticNetwork():
         for gp in gene_products:
             gp.expression_rate = 0
 
-        # Return elapsed time
-        return tau
+        # Return elapsed time if it was not predefined
+        if not tau_:
+            return tau
                 
     def step_stochastic(self, growth_rate=1, t=0, dt=0.1):
         delta_t = 0
         while delta_t < dt:
             #print(f'Elapsed time: {delta_t}')
             delta_t += self.substep_stochastic(t=t, dt=dt, growth_rate=growth_rate)
+            for gp in gene_products:
+                l
+                new_ext_conc = gp.ext_conc + gp.ext_difference
 
     # added biomass parameter to follow on changes in geneproduct step
     # this parameter is related to OD of the strain-genetic network   
