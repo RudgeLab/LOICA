@@ -190,18 +190,38 @@ class Sample:
         if options[0]=="extracellular space":
             tau = self.st_external_substep()
             for gn in options[1:len(options)]:
-                gn.substep_stochastic(tau=tau)
+                gn.substep_stochastic(tau_=tau)
             # and update extracellular concentrations
         else:
             tau = self.substep_stochastic
             for gn in options[1:len(options)]:
                 if gn == "extracellular space":
-                    self.st_external_substep(tau=tau)
+                    self.st_external_substep(tau_=tau)
                     # and update extracellular concentrations
                 else:
-                    gn.substep_stochastic(tau=tau)
+                    gn.substep_stochastic(tau_=tau)
                     # and update extracellular concentrations
 
+    def step_stochastic(self, growth_rate=1, t=0, dt=0.1):
+        ''' 
+            same as GeneticNetwork.step_stochastic(), but uses either 
+            self.total_substep_stochastic() or GeneticNetwork.step_stochastic()
+        '''
+        delta_t = 0
+        if type(self.genetic_network)==list:
+            # if many gene networks - use total_substep_stochastic
+            while delta_t < dt:
+                #print(f'Elapsed time: {delta_t}')
+                delta_t += self.total_substep_stochastic(t=t, dt=dt, growth_rate=growth_rate)
+        else:
+            for gp in self.gene_products:
+                if gp.diffusion_rate != 0:
+                    while delta_t < dt:
+                        #print(f'Elapsed time: {delta_t}')
+                        delta_t += self.total_substep_stochastic(t=t, dt=dt, growth_rate=growth_rate)
+                    break
+            if delta_t == 0:
+                self.genetic_network.step_stochastic(t=t, dt=dt, growth_rate=growth_rate)
 
     def step(self, t, dt, stochastic=False):
         if self.genetic_network and self.metabolism:
@@ -222,11 +242,7 @@ class Sample:
             if stochastic:
                 # I need for all strains to have steps either simultaneously or
                 # randomly, with the simultaneous change extracellularly
-                if type(self.genetic_network)==list:
-                    for gn in self.genetic_network:
-                        gn.step_stochastic(growth_rate, t, dt)
-                else:
-                    self.genetic_network.step_stochastic(growth_rate, t, dt)
+                self.step_stochastic(growth_rate, t, dt)
             else:
                 if type(self.genetic_network)==list and type(self.metabolism)==list:
                     for (gn, b, g_rate) in zip(self.genetic_network, biomass, growth_rate):
