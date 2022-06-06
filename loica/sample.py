@@ -1,5 +1,6 @@
 from itertools import groupby
 import numpy as np
+from random import shuffle
 
 class Sample:
     """
@@ -91,6 +92,15 @@ class Sample:
 
         self.supplements = {}
 
+        # create an options list for stochastic simulation 
+        # (used in self.total_substep_stochastic(self))
+        if type(self.genetic_network)==list:
+            self.options = self.genetic_network 
+        else:
+            self.options = []
+            self.options.append(self.genetic_network)
+        self.options.append("extracellular space")
+
     def set_extracel_degr(self, chemical_name, ext_degr_rate):
         ''' 
             this method ensures that all gene products with the same identity 
@@ -119,55 +129,50 @@ class Sample:
     # add function that checks whether supplement is the same as gene product
     # if yes, add the supplement concentration to the concentration of gp in the
     # extracellular space
-    def supplement_is_gp(self, supplement):
-        for gp in self.extracellular_space:
-            if supplement.name == gp.name:
-                gp.extracellular_conc=supplement.concentration
+    # TODO: work on it
+    # def supplement_is_gp(self, supplement):
+    #     for gp in self.extracellular_space:
+    #         if supplement.name == gp.name:
+    #             gp.extracellular_conc=supplement.concentration
 
     # TODO: update these two methods
-    def set_regulator(self, name, concentration):
-        for reg in self.genetic_network.regulators:
-            if reg.name == name:
-                reg.init_concentration = concentration
-            else: pass
+    # def set_regulator(self, name, concentration):
+    #     for reg in self.genetic_network.regulators:
+    #         if reg.name == name:
+    #             reg.init_concentration = concentration
+    #         else: pass
 
-    def set_reporter(self, name, concentration):
-        for rep in self.genetic_network.reporters:
-            if rep.name == name:
-                rep.init_concentration = concentration
-            else: pass
+    # def set_reporter(self, name, concentration):
+    #     for rep in self.genetic_network.reporters:
+    #         if rep.name == name:
+    #             rep.init_concentration = concentration
+    #         else: pass
 
     def external_step(self):
         """ 
-        method that calculates the total change in the extracellular concentration
-        and updates it
+            method that calculates the change in the extracellular concentration
+            due to degradation
 
-        deterministic
+            deterministic
         """
         if type(self.gene_products[0])==list:
-            for group in self.gene_products:
-                concentration_change = 0
-                for gp in group:
-                    concentration_change += gp.ext_difference   
+            for group in self.gene_products: 
                 ext_degr = group[0].ext_conc * group[0].ext_degr_rate
-                new_ext_conc = group[0].ext_conc - ext_degr + concentration_change
+                new_ext_conc = group[0].ext_conc - ext_degr
                 for gp in group:
                     gp.ext_conc = new_ext_conc
                 # test
-                print(f'New ext_conc of {group[0].name} = {new_ext_conc}')
+                # print(f'New ext_conc of {group[0].name} = {new_ext_conc}')
         else:
             for gp in self.gene_products:
                 ext_degr = gp.ext_conc * gp.ext_degr_rate
-                new_ext_conc = gp.ext_conc - ext_degr + gp.ext_difference
+                new_ext_conc = gp.ext_conc - ext_degr
                 gp.ext_conc = new_ext_conc
 
     def update_ext_conc(self):
         '''
             Method to update external concentration of all gene products based on the
             geneproduct.ext_difference 
-            TODO: check whether I need self.ext_difference = 0 in geneproduct.py
-            TODO: can I remove this code from external_step and then just call 
-            additional update_ext_conc() in self.step(stochastic=False) ?
         '''
         if type(self.gene_products[0])==list:
             for group in self.gene_products:
@@ -182,11 +187,12 @@ class Sample:
                 new_ext_conc = gp.ext_conc + gp.ext_difference
                 gp.ext_conc = new_ext_conc
 
-    def st_external_substep(self, t=0, dt=0.1, growth_rate=1, tau_=None):
+    def st_external_substep(self, tau_=None):
         """ 
-        method similar to GeneticNetwork.substep()
-        but only for extracellular degradation
-        stochastic
+            method similar to GeneticNetwork.substep()
+            but only for extracellular degradation
+
+            stochastic
         """
         # Propensities
         a = []
@@ -228,41 +234,39 @@ class Sample:
             return tau
         
         
-    def total_substep_stochastic(self):
+    def total_substep_stochastic(self, t=0, dt=0.1, growth_rate=1, biomass=1):
         '''
             method that links stochastic substeps for each genetic network and 
             extracellular space
         '''
-        # create a list with all genetic networks and extracellular space
-        if type(self.genetic_network)==list:
-            options = self.genetic_network 
-        else:
-            options = []
-            options.append(self.genetic_network)
-        options.append("extracellular space")
-
-        # shuffle the list
-        from random import shuffle
-        shuffle(options)
+        # shuffle the listbiomass, t, dt, growth_rate
+        shuffle(self.options)
 
         # get tau by running substep for the first item in the shuffled list
         # and then use this tau in other substeps
-        if options[0]=="extracellular space":
+        if self.options[0]=="extracellular space":
             tau = self.st_external_substep()
-            for gn in options[1:len(options)]:
-                gn.substep_stochastic(tau_=tau)
+            for gn in self.options[1:len(self.options)]:
+
+                # TODO: fix
+                if type(self.genetic_network)==list:
+                    i = index(gn in self.genetic_network)
+                    biomass = self.biomass[i]
+                    growth_rate = self.growth_rate[i]
+                
+                gn.substep_stochastic(t, dt, growth_rate, biomass, tau)
             self.update_ext_conc()
         else:
-            tau = self.substep_stochastic
-            for gn in options[1:len(options)]:
+            tau = self.substep_stochastic(t, dt, growth_rate, biomass)
+            for gn in self.options[1:len(self.options)]:
                 if gn == "extracellular space":
                     self.st_external_substep(tau_=tau)
                     self.update_ext_conc()
                 else:
-                    gn.substep_stochastic(tau_=tau)
+                    gn.substep_stochastic(t, dt, growth_rate, biomass, tau)
                     self.update_ext_conc()
 
-    def step_stochastic(self, growth_rate=1, t=0, dt=0.1):
+    def step_stochastic(self, t=0, dt=0.1, growth_rate=1, biomass=1):
         ''' 
             same as GeneticNetwork.step_stochastic(), but uses either 
             self.total_substep_stochastic() or GeneticNetwork.step_stochastic()
@@ -272,13 +276,13 @@ class Sample:
             # if many gene networks - use total_substep_stochastic
             while delta_t < dt:
                 #print(f'Elapsed time: {delta_t}')
-                delta_t += self.total_substep_stochastic(t=t, dt=dt, growth_rate=growth_rate)
+                delta_t += self.total_substep_stochastic(t=t, dt=dt, growth_rate=growth_rate, biomass=biomass)
         else:
             for gp in self.gene_products:
                 if gp.diffusion_rate != 0:
                     while delta_t < dt:
                         #print(f'Elapsed time: {delta_t}')
-                        delta_t += self.total_substep_stochastic(t=t, dt=dt, growth_rate=growth_rate)
+                        delta_t += self.total_substep_stochastic(t=t, dt=dt, growth_rate=growth_rate, biomass=biomass)
                     break
             if delta_t == 0:
                 self.genetic_network.step_stochastic(t=t, dt=dt, growth_rate=growth_rate)
@@ -300,9 +304,9 @@ class Sample:
                 supp.concentration = conc
 
             if stochastic:
-                # I need for all strains to have steps either simultaneously or
-                # randomly, with the simultaneous change extracellularly
-                self.step_stochastic(growth_rate, t, dt)
+                # TODO: biomass and growth rate are unique for each strain! Need to fix 
+                # in methods earlier
+                self.step_stochastic(t, dt, growth_rate, biomass)
             else:
                 if type(self.genetic_network)==list and type(self.metabolism)==list:
                     for (gn, b, g_rate) in zip(self.genetic_network, biomass, growth_rate):
@@ -316,6 +320,7 @@ class Sample:
                     self.genetic_network.step(biomass, growth_rate, t, dt)
                 # update the exctracellular concentration
                 self.external_step()
+                self.update_ext_conc()
 
 
 
