@@ -84,11 +84,14 @@ class Sample:
 
         if self.metabolism:
             if type(self.metabolism)==list:
-                self.biomass = []
-                for m in metabolism:
-                    self.biomass.append(m.biomass)
-            else:       
-                self.biomass = self.metabolism.biomass
+                growth_rate = []
+                biomass = []
+                for m in self.metabolism:
+                    growth_rate.append(m.growth_rate)
+                    biomass.append(m.biomass)
+            else:
+                growth_rate = self.metabolism.growth_rate
+                biomass = self.metabolism.biomass
 
         self.supplements = {}
 
@@ -233,8 +236,18 @@ class Sample:
         if not tau_:
             return tau
         
+    def correct_metabolism(self, genetic_network):
+        ''' method to pick correct growth rate and biomass '''
+        if type(self.metabolism)==list:
+            i = self.genetic_network.index(genetic_network)
+            biomass = self.biomass[i]
+            growth_rate = self.growth_rate[i]
+        else:
+            biomass = self.biomass
+            growth_rate = self.growth_rate       
+        return growth_rate, biomass
         
-    def total_substep_stochastic(self, t=0, dt=0.1, growth_rate=1, biomass=1):
+    def total_substep_stochastic(self, t=0, dt=0.1):
         '''
             method that links stochastic substeps for each genetic network and 
             extracellular space
@@ -247,26 +260,25 @@ class Sample:
         if self.options[0]=="extracellular space":
             tau = self.st_external_substep()
             for gn in self.options[1:len(self.options)]:
-
-                # TODO: fix
-                if type(self.genetic_network)==list:
-                    i = index(gn in self.genetic_network)
-                    biomass = self.biomass[i]
-                    growth_rate = self.growth_rate[i]
-                
+                growth_rate = self.correct_metabolism(gn)[0]
+                biomass = self.correct_metabolism(gn)[1]                     
                 gn.substep_stochastic(t, dt, growth_rate, biomass, tau)
             self.update_ext_conc()
         else:
-            tau = self.substep_stochastic(t, dt, growth_rate, biomass)
+            growth_rate = self.correct_metabolism(self.options[0])[0]
+            biomass = self.correct_metabolism(self.options[0])[1]
+            tau = self.options[0].substep_stochastic(t, dt, growth_rate, biomass)
             for gn in self.options[1:len(self.options)]:
                 if gn == "extracellular space":
                     self.st_external_substep(tau_=tau)
                     self.update_ext_conc()
                 else:
+                    growth_rate = self.correct_metabolism(gn)[0]
+                    biomass = self.correct_metabolism(gn)[1] 
                     gn.substep_stochastic(t, dt, growth_rate, biomass, tau)
                     self.update_ext_conc()
 
-    def step_stochastic(self, t=0, dt=0.1, growth_rate=1, biomass=1):
+    def step_stochastic(self, t=0, dt=0.1):
         ''' 
             same as GeneticNetwork.step_stochastic(), but uses either 
             self.total_substep_stochastic() or GeneticNetwork.step_stochastic()
@@ -276,48 +288,35 @@ class Sample:
             # if many gene networks - use total_substep_stochastic
             while delta_t < dt:
                 #print(f'Elapsed time: {delta_t}')
-                delta_t += self.total_substep_stochastic(t=t, dt=dt, growth_rate=growth_rate, biomass=biomass)
+                delta_t += self.total_substep_stochastic(t, dt)
         else:
             for gp in self.gene_products:
                 if gp.diffusion_rate != 0:
                     while delta_t < dt:
                         #print(f'Elapsed time: {delta_t}')
-                        delta_t += self.total_substep_stochastic(t=t, dt=dt, growth_rate=growth_rate, biomass=biomass)
+                        delta_t += self.total_substep_stochastic(t, dt)
                     break
             if delta_t == 0:
-                self.genetic_network.step_stochastic(t=t, dt=dt, growth_rate=growth_rate)
+                self.genetic_network.step_stochastic(t, dt, self.growth_rate)
 
     def step(self, t, dt, stochastic=False):
         if self.genetic_network and self.metabolism:
-            # check if metabolism is list
-            if type(self.metabolism)==list:
-                growth_rate = []
-                biomass = []
-                for m in self.metabolism:
-                    growth_rate.append(m.growth_rate(t))
-                    biomass.append(m.biomass(t))
-            else:
-                growth_rate = self.metabolism.growth_rate(t)
-                biomass = self.metabolism.biomass(t)
-
             for supp,conc in self.supplements.items():
                 supp.concentration = conc
 
             if stochastic:
-                # TODO: biomass and growth rate are unique for each strain! Need to fix 
-                # in methods earlier
-                self.step_stochastic(t, dt, growth_rate, biomass)
+                self.step_stochastic(t, dt)
             else:
                 if type(self.genetic_network)==list and type(self.metabolism)==list:
-                    for (gn, b, g_rate) in zip(self.genetic_network, biomass, growth_rate):
+                    for (gn, b, g_rate) in zip(self.genetic_network, self.biomass, self.growth_rate):
                         # test
                         print(f'In network {gn} at biomass {b}')
                         gn.step(b, g_rate, t, dt)
                 elif type(self.genetic_network)==list:
                     for gn in self.genetic_network:
-                        gn.step(biomass, growth_rate, t, dt) 
+                        gn.step(self.biomass, self.growth_rate, t, dt) 
                 else:
-                    self.genetic_network.step(biomass, growth_rate, t, dt)
+                    self.genetic_network.step(self.biomass, self.growth_rate, t, dt)
                 # update the exctracellular concentration
                 self.external_step()
                 self.update_ext_conc()
