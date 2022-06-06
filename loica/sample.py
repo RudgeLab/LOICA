@@ -267,6 +267,7 @@ class Sample:
                 biomass = self.correct_metabolism(gn)[1](t)                    
                 gn.substep_stochastic(t, dt, growth_rate, biomass, tau)
             self.update_ext_conc()
+            return tau
         else:
             growth_rate = self.correct_metabolism(self.options[0])[0](t)
             biomass = self.correct_metabolism(self.options[0])[1](t)
@@ -280,6 +281,7 @@ class Sample:
                     biomass = self.correct_metabolism(gn)[1](t)
                     gn.substep_stochastic(t, dt, growth_rate, biomass, tau)
                     self.update_ext_conc()
+            return tau
 
     def step_stochastic(self, t=0, dt=0.1):
         ''' 
