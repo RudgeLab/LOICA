@@ -105,7 +105,17 @@ class Sample:
         else:
             self.options = []
             self.options.append(self.genetic_network)
-        self.options.append("extracellular space")
+        # this ensures that self.st_external_substep() is called later in self.total_substep_stochastic()
+        if type(self.gene_products[0])==list:
+            for group in self.gene_products:
+                if group[0].ext_degr_rate != 0:
+                    self.options.append("extracellular space") 
+                    break
+        else:
+            for gp in self.gene_products:
+                if gp.ext_degr_rate != 0:
+                    self.options.append("extracellular space")
+                    break
 
     def set_extracel_degr(self, chemical_name, ext_degr_rate):
         ''' 
@@ -301,6 +311,7 @@ class Sample:
                         #print(f'Elapsed time: {delta_t}')
                         delta_t += self.total_substep_stochastic(t, dt)
                     break
+            # TODO: do I even need this code?
             if delta_t == 0:
                 self.genetic_network.step_stochastic(t, dt, self.growth_rate)
 
