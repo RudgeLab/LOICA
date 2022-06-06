@@ -9,7 +9,7 @@ from .operators.receiver import Receiver
 from .operators.source import Source
 from typing import List #, Dict, Tuple, Optional, Union, Any
 import numpy as np
-from math import floor
+from math import floor, ceil
 
 class GeneticNetwork():
     """
@@ -136,8 +136,8 @@ class GeneticNetwork():
         # Reset expression rates for next step
         # and update concentration and ext_difference
         for gp in gene_products:
-            if gp.int_change != 0:
-                # TODO: does floor change variable itself? and if I have -1.99, will it round down to -2?
+            # TODO: is there a way to shorten?
+            if gp.int_change > 0:
                 # internal concentration minus diffusion out
                 new_conc = gp.concentration - floor(gp.int_change)
                 gp.concentration = new_conc
@@ -146,6 +146,15 @@ class GeneticNetwork():
                 gp.ext_difference = floor(gp.int_change) * floor(biomass)
                 # update int_change so it would be just leftover float
                 updated_int_change = gp.int_change - floor(gp.int_change)
+            elif gp.int_change < 0:
+                # internal concentration minus diffusion out
+                new_conc = gp.concentration - ceil(gp.int_change)
+                gp.concentration = new_conc
+                # external difference equals what each cell diffused multiplied by number of
+                # cells
+                gp.ext_difference = ceil(gp.int_change) * floor(biomass)
+                # update int_change so it would be just leftover float
+                updated_int_change = gp.int_change - ceil(gp.int_change)
                 gp.int_change = updated_int_change
             gp.expression_rate = 0
 
