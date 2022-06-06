@@ -195,12 +195,12 @@ class Sample:
                 concentration_change = 0
                 for gp in group:
                     concentration_change += gp.ext_difference   
-                new_ext_conc = group[0].ext_conc + concentration_change
+                new_ext_conc = group[0].ext_conc + concentration_change - group[0].ext_degraded
                 for gp in group:
                     gp.ext_conc = new_ext_conc
         else:
             for gp in self.gene_products:
-                new_ext_conc = gp.ext_conc + gp.ext_difference
+                new_ext_conc = gp.ext_conc + gp.ext_difference - gp.ext_degraded
                 gp.ext_conc = new_ext_conc
 
     def st_external_substep(self, tau_=None):
@@ -218,10 +218,14 @@ class Sample:
             for group in self.gene_products:
                 # degradation reaction
                 a.append(group[0].ext_degr_rate * group[0].ext_conc)
+                # reset how much degraded
+                group[0].ext_degraded = 0
         else:
             for gp in self.gene_products:
                 # degradation reaction
                 a.append(gp.ext_degr_rate * gp.ext_conc)
+                # reset how much degraded
+                gp.ext_degraded = 0
         
         # Make list of propensities into array
         a = np.array(a)
@@ -240,9 +244,10 @@ class Sample:
         # Find reaction and update gene product levels
         for i, group in enumerate(self.gene_products):
             if a_i < np.sum(a[:i+1]):
-                # Extracellular degradation of geneproduct gp
-                for gp in group:
-                    gp.ext_conc -= 1
+                # Mark extracellular degradation of geneproduct in group
+                group[0].ext_degraded = 1
+                #test
+                print(f'{group[0].name} ext degradation')
                 break
 
         # Return elapsed time if it was not predefined
@@ -272,17 +277,16 @@ class Sample:
         # and then use this tau in other substeps
         if self.options[0]=="extracellular space":
             tau = self.st_external_substep()
-            for gn in self.options[1:len(self.options)]:
+            for gn in self.options[1:]:
                 growth_rate = self.correct_metabolism(gn)[0](t)
                 biomass = self.correct_metabolism(gn)[1](t)                    
                 gn.substep_stochastic(t, dt, growth_rate, biomass, tau)
             self.update_ext_conc()
-            return tau
         else:
             growth_rate = self.correct_metabolism(self.options[0])[0](t)
             biomass = self.correct_metabolism(self.options[0])[1](t)
             tau = self.options[0].substep_stochastic(t, dt, growth_rate, biomass)
-            for gn in self.options[1:len(self.options)]:
+            for gn in self.options[1:]:
                 if gn == "extracellular space":
                     self.st_external_substep(tau_=tau)
                     self.update_ext_conc()
@@ -291,7 +295,8 @@ class Sample:
                     biomass = self.correct_metabolism(gn)[1](t)
                     gn.substep_stochastic(t, dt, growth_rate, biomass, tau)
                     self.update_ext_conc()
-            return tau
+                    
+        return tau
 
     def step_stochastic(self, t=0, dt=0.1):
         ''' 
@@ -302,7 +307,7 @@ class Sample:
         if type(self.genetic_network)==list:
             # if many gene networks - use total_substep_stochastic
             while delta_t < dt:
-                #print(f'Elapsed time: {delta_t}')
+                print(f'Elapsed time: {delta_t}')
                 delta_t += self.total_substep_stochastic(t, dt)
         else:
             for gp in self.gene_products:
