@@ -78,7 +78,7 @@ class GeneticNetwork():
                 else: print('Unsupported Type, it should be an Reporter')
         else: print('Unsupported Type, it should be an Reporter')
 
-    def substep_stochastic(self, t=0, dt=0.1, growth_rate=1, tau_=None):
+    def substep_stochastic(self, t=0, dt=0.1, growth_rate=1, biomass=1, tau_=None):
         # Propensities
         a = []
 
@@ -128,11 +128,11 @@ class GeneticNetwork():
                 # Diffusion of geneproduct gp
                 if (gp.concentration-gp.ext_conc) > 0:
                     gp.concentration -= 1
-                    # gp.ext_difference += biomass
+                    gp.ext_difference = biomass
                     break
                 elif (gp.concentration-gp.ext_conc) < 0:
                     gp.concentration += 1
-                    # gp.ext_difference -= biomass
+                    gp.ext_difference = - biomass
                     break
                 elif (gp.concentration-gp.ext_conc) == 0:
                     break
@@ -150,9 +150,6 @@ class GeneticNetwork():
         while delta_t < dt:
             #print(f'Elapsed time: {delta_t}')
             delta_t += self.substep_stochastic(t=t, dt=dt, growth_rate=growth_rate)
-            for gp in gene_products:
-                l
-                new_ext_conc = gp.ext_conc + gp.ext_difference
 
     # added biomass parameter to follow on changes in geneproduct step
     # this parameter is related to OD of the strain-genetic network   
