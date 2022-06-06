@@ -84,21 +84,24 @@ class Sample:
 
         if self.metabolism:
             if type(self.metabolism)==list:
-                growth_rate = []
-                biomass = []
+                self.growth_rate = []
+                self.biomass = []
                 for m in self.metabolism:
-                    growth_rate.append(m.growth_rate)
-                    biomass.append(m.biomass)
+                    self.growth_rate.append(m.growth_rate)
+                    self.biomass.append(m.biomass)
             else:
-                growth_rate = self.metabolism.growth_rate
-                biomass = self.metabolism.biomass
+                self.growth_rate = self.metabolism.growth_rate
+                self.biomass = self.metabolism.biomass
 
         self.supplements = {}
 
         # create an options list for stochastic simulation 
         # (used in self.total_substep_stochastic(self))
         if type(self.genetic_network)==list:
-            self.options = self.genetic_network 
+            # copy list without further changing original
+            # slicing is fastest method according to @cryo at 
+            # https://stackoverflow.com/questions/2612802/how-do-i-clone-a-list-so-that-it-doesnt-change-unexpectedly-after-assignment
+            self.options = self.genetic_network[:]
         else:
             self.options = []
             self.options.append(self.genetic_network)
@@ -260,21 +263,21 @@ class Sample:
         if self.options[0]=="extracellular space":
             tau = self.st_external_substep()
             for gn in self.options[1:len(self.options)]:
-                growth_rate = self.correct_metabolism(gn)[0]
-                biomass = self.correct_metabolism(gn)[1]                     
+                growth_rate = self.correct_metabolism(gn)[0](t)
+                biomass = self.correct_metabolism(gn)[1](t)                    
                 gn.substep_stochastic(t, dt, growth_rate, biomass, tau)
             self.update_ext_conc()
         else:
-            growth_rate = self.correct_metabolism(self.options[0])[0]
-            biomass = self.correct_metabolism(self.options[0])[1]
+            growth_rate = self.correct_metabolism(self.options[0])[0](t)
+            biomass = self.correct_metabolism(self.options[0])[1](t)
             tau = self.options[0].substep_stochastic(t, dt, growth_rate, biomass)
             for gn in self.options[1:len(self.options)]:
                 if gn == "extracellular space":
                     self.st_external_substep(tau_=tau)
                     self.update_ext_conc()
                 else:
-                    growth_rate = self.correct_metabolism(gn)[0]
-                    biomass = self.correct_metabolism(gn)[1] 
+                    growth_rate = self.correct_metabolism(gn)[0](t)
+                    biomass = self.correct_metabolism(gn)[1](t)
                     gn.substep_stochastic(t, dt, growth_rate, biomass, tau)
                     self.update_ext_conc()
 
@@ -311,12 +314,12 @@ class Sample:
                     for (gn, b, g_rate) in zip(self.genetic_network, self.biomass, self.growth_rate):
                         # test
                         print(f'In network {gn} at biomass {b}')
-                        gn.step(b, g_rate, t, dt)
+                        gn.step(b(t), g_rate(t), t, dt)
                 elif type(self.genetic_network)==list:
                     for gn in self.genetic_network:
-                        gn.step(self.biomass, self.growth_rate, t, dt) 
+                        gn.step(self.biomass(t), self.growth_rate(t), t, dt) 
                 else:
-                    self.genetic_network.step(self.biomass, self.growth_rate, t, dt)
+                    self.genetic_network.step(self.biomass(t), self.growth_rate(t), t, dt)
                 # update the exctracellular concentration
                 self.external_step()
                 self.update_ext_conc()
