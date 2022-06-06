@@ -27,6 +27,7 @@ class GeneProduct:
         self.ext_degr_rate = 0
         self.ext_difference = 0
         self.int_change=0
+        self.ext_degraded=0
         self.init_concentration = init_concentration
         self.concentration = init_concentration
         self.degradation_rate = degradation_rate
