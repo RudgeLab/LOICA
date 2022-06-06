@@ -105,17 +105,6 @@ class Sample:
         else:
             self.options = []
             self.options.append(self.genetic_network)
-        # this ensures that self.st_external_substep() is called later in self.total_substep_stochastic()
-        if type(self.gene_products[0])==list:
-            for group in self.gene_products:
-                if group[0].ext_degr_rate != 0:
-                    self.options.append("extracellular space") 
-                    break
-        else:
-            for gp in self.gene_products:
-                if gp.ext_degr_rate != 0:
-                    self.options.append("extracellular space")
-                    break
 
     def set_extracel_degr(self, chemical_name, ext_degr_rate):
         ''' 
@@ -131,6 +120,10 @@ class Sample:
             for gp in self.gene_products:
                 if gp.name == chemical_name:
                     gp.ext_degr_rate = ext_degr_rate
+        
+        # this ensures that self.st_external_substep() is called later in self.total_substep_stochastic()
+        if "extracellular space" not in self.options:
+            self.options.append("extracellular space")
 
     def initialize(self):
         if type(self.genetic_network)==list:
@@ -246,8 +239,8 @@ class Sample:
             if a_i < np.sum(a[:i+1]):
                 # Mark extracellular degradation of geneproduct in group
                 group[0].ext_degraded = 1
-                #test
-                print(f'{group[0].name} ext degradation')
+                # #test
+                # print(f'{group[0].name} ext degradation')
                 break
 
         # Return elapsed time if it was not predefined
