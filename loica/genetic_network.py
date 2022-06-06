@@ -99,9 +99,6 @@ class GeneticNetwork():
             # Production reeaction
             a.append(gp.expression_rate)
             a.append((gp.degradation_rate + growth_rate) * gp.concentration)
-            dext_conc_dt = gp.diffusion_rate*(gp.concentration-gp.ext_conc)
-            # how much diffuses out of cell per time tau
-            gp.int_change += dext_conc_dt*tau
 
         # Make list of propensities into array
         a = np.array(a)
@@ -113,6 +110,12 @@ class GeneticNetwork():
             tau = tau_
         else:
             tau = 1/A * np.log(1/np.random.random())
+        
+        # TODO: figure out how to remove this loop
+        for gp in gene_products:
+            dext_conc_dt = gp.diffusion_rate*(gp.concentration-gp.ext_conc)
+            # how much diffuses out of cell per time tau
+            gp.int_change += dext_conc_dt*tau
 
         # Random number to select next reaction
         a_i = np.random.random() * A
@@ -123,13 +126,13 @@ class GeneticNetwork():
                 # Production of geneproduct gp
                 gp.concentration += 1
                 #test
-                print(f'{gp.name} +conc - {gp.concentration}')
+                # print(f'{gp.name} +conc - {gp.concentration}')
                 break
             elif a_i < np.sum(a[:i*2+2]):
                 # Degradation of geneproduct gp
                 gp.concentration -= 1
                 #test
-                print(f'{gp.name} -conc - {gp.concentration}')
+                # print(f'{gp.name} -conc - {gp.concentration}')
                 break
         
 
