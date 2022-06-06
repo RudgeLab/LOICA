@@ -99,6 +99,9 @@ class GeneticNetwork():
             # Production reeaction
             a.append(gp.expression_rate)
             a.append((gp.degradation_rate + growth_rate) * gp.concentration)
+            dext_conc_dt = gp.diffusion_rate*(gp.concentration-gp.ext_conc)
+            # how much diffuses out of cell per time tau
+            gp.int_change += dext_conc_dt*tau
 
         # Make list of propensities into array
         a = np.array(a)
@@ -113,11 +116,6 @@ class GeneticNetwork():
 
         # Random number to select next reaction
         a_i = np.random.random() * A
-
-        for gp in gene_products:
-            dext_conc_dt = gp.diffusion_rate*(gp.concentration-gp.ext_conc)
-            # how much diffuses out of cell per time tau
-            gp.int_change += dext_conc_dt*tau
 
         # Find reaction and update gene product levels
         for i,gp in enumerate(gene_products):
@@ -138,16 +136,17 @@ class GeneticNetwork():
         # Reset expression rates for next step
         # and update concentration and ext_difference
         for gp in gene_products:
-            # TODO: does floor change variable itself? and if I have -1.99, will it round down to -2?
-            # internal concentration minus diffusion out
-            new_conc = gp.concentration - floor(gp.int_change)
-            gp.concentration = new_conc
-            # external difference equals what each cell diffused multiplied by number of
-            # cells
-            gp.ext_difference = floor(gp.int_change) * floor(biomass)
-            # update int_change so it would be just leftover float
-            updated_int_change = gp.int_change - floor(gp.int_change)
-            gp.int_change = updated_int_change
+            if gp.int_change != 0:
+                # TODO: does floor change variable itself? and if I have -1.99, will it round down to -2?
+                # internal concentration minus diffusion out
+                new_conc = gp.concentration - floor(gp.int_change)
+                gp.concentration = new_conc
+                # external difference equals what each cell diffused multiplied by number of
+                # cells
+                gp.ext_difference = floor(gp.int_change) * floor(biomass)
+                # update int_change so it would be just leftover float
+                updated_int_change = gp.int_change - floor(gp.int_change)
+                gp.int_change = updated_int_change
             gp.expression_rate = 0
 
         # Return elapsed time if it was not predefined
