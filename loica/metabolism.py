@@ -1,6 +1,14 @@
 import numpy as np
 from scipy.interpolate import interp1d
 
+def convert_to_cfu(od, ppod):
+    ''' 
+        od - OD600 measurement
+        ppod - particles per OD600 measurement (calculated according to iGEM OD600 
+               calibration protocol)
+    '''
+    return od*ppod
+
 def ramp_growth_rate(t, start, slope):
     gr = np.maximum(0, slope*(t-start))
     return(gr)
