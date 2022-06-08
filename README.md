@@ -13,6 +13,14 @@ Welcome to the LOICA (Logical Operators for Integrated Cell Algorithms) reposito
 
 As you may have noticed, our logo features a beautiful bird—loica _[(Leistes loyca)](https://en.wikipedia.org/wiki/Long-tailed_meadowlark)_; a bird native to Chile known for its particular red chest and legendary kindness, with which we share name[.](https://youtu.be/qDL3zhB8-MM)
 
+## Reference and citation
+
+LOICA is an academic open source software for science, if you want to reference or cite it please use the following:
+
+DOI https://doi.org/10.1021/acssynbio.1c00603
+
+Get the BibTeX in [Google Scholar](https://scholar.google.com/scholar?hl=es&as_sdt=0%2C5&q=LOICA%3A+Integrating+Models+with+Data+for+Genetic+Network+Design+Automation&btnG=) 
+
 ## Instalation
 
 Installing LOICA is way easier than pronuncing it! 
