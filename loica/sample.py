@@ -282,12 +282,11 @@ class Sample:
             for gn in self.options[1:]:
                 if gn == "extracellular space":
                     self.st_external_substep(tau_=tau)
-                    self.update_ext_conc()
                 else:
                     growth_rate = self.correct_metabolism(gn)[0](t)
                     biomass = self.correct_metabolism(gn)[1](t)
                     gn.substep_stochastic(t, dt, growth_rate, biomass, tau)
-                    self.update_ext_conc()
+            self.update_ext_conc()
                     
         return tau
 
@@ -300,7 +299,7 @@ class Sample:
         if type(self.genetic_network)==list:
             # if many gene networks - use total_substep_stochastic
             while delta_t < dt:
-                print(f'Elapsed time: {delta_t}')
+                # print(f'Elapsed time: {delta_t}')
                 delta_t += self.total_substep_stochastic(t, dt)
         else:
             for gp in self.gene_products:
