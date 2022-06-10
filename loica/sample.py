@@ -189,8 +189,39 @@ class Sample:
                 for gp in group:
                     concentration_change += gp.ext_difference   
                 new_ext_conc = group[0].ext_conc + concentration_change - group[0].ext_degraded
+                # test 
+                print(f''' -----
+                {group[0].name} 
+                current ext conc {group[0].ext_conc}
+                conc change = {concentration_change} 
+                - {group[0].ext_degraded} degraded
+                New external conc = {new_ext_conc}
+                -----''')
+                if new_ext_conc<0:
+                    ''' 
+                        randomly updates extracellular concentration
+                        if result is negative, diffusion does not happen and molecules
+                        are returned to the cell
+                    '''
+                    #test
+                    print("Protocol to negate negative extracellular concentration has been started")
+                    ext_options = ["degradation"]
+                    for gp in group:
+                        ext_options.append(gp) 
+                    shuffle(ext_options)
+                    new_ext_conc = group[0].ext_conc
+                    for opt in ext_options:
+                        if opt == "degradation":
+                            new_ext_conc -= group[0].ext_degraded
+                        else:
+                            new_ext_conc += opt.ext_difference
+                            if new_ext_conc < 0:
+                                new_ext_conc -= opt.ext_difference
+                                opt.concentration -= 1
                 for gp in group:
                     gp.ext_conc = new_ext_conc
+                    
+
         else:
             for gp in self.gene_products:
                 new_ext_conc = gp.ext_conc + gp.ext_difference - gp.ext_degraded
