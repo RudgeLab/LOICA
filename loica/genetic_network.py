@@ -191,6 +191,19 @@ class GeneticNetwork():
             # Difusion into the cell
             a.append(gp.diffusion_rate*gp.ext_conc)
 
+        # test
+        c = False
+        for p in a:
+            if p<0:
+                c = True
+                break
+        if c:
+            print(f'''WARNING! Propensity is negative
+                Propensities before substep: {a}''')
+            for gp in gene_products:
+                if gp.concentration<0:
+                    print(f'{gp.name} conc = {gp.concentration}')
+
         # Make list of propensities into array
         a = np.array(a)
         # Total of propensities
@@ -209,29 +222,40 @@ class GeneticNetwork():
             if a_i < np.sum(a[:i*4+1]):
                 # Production of geneproduct gp
                 gp.concentration += 1
+                gp.ext_difference = 0
                 #test
-                print(f'{gp.name} +conc - {gp.concentration}')
+                # print(f'{gp.name} +conc - {gp.concentration}')
                 break
             elif a_i < np.sum(a[:i*4+2]):
                 # Degradation of geneproduct gp
                 gp.concentration -= 1
+                gp.ext_difference = 0
+                # test
+                if gp.concentration<0:
+                    print(f'''WARNING! {gp.name} concentration is negative due to DEGRADATION
+                    Propensities: {a}''')
                 #test
-                print(f'{gp.name} -conc - {gp.concentration}')
+                # print(f'{gp.name} -conc - {gp.concentration}')
                 break
             elif a_i < np.sum(a[:i*4+3]):
                 # Diffusion of geneproduct gp out of cell
                 gp.concentration -= 1
                 gp.ext_difference = biomass
+                # test
+                if gp.concentration<0:
+                    print(f'''WARNING! {gp.name} concentration is negative due to DIFFUSION OUT
+                    Propensities: {a}''')
                 #test
-                print(f'{gp.name} -conc (+ext) - {gp.concentration}')
+                # print(f'{gp.name} -conc (+ext) - {gp.concentration}')
                 break
             elif a_i < np.sum(a[:i*4+4]):
+                # Diffusion of geneproduct gp into the cell
                 gp.concentration += 1
                 gp.ext_difference = - biomass
                 #test
-                print(f'{gp.name} +conc (-ext) - {gp.concentration}')
+                # print(f'{gp.name} +conc (-ext) - {gp.concentration}')
                 break
-
+        
         # Reset expression rates for next step
         for gp in gene_products:
             gp.expression_rate = 0
