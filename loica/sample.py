@@ -190,13 +190,13 @@ class Sample:
                     concentration_change += gp.ext_difference   
                 new_ext_conc = group[0].ext_conc + concentration_change - group[0].ext_degraded
                 # test 
-                print(f''' -----
-                {group[0].name} 
-                current ext conc {group[0].ext_conc}
-                conc change = {concentration_change} 
-                - {group[0].ext_degraded} degraded
-                New external conc = {new_ext_conc}
-                -----''')
+                # print(f''' -----
+                # {group[0].name}
+                # New external conc = {new_ext_conc}''')
+                # current ext conc {group[0].ext_conc}
+                # conc change = {concentration_change} 
+                # - {group[0].ext_degraded} degraded
+                # -----
                 if new_ext_conc<0:
                     ''' 
                         randomly updates extracellular concentration
@@ -204,7 +204,7 @@ class Sample:
                         are returned to the cell
                     '''
                     #test
-                    print("Protocol to negate negative extracellular concentration has been started")
+                    # print("Protocol to negate negative extracellular concentration has been started")
                     ext_options = ["degradation"]
                     for gp in group:
                         ext_options.append(gp) 
@@ -213,16 +213,27 @@ class Sample:
                     for opt in ext_options:
                         if opt == "degradation":
                             new_ext_conc -= group[0].ext_degraded
+                            if new_ext_conc < 0:
+                                new_ext_conc = 0
                         else:
                             new_ext_conc += opt.ext_difference
+                            # test
                             if new_ext_conc < 0:
+                                print(f'Change in ext conc is negative ({opt.ext_difference})')
                                 new_ext_conc -= opt.ext_difference
                                 opt.concentration -= 1
+                                if opt.concentration<0:
+                                    print(f"Something went wrong! Int conc if {opt.name} is {opt.concentration}")
+                    # test
+                    # print(f'After update = {new_ext_conc}')
                 for gp in group:
                     gp.ext_conc = new_ext_conc
+                    # test
+                    # print(gp.ext_conc)
                     
 
         else:
+            # TODO: check if this needs updating as well
             for gp in self.gene_products:
                 new_ext_conc = gp.ext_conc + gp.ext_difference - gp.ext_degraded
                 gp.ext_conc = new_ext_conc
