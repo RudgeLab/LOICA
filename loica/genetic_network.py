@@ -255,6 +255,8 @@ class GeneticNetwork():
                 #test
                 # print(f'{gp.name} +conc (-ext) - {gp.concentration}')
                 break
+            else:
+                gp.ext_difference = 0
         
         # Reset expression rates for next step
         for gp in gene_products:
