@@ -157,7 +157,7 @@ class Sample:
     #             rep.init_concentration = concentration
     #         else: pass
 
-    def external_step(self):
+    def external_step(self, dt):
         """ 
             method that calculates the change in the extracellular concentration
             due to degradation
@@ -167,7 +167,7 @@ class Sample:
         if type(self.gene_products[0])==list:
             for group in self.gene_products: 
                 ext_degr = group[0].ext_conc * group[0].ext_degr_rate
-                new_ext_conc = group[0].ext_conc - ext_degr
+                new_ext_conc = group[0].ext_conc - ext_degr * dt
                 for gp in group:
                     gp.ext_conc = new_ext_conc
                 # test
@@ -219,11 +219,20 @@ class Sample:
                             new_ext_conc += opt.ext_difference
                             # test
                             if new_ext_conc < 0:
-                                print(f'Change in ext conc is negative ({opt.ext_difference})')
+                                
+                                # test
+                                # print(f'Change in ext conc is negative ({opt.ext_difference})')
                                 new_ext_conc -= opt.ext_difference
-                                opt.concentration -= 1
+                                print(f'''{opt.name} {opt}: 
+                                ext conc: {opt.ext_conc} 
+                                ext difference: {opt.ext_difference}
+                                internal conc: {opt.concentration}
+                                ''')
+                                # if opt.concentration == 0:
+                                #     print(f"Int conc of {opt.name} {opt} is {opt.concentration}")
+                                # opt.concentration -= 1
                                 if opt.concentration<0:
-                                    print(f"Something went wrong! Int conc if {opt.name} is {opt.concentration}")
+                                    print(f"Int conc of {opt.name} {opt} is {opt.concentration}")
                     # test
                     # print(f'After update = {new_ext_conc}')
                 for gp in group:
@@ -373,7 +382,7 @@ class Sample:
                 else:
                     self.genetic_network.step(self.biomass(t), self.growth_rate(t), t, dt)
                 # update the exctracellular concentration
-                self.external_step()
+                self.external_step(dt)
                 self.update_ext_conc()
 
 
