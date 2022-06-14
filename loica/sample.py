@@ -427,27 +427,33 @@ class Sample:
         # Return elapsed time
         return tau
 
-    def step_stochastic(self, t=0, dt=0.1):
+    def step_stochastic(self, t=0, dt=0.1, growth_rate=1, biomass=1):
         ''' 
             same as GeneticNetwork.step_stochastic(), but uses either 
             self.total_substep_stochastic() or GeneticNetwork.step_stochastic()
         '''
         delta_t = 0
-        if type(self.genetic_network)==list:
-            # if many gene networks - use total_substep_stochastic
-            while delta_t < dt:
+        while delta_t < dt:
                 # print(f'Elapsed time: {delta_t}')
-                delta_t += self.total_substep_stochastic(t, dt)
-        else:
-            for gp in self.gene_products:
-                if gp.diffusion_rate != 0:
-                    while delta_t < dt:
-                        #print(f'Elapsed time: {delta_t}')
-                        delta_t += self.total_substep_stochastic(t, dt)
-                    break
-            # TODO: do I even need this code?
-            if delta_t == 0:
-                self.genetic_network.step_stochastic(t, dt, self.growth_rate)
+                delta_t += self.substep_stochastic(t, dt, growth_rate, biomass)
+                
+
+        ''' old code for semi-stochastic and fully stochastic with partitions '''
+        # if type(self.genetic_network)==list:
+        #     # if many gene networks - use total_substep_stochastic
+            # while delta_t < dt:
+            #     # print(f'Elapsed time: {delta_t}')
+            #     delta_t += self.total_substep_stochastic(t, dt)
+        # else:
+        #     for gp in self.gene_products:
+        #         if gp.diffusion_rate != 0:
+        #             while delta_t < dt:
+        #                 #print(f'Elapsed time: {delta_t}')
+        #                 delta_t += self.total_substep_stochastic(t, dt)
+        #             break
+        #     # TODO: do I even need this code?
+        #     if delta_t == 0:
+        #         self.genetic_network.step_stochastic(t, dt, self.growth_rate)
 
     def step(self, t, dt, stochastic=False):
         if self.genetic_network and self.metabolism:
