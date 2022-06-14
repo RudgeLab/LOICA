@@ -370,6 +370,9 @@ class Sample:
                     a.append(gp.diffusion_rate*gp.concentration)
                     # Difusion into the cell
                     a.append(gp.diffusion_rate*gp.ext_conc)
+                    # External degradation
+                    a.append(gp.ext_conc*gp.ext_degr_rate)
+                    # reset values
                     gp.ext_difference = 0
             
         # TODO: add other instances
@@ -392,26 +395,31 @@ class Sample:
                 x += len(group)
                 for ii, gp in enumerate(group):
                     i = ii+x
-                    if a_i < np.sum(a[:i*4+1]):
+                    if a_i < np.sum(a[:i*5+1]):
                         # Production of geneproduct gp
                         gp.concentration += 1
                         complete = True
                         break
-                    elif a_i < np.sum(a[:i*4+2]):
+                    elif a_i < np.sum(a[:i*5+2]):
                         # Degradation of geneproduct gp
                         gp.concentration -= 1
                         complete = True
                         break
-                    elif a_i < np.sum(a[:i*4+3]):
+                    elif a_i < np.sum(a[:i*5+3]):
                         # Diffusion of geneproduct gp out of cell
                         gp.concentration -= 1
                         gp.ext_difference = biomass
                         complete = True
                         break
-                    elif a_i < np.sum(a[:i*4+4]):
+                    elif a_i < np.sum(a[:i*5+4]):
                         # Diffusion of geneproduct gp into the cell
                         gp.concentration += 1
                         gp.ext_difference = - biomass
+                        complete = True
+                        break
+                    elif a_i < np.sum(a[:i*5+4]):
+                        # External degradation of geneproduct gp
+                        gp.ext_difference -= 1
                         complete = True
                         break
                 if complete:
@@ -424,6 +432,17 @@ class Sample:
                     gp.expression_rate = 0
         # TODO: add other cases
 
+        # Update external concentration
+        if type(self.gene_products[0])==list:
+            for group in self.gene_products:
+                concentration_change = 0
+                for gp in group:
+                    concentration_change += gp.ext_difference   
+                new_ext_conc = group[0].ext_conc + concentration_change
+                for gp in group:
+                    gp.ext_conc = new_ext_conc
+         # TODO: add other cases
+        
         # Return elapsed time
         return tau
 
@@ -436,7 +455,7 @@ class Sample:
         while delta_t < dt:
                 # print(f'Elapsed time: {delta_t}')
                 delta_t += self.substep_stochastic(t, dt, growth_rate, biomass)
-                
+
 
         ''' old code for semi-stochastic and fully stochastic with partitions '''
         # if type(self.genetic_network)==list:
