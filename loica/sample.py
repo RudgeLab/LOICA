@@ -417,7 +417,7 @@ class Sample:
                         gp.ext_difference = - biomass
                         complete = True
                         break
-                    elif a_i < np.sum(a[:i*5+4]):
+                    elif a_i < np.sum(a[:i*5+5]):
                         # External degradation of geneproduct gp
                         gp.ext_difference -= 1
                         complete = True
@@ -425,18 +425,12 @@ class Sample:
                 if complete:
                     break
         
-        # Reset expression rates for next step
-        if type(self.gene_products[0])==list:
-            for group in self.gene_products:
-                for gp in group:
-                    gp.expression_rate = 0
-        # TODO: add other cases
-
-        # Update external concentration
+        # Reset expression rates for next step and update external concentration
         if type(self.gene_products[0])==list:
             for group in self.gene_products:
                 concentration_change = 0
                 for gp in group:
+                    gp.expression_rate = 0
                     concentration_change += gp.ext_difference   
                 new_ext_conc = group[0].ext_conc + concentration_change
                 for gp in group:
