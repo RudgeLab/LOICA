@@ -341,6 +341,92 @@ class Sample:
                     
         return tau
 
+    def substep_stochastic(self, t=0, dt=0.1, growth_rate=1, biomass=1):
+        ''' fully stochasic, only one reaction happens out of all'''
+        # Propensities
+        a = []
+
+        # Compute expression rates
+        if type(self.genetic_network)==list:
+            for gn in self.genetic_network:
+                for op in gn.operators:
+                    expression_rate = op.expression_rate(t, dt)
+                    output = op.output
+                    if type(op.output)!=list:
+                        output = [output]
+                    for o in output:
+                        o.express(expression_rate)
+        # TODO: add code for non-list
+
+        # Compute propensities for production, degradation, diffusion in and out of gene products
+        if type(self.gene_products[0])==list:
+            for group in self.gene_products:
+                for gp in group:
+                    # Production reaction
+                    a.append(gp.expression_rate)
+                    # Degradation
+                    a.append((gp.degradation_rate + growth_rate) * gp.concentration)
+                    # Diffusion out of cell
+                    a.append(gp.diffusion_rate*gp.concentration)
+                    # Difusion into the cell
+                    a.append(gp.diffusion_rate*gp.ext_conc)
+                    gp.ext_difference = 0
+            
+        # TODO: add other instances
+
+        # Make list of propensities into array
+        a = np.array(a)
+        # Total of propensities
+        A = a.sum()
+        
+        # Time step
+        tau = 1/A * np.log(1/np.random.random())
+        # Random number to select next reaction
+        a_i = np.random.random() * A
+
+        # Find reaction and update gene product levels
+        if type(self.gene_products[0])==list:
+            x = 0
+            complete = False
+            for group in self.gene_products:
+                x += len(group)
+                for ii, gp in enumerate(group):
+                    i = ii+x
+                    if a_i < np.sum(a[:i*4+1]):
+                        # Production of geneproduct gp
+                        gp.concentration += 1
+                        complete = True
+                        break
+                    elif a_i < np.sum(a[:i*4+2]):
+                        # Degradation of geneproduct gp
+                        gp.concentration -= 1
+                        complete = True
+                        break
+                    elif a_i < np.sum(a[:i*4+3]):
+                        # Diffusion of geneproduct gp out of cell
+                        gp.concentration -= 1
+                        gp.ext_difference = biomass
+                        complete = True
+                        break
+                    elif a_i < np.sum(a[:i*4+4]):
+                        # Diffusion of geneproduct gp into the cell
+                        gp.concentration += 1
+                        gp.ext_difference = - biomass
+                        complete = True
+                        break
+                if complete:
+                    break
+        
+        # Reset expression rates for next step
+        if type(self.gene_products[0])==list:
+            for group in self.gene_products:
+                for gp in group:
+                    gp.expression_rate = 0
+        # TODO: add other cases
+
+        # Return elapsed time
+        return tau
+
     def step_stochastic(self, t=0, dt=0.1):
         ''' 
             same as GeneticNetwork.step_stochastic(), but uses either 
