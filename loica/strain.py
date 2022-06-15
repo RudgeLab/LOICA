@@ -9,10 +9,12 @@ class Strain:
         genetic network that is part of the strain
     metabolism : Metabolism
         metabolism that drives the genetic network in the strain
+    strain : str
+        Name of the strain in the sample
     
     """
 
-    def __init__(self, genetic_network=None, metabolism=None):
+    def __init__(self, genetic_network=None, metabolism=None, strain=None):
         self.genetic_network = genetic_network
         self.metabolism = metabolism
         if self.genetic_network:
