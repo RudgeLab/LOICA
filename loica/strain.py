@@ -5,16 +5,19 @@ class Strain:
 
     Attributes
     ----------
+    name : str
+        name of the strain
     genetic_network : GeneticNetwork
         genetic network that is part of the strain
     metabolism : Metabolism
         metabolism that drives the genetic network in the strain
     strain : str
-        Name of the strain in the sample
+        Name of the strain in the sample (link to Flapjack)
     
     """
 
-    def __init__(self, genetic_network=None, metabolism=None, strain=None):
+    def __init__(self, name=None, genetic_network=None, metabolism=None, strain=None):
+        self.name = name
         self.genetic_network = genetic_network
         self.metabolism = metabolism
         if self.genetic_network:
