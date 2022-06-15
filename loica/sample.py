@@ -1,100 +1,65 @@
 from itertools import groupby
 import numpy as np
 from random import shuffle
+from .strain import Strain
 
 class Sample:
     """
-    Representation of a sample that encapsulates GeneticNetwork and Metabolism.
-    Incorporate environment information such as Supplements or chemicals, strain and media. 
+    Representation of a sample that encapsulates either one Strain or multiple (consortium).
+    Incorporate environment information such as Supplements or chemicals and media. 
     Ex: 1 well in a plate, single cell.
     ...
 
     Attributes
     ----------
-    genetic_network : List[GeneticNetwork] or GeneticNetwork
-        genetic network that is part of the sample
-    metabolism : list[Metabolism] or Metabolism
-        metabolism that drives the genetic network in the sample
-    assay : Assay
-        assay to which this sample belongs
+    strain : List[Strain] or Strain
+        strain that is part of the sample
     media : str
         Name of the media in the sample
-    strain : str
-        Name of the strain in the sample
     
      Methods
     -------
     add_supplement(supplement, concentration)
-        stablishes the concentration of Supplement
+        establishes the concentration of Supplement
     """
-    # TODO: determine whether I need different metabolism for each strain (in general)
-    def __init__(self, 
-            genetic_network=None, 
-            metabolism=None, 
-            assay=None,
-            media=None,
-            strain=None,
-            ):
-        self.genetic_network = genetic_network
-        self.metabolism = metabolism
+    def __init__(self, strain=None, media=None): # resources=None
+
+        self.strain = []
         self.media = media
-        self.strain = strain
-        # TODO: fix
-        # self.vector = self.genetic_network.vector
         self.reporters = []
         self.gene_products = []
+        self.growth_rate = []
+        self.biomass = []
+        self.supplements = {}
+        # self.resources = resources        
+
+        if issubclass(type(strain), Strain):
+            self.strain = [strain]
+        elif type(strain)==list:
+            for s in strain:
+                if issubclass(type(s), Strain):
+                    self.strain.append(s)
+                else: print('Unsupported Type, it should be a Strain')
         
-        '''
-        add resources - which are depleted by all cells, thus limiting growth.
-        it could be something like
-
-        parameter (resources = 1000000)
-        self.resources = resources
-
-        # this can be put in metabolism
-        Metabolism(consumption_rate=2)
-        def deplete(self, resources)
-            consumption = self.biomass * self.consumption_rate
-            new_resources = resources - consumption
-            resources = new_resources
-            if resources <= 0:
-                self.growth_rate = 0
-        
-        so each strain can have different consumption rate
-
-        and then it can be incorporated here or in assay.
-
-        TODO: think about it further. most likely will be in assay
-        '''
-
-        # adding all reporters into list
-        if type(self.genetic_network)==list:
+        # adding all reporters, gene products, growth rates and biomass to respective 
+        # lists
+        if self.strain:
             list_gp = []
-            for genetic_network in self.genetic_network:
-                self.reporters += genetic_network.reporters
-                list_gp += genetic_network.reporters + genetic_network.regulators
+            for s in self.strain:
+                if s.genetic_network:
+                    self.reporters += s.reporters
+                    list_gp += s.gene_producs
+                if s.metabolism:
+                    self.growth_rate.append(s.growth_rate)
+                    self.biomass.append(s.biomass)
             # sort by name so gene products with the same identity would be together
             list_gp.sort(key=lambda x: x.name)
             # group into sublists based on the identity and add to self.gene_products
             for name, identical_gproducts in groupby(list_gp, lambda x: x.name):
                 self.gene_products.append(list(identical_gproducts))
-        else:
-            self.reporters = self.genetic_network.reporters
-            self.gene_products = self.reporters + self.genetic_network.regulators
 
-        if self.metabolism:
-            if type(self.metabolism)==list:
-                self.growth_rate = []
-                self.biomass = []
-                for m in self.metabolism:
-                    self.growth_rate.append(m.growth_rate)
-                    self.biomass.append(m.biomass)
-            else:
-                self.growth_rate = self.metabolism.growth_rate
-                self.biomass = self.metabolism.biomass
-
-        self.supplements = {}
-
+        '''
+        # TODO: adapt for using Strain
         # create an options list for stochastic simulation 
         # (used in self.total_substep_stochastic(self))
         if type(self.genetic_network)==list:
@@ -105,6 +70,8 @@ class Sample:
         else:
             self.options = []
             self.options.append(self.genetic_network)
+
+        '''
 
     def set_extracel_degr(self, chemical_name, ext_degr_rate):
         ''' 
