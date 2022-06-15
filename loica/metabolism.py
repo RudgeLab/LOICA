@@ -64,6 +64,23 @@ class Metabolism:
     def __init__(self, name=None):
         self.name = name
 
+    '''
+        this can be put in metabolism
+        Metabolism(consumption_rate=2)
+        def deplete(self, resources)
+            consumption = self.biomass * self.consumption_rate
+            new_resources = resources - consumption
+            resources = new_resources
+            if resources <= 0:
+                self.growth_rate = 0
+        
+        so each strain can have different consumption rate
+
+        and then it can be incorporated in sample or in assay.
+
+        TODO: think about it further. most likely will be in assay
+    '''
+
 class SimulatedMetabolism(Metabolism):
     """
     Simulated context for gene expression, incorporates biomass and growth rate.
