@@ -26,6 +26,8 @@ class Strain:
         if metabolism:
             self.biomass = self.metabolism.biomass
             self.growth_rate = self.metabolism.growth_rate
+
+    # TODO: add functions add_reporter and etc
     
         
 
