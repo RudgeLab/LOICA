@@ -48,9 +48,9 @@ class Sample:
             for s in self.strain:
                 if s.genetic_network:
                     self.reporters += s.reporters
-                    list_gp += s.gene_producs
+                    list_gp += s.gene_products
                 # assign strain to each gene_product (for self.catch_negative_conc())
-                for gp in s.gene_producs:
+                for gp in s.gene_products:
                     gp.strain = s
                 if s.metabolism:
                     self.growth_rate.append(s.growth_rate)
