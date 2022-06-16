@@ -131,19 +131,12 @@ class Sample:
 
             deterministic
         """
-        if type(self.gene_products[0])==list:
-            for group in self.gene_products: 
-                ext_degr = group[0].ext_conc * group[0].ext_degr_rate
-                new_ext_conc = group[0].ext_conc - ext_degr * dt
-                for gp in group:
-                    gp.ext_conc = new_ext_conc
-                # test
-                # print(f'New ext_conc of {group[0].name} = {new_ext_conc}')
-        else:
-            for gp in self.gene_products:
-                ext_degr = gp.ext_conc * gp.ext_degr_rate
-                new_ext_conc = gp.ext_conc - ext_degr
+        for group in self.gene_products: 
+            ext_degr = group[0].ext_conc * group[0].ext_degr_rate
+            new_ext_conc = group[0].ext_conc - ext_degr * dt
+            for gp in group:
                 gp.ext_conc = new_ext_conc
+    
 
     def update_ext_conc(self):
         '''
@@ -436,23 +429,14 @@ class Sample:
         #         self.genetic_network.step_stochastic(t, dt, self.growth_rate)
 
     def step(self, t, dt, stochastic=False):
-        if self.genetic_network and self.metabolism:
+        if self.gene_products and self.biomass:
             for supp,conc in self.supplements.items():
                 supp.concentration = conc
-
             if stochastic:
                 self.step_stochastic(t, dt)
             else:
-                if type(self.genetic_network)==list and type(self.metabolism)==list:
-                    for (gn, b, g_rate) in zip(self.genetic_network, self.biomass, self.growth_rate):
-                        # test
-                        print(f'In network {gn} at biomass {b}')
-                        gn.step(b(t), g_rate(t), t, dt)
-                elif type(self.genetic_network)==list:
-                    for gn in self.genetic_network:
-                        gn.step(self.biomass(t), self.growth_rate(t), t, dt) 
-                else:
-                    self.genetic_network.step(self.biomass(t), self.growth_rate(t), t, dt)
+                for s in self.strain:
+                    s.genetic_network.step(s.biomass(t), s.growth_rate(t), t, dt)
                 # update the exctracellular concentration
                 self.external_step(dt)
                 self.update_ext_conc()
