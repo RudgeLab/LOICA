@@ -41,6 +41,7 @@ class GeneticNetwork():
         self.operators = []
         self.regulators = []
         self.reporters = []
+        self.gene_products = []
         self.vector = vector
 
     def initialize(self):
@@ -62,20 +63,24 @@ class GeneticNetwork():
     def add_regulator(self, regs):
         if issubclass(type(regs), Regulator):
             self.regulators.append(regs)
+            self.gene_products.append(regs)
         elif type(regs)==list:
             for reg in regs:
                 if issubclass(type(reg), Regulator):
                     self.regulators.append(reg)
+                    self.gene_products.append(reg)
                 else: print('Unsupported Type, it should be an Regulator')
         else: print('Unsupported Type, it should be an Regulator')
 
     def add_reporter(self, reps):
         if issubclass(type(reps), Reporter):
             self.reporters.append(reps)
+            self.gene_products.append(reps)
         elif type(reps)==list:
             for rep in reps:
                 if issubclass(type(rep), Reporter):
                     self.reporters.append(rep)
+                    self.gene_products.append(rep)
                 else: print('Unsupported Type, it should be an Reporter')
         else: print('Unsupported Type, it should be an Reporter')
 
@@ -192,17 +197,17 @@ class GeneticNetwork():
             a.append(gp.diffusion_rate*gp.ext_conc)
 
         # test
-        c = False
-        for p in a:
-            if p<0:
-                c = True
-                break
-        if c:
-            print(f'''WARNING! Propensity is negative
-                Propensities before substep: {a}''')
-            for gp in gene_products:
-                if gp.concentration<0:
-                    print(f'{gp.name} conc = {gp.concentration}')
+        # c = False
+        # for p in a:
+        #     if p<0:
+        #         c = True
+        #         break
+        # if c:
+        #     print(f'''WARNING! Propensity is negative
+        #         Propensities before substep: {a}''')
+        #     for gp in gene_products:
+        #         if gp.concentration<0:
+        #             print(f'{gp.name} conc = {gp.concentration}')
 
         # Make list of propensities into array
         a = np.array(a)
@@ -253,6 +258,8 @@ class GeneticNetwork():
                 gp.concentration += 1
                 gp.ext_difference = - biomass
                 #test
+                if gp.ext_difference != 0 and gp.concentration == 0:
+                    print("Alarm!")
                 # print(f'{gp.name} +conc (-ext) - {gp.concentration}')
                 break
             else:

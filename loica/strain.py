@@ -22,7 +22,7 @@ class Strain:
         self.metabolism = metabolism
         if self.genetic_network:
             self.reporters = self.genetic_network.reporters
-            self.gene_products = self.genetic_network.regulators + self.reporters
+            self.gene_products = self.genetic_network.gene_products
         if metabolism:
             self.biomass = self.metabolism.biomass
             self.growth_rate = self.metabolism.growth_rate
