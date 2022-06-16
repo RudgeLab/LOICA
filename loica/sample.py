@@ -136,7 +136,6 @@ class Sample:
             new_ext_conc = group[0].ext_conc - ext_degr * dt
             for gp in group:
                 gp.ext_conc = new_ext_conc
-    
 
     def update_ext_conc(self):  # , stochastic=False
         '''
@@ -149,11 +148,11 @@ class Sample:
                 concentration_change += gp.ext_difference   
             new_ext_conc = group[0].ext_conc + concentration_change - group[0].ext_degraded
             # if new_ext_conc<0:
-            #     new_ext_conc = self.step_back(group, stochastic)
+            #     new_ext_conc = self.catch_negative_conc(group, stochastic)
             for gp in group:
                 gp.ext_conc = new_ext_conc
 
-    def step_back(self, group, stochastic=False):
+    def catch_negative_conc(self, group, stochastic=False):
         ''' 
             used if external concentration becomes negative due to multiple strains
             taking molecules out of the extracellular space simultaneously.
@@ -208,10 +207,6 @@ class Sample:
                 gp.concentration = fixed_conc
             return 0
                 
-            
-
-                
-
     def st_external_substep(self, tau_=None):
         """ 
             method similar to GeneticNetwork.substep()
@@ -414,9 +409,8 @@ class Sample:
         while delta_t < dt:
                 # print(f'Elapsed time: {delta_t}')
                 delta_t += self.substep_stochastic(t, dt, growth_rate, biomass)
-
-
-        ''' old code for semi-stochastic and fully stochastic with partitions '''
+        ''' 
+        # old code for semi-stochastic and fully stochastic with partitions 
         # if type(self.genetic_network)==list:
         #     # if many gene networks - use total_substep_stochastic
             # while delta_t < dt:
@@ -432,6 +426,7 @@ class Sample:
         #     # TODO: do I even need this code?
         #     if delta_t == 0:
         #         self.genetic_network.step_stochastic(t, dt, self.growth_rate)
+        '''
 
     def step(self, t, dt, stochastic=False):
         if self.gene_products and self.biomass:
