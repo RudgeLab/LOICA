@@ -72,14 +72,9 @@ class Sample:
             this method ensures that all gene products with the same identity 
             have the same extracellular degradation rate
         '''
-        if type(self.gene_products[0])==list:
-            for group in self.gene_products:
-                if group[0].name == chemical_name:
-                    for gp in group:
-                        gp.ext_degr_rate = ext_degr_rate
-        else:
-            for gp in self.gene_products:
-                if gp.name == chemical_name:
+        for group in self.gene_products:
+            if group[0].name == chemical_name:
+                for gp in group:
                     gp.ext_degr_rate = ext_degr_rate
         
         # this ensures that self.st_external_substep() is called later in self.total_substep_stochastic()
