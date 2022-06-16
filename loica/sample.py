@@ -61,20 +61,11 @@ class Sample:
             for name, identical_gproducts in groupby(list_gp, lambda x: x.name):
                 self.gene_products.append(list(identical_gproducts))
 
-        '''
-        # TODO: adapt for using Strain
-        # create an options list for stochastic simulation 
+        # create an options list for semi-stochastic simulation 
         # (used in self.total_substep_stochastic(self))
-        if type(self.genetic_network)==list:
-            # copy list without further changing original
-            # slicing is fastest method according to @cryo at 
-            # https://stackoverflow.com/questions/2612802/how-do-i-clone-a-list-so-that-it-doesnt-change-unexpectedly-after-assignment
-            self.options = self.genetic_network[:]
-        else:
-            self.options = []
-            self.options.append(self.genetic_network)
-
-        '''
+        self.options = []
+        for s in self.strain:
+            self.options.append(s.genetic_network)
 
     def set_extracel_degr(self, chemical_name, ext_degr_rate):
         ''' 
