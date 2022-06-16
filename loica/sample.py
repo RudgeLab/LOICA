@@ -96,11 +96,8 @@ class Sample:
             self.options.append("extracellular space")
 
     def initialize(self):
-        if type(self.genetic_network)==list:
-            for gn in self.genetic_network:
-                gn.initialize()
-        else:
-            self.genetic_network.initialize()
+        for s in self.strain:
+            s.genetic_network.initialize()
 
     def set_supplement(self, supplement, concentration):
         self.supplements[supplement] = concentration
