@@ -71,8 +71,8 @@ class GeneProduct:
         self.ext_difference = dext_conc_dt * dt * biomass
         self.expression_rate = 0
         # test
-        print(f'{self.name} new concentration = {self.concentration}')
-        print(f'{self.name} ext change = {self.ext_difference}')
+        # print(f'{self.name} new concentration = {self.concentration}')
+        # print(f'{self.name} ext change = {self.ext_difference}')
 
     def __str__(self):
         return self.name
