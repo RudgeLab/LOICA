@@ -23,11 +23,6 @@ class GeneProduct:
     """
     shape = '^'
     def __init__(self, name, init_concentration=0, degradation_rate=0, diffusion_rate=0, uri=None, sbol_comp=None, type_='PRO', color='silver'):
-        self.ext_conc = 0
-        self.ext_degr_rate = 0
-        self.ext_difference = 0
-        self.int_change=0
-        self.ext_degraded=0
         self.init_concentration = init_concentration
         self.concentration = init_concentration
         self.degradation_rate = degradation_rate
@@ -38,6 +33,13 @@ class GeneProduct:
         self.sbol_comp = sbol_comp
         self.type_ = type_ 
         self.color = color
+
+        self.ext_conc = 0
+        self.ext_degr_rate = 0
+        self.ext_difference = 0
+        self.int_change=0
+        self.ext_degraded=0
+        self.strain = None
 
 
     def initialize(self):
