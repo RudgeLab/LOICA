@@ -56,7 +56,7 @@ class Assay:
         self.biomass_signal_id = biomass_signal_id
 
 
-    def run(self, substeps=10, nsr=0, biomass_bg=0, fluo_bg=0, stochastic=False):
+    def run(self, substeps=10, nsr=0, biomass_bg=0, fluo_bg=0, stochastic=False, track_all=False):
         '''
         Run the assay measuring at specified time points, with simulation time step dt
         '''
@@ -68,94 +68,138 @@ class Assay:
                 sample.initialize()
                 # Integrate models
                 for t in range(self.n_measurements):
-                    print(f'Current t={t}')
+                    # print(f'Current t={t}')
                     time = t * self.interval
-
-                    # Record measurements of fluorescence
-                    for reporter in sample.reporters:
-                        sig = reporter.concentration
-                        signal_id = reporter.signal_id
-                        signal_name = reporter.name
-                        noise = np.random.normal(scale=np.sqrt(nsr))
-                        if type(sample.biomass) == list:
-                            meas = fluo_bg + reporter.ext_conc 
-                            for (gn, b) in zip(sample.genetic_network, sample.biomass):
-                                if reporter in gn.reporters:
-                                    meas += sig * b(time)
-                                # check if there are the same reporters (or regulators) in 
-                                # the cell and add the measurement up
-                                # defining "duplicated" reporters as regulators will mean
-                                # less measurements taken
-                                # TODO: are next 4 lines needed? maybe need to ensure earlier 
-                                # that reporters don't repeat when iterated through on line 75
-                                else:
-                                    for rep in gn.reporters:
-                                        if rep.name == reporter.name:
-                                            meas += reg.concentration * b(time)
-                                for reg in gn.regulators:
-                                    if reg.name == reporter.name:
-                                        meas += reg.concentration * b(time)          
-                        else:
-                            meas = sig * sample.biomass(time) + fluo_bg + reporter.ext_conc
-                        noisy_meas = (1 + noise) * meas
-                        noise_bg = np.random.normal(scale=np.sqrt(nsr))
-                        corr_meas = noisy_meas - (1 + noise_bg) * fluo_bg
+                    if track_all:
+                    # Record raw measurements of each gene product both intracellularly 
+                    # and extracellularly
+                        for group in sample.gene_products:
+                            row = {
+                                    'Time': time, 
+                                    'Signal_id': None, 
+                                    'Signal': f'Extracellular {group[0].name}', 
+                                    'Measurement': group[0].ext_conc,
+                                    'Sample':sample_id
+                                    }
+                            self.measurements = self.measurements.append(row, ignore_index=True)
+                            for gp in group:
+                                row = {
+                                    'Time': time, 
+                                    'Signal_id': None, 
+                                    'Signal': f'{gp.name} in {gp.strain.name}', 
+                                    'Measurement': gp.concentration,
+                                    'Sample':sample_id
+                                    }
+                                self.measurements = self.measurements.append(row, ignore_index=True)
+                        total = 0
+                        # biomass of each strain recorded separately
+                        for strain in sample.strain:
+                            row = {
+                                    'Time': time, 
+                                    'Signal_id': None, 
+                                    'Measurement': strain.biomass(time),
+                                    'Signal':f'{strain.name} biomass', 
+                                    'Sample':sample_id
+                                    }
+                            self.measurements = self.measurements.append(row, ignore_index=True)
+                            total += strain.biomass(time)
+                        # total biomass
                         row = {
                                 'Time': time, 
-                                'Signal_id': signal_id, 
-                                'Signal':signal_name, 
-                                'Measurement': corr_meas,
+                                'Signal_id': None, 
+                                'Measurement': total,
+                                'Signal':'Total biomass', 
                                 'Sample':sample_id
                                 }
                         self.measurements = self.measurements.append(row, ignore_index=True)
+                    
 
-                    # Record measurement of biomass
-                    # might want to add code to distinguish between biomass of each 
-                    # strain
-                    noise = np.random.normal(scale=np.sqrt(nsr))
-                    noise_bg = np.random.normal(scale=np.sqrt(nsr))
-                    # if there are multiple strains with different metabolisms, then each biomass
-                    # is recorded separately (as if others do not exist) and then all together
-                    # TODO: find out if I need to change self.biomass_signal_id
-                    if type(sample.biomass)==list:
-                        total = 0
-                        # biomass of each strain recorded separately
-                        for i, biomass in enumerate(sample.biomass):
-                            meas = biomass(time) + biomass_bg
+                    # Record measurements of fluorescence
+                    else:
+                        for reporter in sample.reporters:
+                            sig = reporter.concentration
+                            signal_id = reporter.signal_id
+                            signal_name = reporter.name
+                            noise = np.random.normal(scale=np.sqrt(nsr))
+                            if type(sample.biomass) == list:
+                                meas = fluo_bg + reporter.ext_conc 
+                                for (gn, b) in zip(sample.genetic_network, sample.biomass):
+                                    if reporter in gn.reporters:
+                                        meas += sig * b(time)
+                                    # check if there are the same reporters (or regulators) in 
+                                    # the cell and add the measurement up
+                                    # defining "duplicated" reporters as regulators will mean
+                                    # less measurements taken
+                                    # TODO: are next 4 lines needed? maybe need to ensure earlier 
+                                    # that reporters don't repeat when iterated through on line 75
+                                    else:
+                                        for rep in gn.reporters:
+                                            if rep.name == reporter.name:
+                                                meas += reg.concentration * b(time)
+                                    for reg in gn.regulators:
+                                        if reg.name == reporter.name:
+                                            meas += reg.concentration * b(time)          
+                            else:
+                                meas = sig * sample.biomass(time) + fluo_bg + reporter.ext_conc
+                            noisy_meas = (1 + noise) * meas
+                            noise_bg = np.random.normal(scale=np.sqrt(nsr))
+                            corr_meas = noisy_meas - (1 + noise_bg) * fluo_bg
+                            row = {
+                                    'Time': time, 
+                                    'Signal_id': signal_id, 
+                                    'Signal':signal_name, 
+                                    'Measurement': corr_meas,
+                                    'Sample':sample_id
+                                    }
+                            self.measurements = self.measurements.append(row, ignore_index=True)
+
+                        # Record measurement of biomass
+                        # might want to add code to distinguish between biomass of each 
+                        # strain
+                        noise = np.random.normal(scale=np.sqrt(nsr))
+                        noise_bg = np.random.normal(scale=np.sqrt(nsr))
+                        # if there are multiple strains with different metabolisms, then each biomass
+                        # is recorded separately (as if others do not exist) and then all together
+                        # TODO: find out if I need to change self.biomass_signal_id
+                        if type(sample.biomass)==list:
+                            total = 0
+                            # biomass of each strain recorded separately
+                            for i, biomass in enumerate(sample.biomass):
+                                meas = biomass(time) + biomass_bg
+                                noisy_meas = (1 + noise) * meas
+                                corr_meas = noisy_meas - (1 + noise_bg) * biomass_bg
+                                row = {
+                                        'Time': time, 
+                                        'Signal_id': self.biomass_signal_id, 
+                                        'Measurement': corr_meas,
+                                        'Signal':f'Biomass{i}', 
+                                        'Sample':sample_id
+                                        }
+                                self.measurements = self.measurements.append(row, ignore_index=True)
+                                total += biomass(time) * (1 + noise)
+                            # total biomass
+                            noisy_meas = total + biomass_bg * (1 + noise)
+                            corr_meas = noisy_meas - (1 + noise_bg) * biomass_bg
+                            row = {
+                                    'Time': time, 
+                                    'Signal_id': self.biomass_signal_id, 
+                                    'Measurement': corr_meas,
+                                    'Signal':'Biomass', 
+                                    'Sample':sample_id
+                                    }
+                            self.measurements = self.measurements.append(row, ignore_index=True)
+                        else:
+                            meas = sample.biomass(time) + biomass_bg
                             noisy_meas = (1 + noise) * meas
                             corr_meas = noisy_meas - (1 + noise_bg) * biomass_bg
                             row = {
                                     'Time': time, 
                                     'Signal_id': self.biomass_signal_id, 
                                     'Measurement': corr_meas,
-                                    'Signal':f'Biomass{i}', 
+                                    'Signal':'Biomass', 
                                     'Sample':sample_id
                                     }
                             self.measurements = self.measurements.append(row, ignore_index=True)
-                            total += biomass(time) * (1 + noise)
-                        # total biomass
-                        noisy_meas = total + biomass_bg * (1 + noise)
-                        corr_meas = noisy_meas - (1 + noise_bg) * biomass_bg
-                        row = {
-                                'Time': time, 
-                                'Signal_id': self.biomass_signal_id, 
-                                'Measurement': corr_meas,
-                                'Signal':'Biomass', 
-                                'Sample':sample_id
-                                }
-                        self.measurements = self.measurements.append(row, ignore_index=True)
-                    else:
-                        meas = sample.biomass(time) + biomass_bg
-                        noisy_meas = (1 + noise) * meas
-                        corr_meas = noisy_meas - (1 + noise_bg) * biomass_bg
-                        row = {
-                                'Time': time, 
-                                'Signal_id': self.biomass_signal_id, 
-                                'Measurement': corr_meas,
-                                'Signal':'Biomass', 
-                                'Sample':sample_id
-                                }
-                        self.measurements = self.measurements.append(row, ignore_index=True)
                     # Compute next time step
                     if stochastic:
                         time = t * self.interval
