@@ -49,6 +49,9 @@ class Sample:
                 if s.genetic_network:
                     self.reporters += s.reporters
                     list_gp += s.gene_producs
+                # assign strain to each gene_product (for self.catch_negative_conc())
+                for gp in s.gene_producs:
+                    gp.strain = s
                 if s.metabolism:
                     self.growth_rate.append(s.growth_rate)
                     self.biomass.append(s.biomass)
@@ -137,7 +140,7 @@ class Sample:
             for gp in group:
                 gp.ext_conc = new_ext_conc
 
-    def update_ext_conc(self):  # , stochastic=False
+    def update_ext_conc(self, stochastic=False):  
         '''
             Method to update external concentration of all gene products based on the
             geneproduct.ext_difference 
@@ -147,8 +150,8 @@ class Sample:
             for gp in group:
                 concentration_change += gp.ext_difference   
             new_ext_conc = group[0].ext_conc + concentration_change - group[0].ext_degraded
-            # if new_ext_conc<0:
-            #     new_ext_conc = self.catch_negative_conc(group, stochastic)
+            if new_ext_conc<0:
+                new_ext_conc = self.catch_negative_conc(group, stochastic)
             for gp in group:
                 gp.ext_conc = new_ext_conc
 
@@ -200,7 +203,6 @@ class Sample:
                 # change that happened
                 can_take = (ideal_diffusion_out/(-gp.ext_difference)*new_ext_conc)
                 # calculate "extra" concentration of the gp in the strain it belongs to
-                # TODO: add parameter to gp that returns which strain it belongs to
                 extra_taken = (-gp.ext_difference-can_take)/gp.strain.biomass
                 # correct the internal gp concentration
                 fixed_conc = gp.concentration - extra_taken
@@ -439,7 +441,7 @@ class Sample:
                     s.genetic_network.step(s.biomass(t), s.growth_rate(t), t, dt)
                 # update the exctracellular concentration
                 self.external_step(dt)
-                self.update_ext_conc()
+                self.update_ext_conc(stochastic)
 
 
 
