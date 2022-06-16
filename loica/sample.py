@@ -138,74 +138,79 @@ class Sample:
                 gp.ext_conc = new_ext_conc
     
 
-    def update_ext_conc(self):
+    def update_ext_conc(self):  # , stochastic=False
         '''
             Method to update external concentration of all gene products based on the
             geneproduct.ext_difference 
         '''
-        if type(self.gene_products[0])==list:
-            for group in self.gene_products:
-                concentration_change = 0
-                for gp in group:
-                    concentration_change += gp.ext_difference   
-                new_ext_conc = group[0].ext_conc + concentration_change - group[0].ext_degraded
-                # test 
-                # print(f''' -----
-                # {group[0].name}
-                # New external conc = {new_ext_conc}''')
-                # current ext conc {group[0].ext_conc}
-                # conc change = {concentration_change} 
-                # - {group[0].ext_degraded} degraded
-                # -----
-                if new_ext_conc<0:
-                    ''' 
-                        randomly updates extracellular concentration
-                        if result is negative, diffusion does not happen and molecules
-                        are returned to the cell
-                    '''
-                    #test
-                    # print("Protocol to negate negative extracellular concentration has been started")
-                    ext_options = ["degradation"]
-                    for gp in group:
-                        ext_options.append(gp) 
-                    shuffle(ext_options)
-                    new_ext_conc = group[0].ext_conc
-                    for opt in ext_options:
-                        if opt == "degradation":
-                            new_ext_conc -= group[0].ext_degraded
-                            if new_ext_conc < 0:
-                                new_ext_conc = 0
-                        else:
-                            new_ext_conc += opt.ext_difference
-                            # test
-                            if new_ext_conc < 0:
-                                
-                                # test
-                                # print(f'Change in ext conc is negative ({opt.ext_difference})')
-                                new_ext_conc -= opt.ext_difference
-                                print(f'''{opt.name} {opt}: 
-                                ext conc: {opt.ext_conc} 
-                                ext difference: {opt.ext_difference}
-                                internal conc: {opt.concentration}
-                                ''')
-                                # if opt.concentration == 0:
-                                #     print(f"Int conc of {opt.name} {opt} is {opt.concentration}")
-                                # opt.concentration -= 1
-                                if opt.concentration<0:
-                                    print(f"Int conc of {opt.name} {opt} is {opt.concentration}")
-                    # test
-                    # print(f'After update = {new_ext_conc}')
-                for gp in group:
-                    gp.ext_conc = new_ext_conc
-                    # test
-                    # print(gp.ext_conc)
-                    
-
-        else:
-            # TODO: check if this needs updating as well
-            for gp in self.gene_products:
-                new_ext_conc = gp.ext_conc + gp.ext_difference - gp.ext_degraded
+        for group in self.gene_products:
+            concentration_change = 0
+            for gp in group:
+                concentration_change += gp.ext_difference   
+            new_ext_conc = group[0].ext_conc + concentration_change - group[0].ext_degraded
+            # if new_ext_conc<0:
+            #     new_ext_conc = self.step_back(group, stochastic)
+            for gp in group:
                 gp.ext_conc = new_ext_conc
+
+    def step_back(self, group, stochastic=False):
+        ''' 
+            used if external concentration becomes negative due to multiple strains
+            taking molecules out of the extracellular space simultaneously.
+            randomly updates extracellular concentration
+            if result is negative, diffusion does not happen and molecules
+            are returned to the cell
+        '''
+        if stochastic:
+            ext_options = ["degradation"]
+            for gp in group:
+                ext_options.append(gp) 
+            shuffle(ext_options)
+            new_ext_conc = group[0].ext_conc
+            for opt in ext_options:
+                if opt == "degradation":
+                    new_ext_conc -= group[0].ext_degraded
+                    if new_ext_conc < 0:
+                        new_ext_conc = 0
+                else:
+                    # this chunk is not working as it should
+                    new_ext_conc += opt.ext_difference
+                    if new_ext_conc < 0:
+                        new_ext_conc -= opt.ext_difference
+                        opt.concentration -= 1 # causes opt.concentration to become negative for some reason
+                        # test
+                        # if opt.concentration<0:
+                        #     print(f"Int conc of {opt.name} {opt} is {opt.concentration}")
+            return new_ext_conc
+        else:
+            # list of gene products that diffuse out of the extracellular space
+            diffused_out = []
+            for gp in group:
+                if gp.ext_difference<0:
+                    diffused_out.append[gp]
+                else:
+                    new_ext_conc += gp.ext_difference
+            ideal_diffusion_out = 0
+            for gp in diffused_out:
+                # calculate what would be the change of concentration if there were 
+                # enough resources
+                ideal_diffusion_out -= gp.ext_difference
+            for gp in diffused_out:
+                # calculate proportion of molecules each strain would take in from total
+                # then multiply by the available concentration to get the concentration
+                # change that happened
+                can_take = (ideal_diffusion_out/(-gp.ext_difference)*new_ext_conc)
+                # calculate "extra" concentration of the gp in the strain it belongs to
+                # TODO: add parameter to gp that returns which strain it belongs to
+                extra_taken = (-gp.ext_difference-can_take)/gp.strain.biomass
+                # correct the internal gp concentration
+                fixed_conc = gp.concentration - extra_taken
+                gp.concentration = fixed_conc
+            return 0
+                
+            
+
+                
 
     def st_external_substep(self, tau_=None):
         """ 
