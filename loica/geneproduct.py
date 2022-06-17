@@ -44,6 +44,8 @@ class GeneProduct:
 
     def initialize(self):
         self.concentration = self.init_concentration
+        # TODO: can be defined by user, like above
+        self.ext_conc = 0
 
     def express(self, rate):
         self.expression_rate += rate
