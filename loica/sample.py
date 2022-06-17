@@ -184,7 +184,7 @@ class Sample:
                 # calculate proportion of molecules each strain would take in from total
                 # then multiply by the available concentration to get the concentration
                 # change that happened
-                can_take = (ideal_diffusion_out/(-gp.ext_difference)*new_ext_conc)
+                can_take = ((-gp.ext_difference)/ideal_diffusion_out*new_ext_conc)
                 # calculate "extra" concentration of the gp in the strain it belongs to
                 extra_taken = (-gp.ext_difference-can_take)/gp.strain.biomass
                 # correct the internal gp concentration
