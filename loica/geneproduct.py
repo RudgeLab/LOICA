@@ -63,7 +63,7 @@ class GeneProduct:
     # this to OD
     def step(self, growth_rate, dt, biomass):
         # this is how much diffused in/out of the cell
-        dext_conc_dt = self.diffusion_rate*((self.concentration-self.ext_conc)/2)
+        dext_conc_dt = self.diffusion_rate*(self.concentration-self.ext_conc)
         # change of concentration within cell
         dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration - dext_conc_dt
         self.next_concentration = self.concentration + dconcdt * dt
