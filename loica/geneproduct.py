@@ -50,17 +50,6 @@ class GeneProduct:
     def express(self, rate):
         self.expression_rate += rate
 
-
-    """ 
-    I need this method to account for diffusion.
-
-    To avoid dragging Sample in here, allow input of extracellular concentration and
-    determine the difference in extracellular concentration that one cell makes
-    (dext_conc_dt) (might change name)
-    """
-
-    # added cells - number of cells that create this gene product. I want to conncect 
-    # this to OD
     def step(self, growth_rate, dt, biomass):
         # this is how much diffused in/out of the cell
         dext_conc_dt = self.diffusion_rate*(self.concentration-self.ext_conc)
