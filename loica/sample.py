@@ -63,9 +63,7 @@ class Sample:
 
         # create an options list for semi-stochastic simulation 
         # (used in self.total_substep_stochastic(self))
-        self.options = []
-        for s in self.strain:
-            self.options.append(s.genetic_network)
+        self.options = self.strain[:]
 
     def set_extracel_degr(self, chemical_name, ext_degr_rate):
         ''' 
@@ -260,9 +258,11 @@ class Sample:
     def total_substep_stochastic(self, t=0, dt=0.1):
         '''
             method that links stochastic substeps for each genetic network and 
-            extracellular space
+            extracellular space. 
+            Depending on code in genetic_network.py, either 
+            semi-stochastic or fully stochastic with partitions.
         '''
-        # shuffle the listbiomass, t, dt, growth_rate
+        # shuffle the list
         shuffle(self.options)
 
         # get tau by running substep for the first item in the shuffled list
