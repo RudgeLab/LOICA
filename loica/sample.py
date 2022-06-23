@@ -95,6 +95,12 @@ class Sample:
                 for gp in group:
                     gp.ext_conc += supplement.concentration
 
+    def set_ext_conc(self, chemical_name, ext_concentration):
+        for group in self.gene_products:
+            if group[0].name == chemical_name:
+                for gp in group:
+                    gp.init_ext_conc = ext_concentration
+
     # TODO: update these two methods
     # def set_regulator(self, name, concentration):
     #     for reg in self.genetic_network.regulators:
