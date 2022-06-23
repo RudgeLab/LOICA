@@ -375,21 +375,19 @@ class Sample:
                 break
         
         # Reset expression rates for next step and update external concentration
-        if type(self.gene_products[0])==list:
-            for group in self.gene_products:
-                concentration_change = 0
-                for gp in group:
-                    gp.expression_rate = 0
-                    concentration_change += gp.ext_difference   
-                new_ext_conc = group[0].ext_conc + concentration_change
-                for gp in group:
-                    gp.ext_conc = new_ext_conc
-         # TODO: add other cases
+        for group in self.gene_products:
+            concentration_change = 0
+            for gp in group:
+                gp.expression_rate = 0
+                concentration_change += gp.ext_difference   
+            new_ext_conc = group[0].ext_conc + concentration_change
+            for gp in group:
+                gp.ext_conc = new_ext_conc
         
         # Return elapsed time
         return tau
 
-    def step_stochastic(self, t=0, dt=0.1, growth_rate=1, biomass=1):
+    def step_stochastic(self, t=0, dt=0.1):
         ''' 
             same as GeneticNetwork.step_stochastic(), but uses either 
             self.total_substep_stochastic() or GeneticNetwork.step_stochastic()
@@ -397,7 +395,7 @@ class Sample:
         delta_t = 0
         while delta_t < dt:
                 # print(f'Elapsed time: {delta_t}')
-                delta_t += self.substep_stochastic(t, dt, growth_rate, biomass)
+                delta_t += self.substep_stochastic(t, dt)
         ''' 
         # old code for semi-stochastic and fully stochastic with partitions 
         # if type(self.genetic_network)==list:
