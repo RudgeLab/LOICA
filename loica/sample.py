@@ -96,24 +96,28 @@ class Sample:
                     gp.ext_conc += supplement.concentration
 
     def set_ext_conc(self, chemical_name, ext_concentration):
+        ''' set initial externl concentration '''
         for group in self.gene_products:
             if group[0].name == chemical_name:
                 for gp in group:
                     gp.init_ext_conc = ext_concentration
 
-    # TODO: update these two methods
-    # def set_regulator(self, name, concentration):
-    #     for reg in self.genetic_network.regulators:
-    #         if reg.name == name:
-    #             reg.init_concentration = concentration
-    #         else: pass
+    def set_regulator(self, name, strain, concentration):
+        for s in self.strain:
+            if strain == s.name:
+                for reg in s.regulators:
+                    if reg.name == name:
+                        reg.init_concentration = concentration
+                    else: pass
 
-    # def set_reporter(self, name, concentration):
-    #     for rep in self.genetic_network.reporters:
-    #         if rep.name == name:
-    #             rep.init_concentration = concentration
-    #         else: pass
-
+    def set_reporter(self, name, strain, concentration):
+        for s in self.strain:
+            if strain == s.name:
+                for rep in s.regulators:
+                    if rep.name == name:
+                        rep.init_concentration = concentration
+                    else: pass
+    
     def external_step(self, dt):
         """ 
             method that calculates the change in the extracellular concentration
