@@ -88,14 +88,12 @@ class Sample:
     def set_supplement(self, supplement, concentration):
         self.supplements[supplement] = concentration
 
-    # add function that checks whether supplement is the same as gene product
-    # if yes, add the supplement concentration to the concentration of gp in the
-    # extracellular space
-    # TODO: work on it
-    # def supplement_is_gp(self, supplement):
-    #     for gp in self.extracellular_space:
-    #         if supplement.name == gp.name:
-    #             gp.extracellular_conc=supplement.concentration
+    def supplement_is_gp(self, supplement):
+        ''' set external concentration of gp to supplement concentration is they have the same name'''
+        for group in self.gene_products:
+            if group[0].name == supplement.name:
+                for gp in group:
+                    gp.ext_conc += supplement.concentration
 
     # TODO: update these two methods
     # def set_regulator(self, name, concentration):
@@ -417,6 +415,7 @@ class Sample:
         if self.gene_products and self.biomass:
             for supp,conc in self.supplements.items():
                 supp.concentration = conc
+                self.supplement_is_gp(supp)
             if stochastic:
                 self.step_stochastic(t, dt)
             else:
