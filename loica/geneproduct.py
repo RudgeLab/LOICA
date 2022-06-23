@@ -34,7 +34,8 @@ class GeneProduct:
         self.type_ = type_ 
         self.color = color
 
-        self.ext_conc = 0
+        self.init_ext_conc = 0
+        self.ext_conc = self.init_ext_conc
         self.ext_degr_rate = 0
         self.ext_difference = 0
         self.int_change=0
@@ -44,8 +45,7 @@ class GeneProduct:
 
     def initialize(self):
         self.concentration = self.init_concentration
-        # TODO: can be defined by user, like above
-        self.ext_conc = 0
+        self.ext_conc = self.init_ext_conc
 
     def express(self, rate):
         self.expression_rate += rate
