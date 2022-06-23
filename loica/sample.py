@@ -98,6 +98,7 @@ class Sample:
     def set_ext_conc(self, chemical_name, ext_concentration):
         ''' set initial externl concentration '''
         for group in self.gene_products:
+            print(group[0].name)
             if group[0].name == chemical_name:
                 for gp in group:
                     gp.init_ext_conc = ext_concentration
@@ -155,6 +156,7 @@ class Sample:
             are returned to the cell
         '''
         if stochastic:
+            # only needed if using for semi-stochastic and fully stochastic with partitions 
             ext_options = ["degradation"]
             for gp in group:
                 ext_options.append(gp) 
@@ -294,41 +296,36 @@ class Sample:
                     
         return tau
 
-    def substep_stochastic(self, t=0, dt=0.1, growth_rate=1, biomass=1):
+    def substep_stochastic(self, t=0, dt=0.1):
         ''' fully stochasic, only one reaction happens out of all'''
         # Propensities
         a = []
 
         # Compute expression rates
-        if type(self.genetic_network)==list:
-            for gn in self.genetic_network:
-                for op in gn.operators:
-                    expression_rate = op.expression_rate(t, dt)
-                    output = op.output
-                    if type(op.output)!=list:
-                        output = [output]
-                    for o in output:
-                        o.express(expression_rate)
-        # TODO: add code for non-list
+        for s in self.strain:
+            for op in s.genetic_network.operators:
+                expression_rate = op.expression_rate(t, dt)
+                output = op.output
+                if type(op.output)!=list:
+                    output = [output]
+                for o in output:
+                    o.express(expression_rate)
 
         # Compute propensities for production, degradation, diffusion in and out of gene products
-        if type(self.gene_products[0])==list:
-            for group in self.gene_products:
-                for gp in group:
-                    # Production reaction
-                    a.append(gp.expression_rate)
-                    # Degradation
-                    a.append((gp.degradation_rate + growth_rate) * gp.concentration)
-                    # Diffusion out of cell
-                    a.append(gp.diffusion_rate*gp.concentration)
-                    # Difusion into the cell
-                    a.append(gp.diffusion_rate*gp.ext_conc)
-                    # External degradation
-                    a.append(gp.ext_conc*gp.ext_degr_rate)
-                    # reset values
-                    gp.ext_difference = 0
-            
-        # TODO: add other instances
+        for group in self.gene_products:
+            for gp in group:
+                # Production reaction
+                a.append(gp.expression_rate)
+                # Degradation
+                a.append((gp.degradation_rate + gp.strain.growth_rate) * gp.concentration)
+                # Diffusion out of cell
+                a.append(gp.diffusion_rate*gp.concentration)
+                # Difusion into the cell
+                a.append(gp.diffusion_rate*gp.ext_conc)
+                # External degradation
+                a.append(gp.ext_conc*gp.ext_degr_rate)
+                # reset values
+                gp.ext_difference = 0
 
         # Make list of propensities into array
         a = np.array(a)
@@ -341,42 +338,41 @@ class Sample:
         a_i = np.random.random() * A
 
         # Find reaction and update gene product levels
-        if type(self.gene_products[0])==list:
-            x = 0
-            complete = False
-            for group in self.gene_products:
-                x += len(group)
-                for ii, gp in enumerate(group):
-                    i = ii+x
-                    if a_i < np.sum(a[:i*5+1]):
-                        # Production of geneproduct gp
-                        gp.concentration += 1
-                        complete = True
-                        break
-                    elif a_i < np.sum(a[:i*5+2]):
-                        # Degradation of geneproduct gp
-                        gp.concentration -= 1
-                        complete = True
-                        break
-                    elif a_i < np.sum(a[:i*5+3]):
-                        # Diffusion of geneproduct gp out of cell
-                        gp.concentration -= 1
-                        gp.ext_difference = biomass
-                        complete = True
-                        break
-                    elif a_i < np.sum(a[:i*5+4]):
-                        # Diffusion of geneproduct gp into the cell
-                        gp.concentration += 1
-                        gp.ext_difference = - biomass
-                        complete = True
-                        break
-                    elif a_i < np.sum(a[:i*5+5]):
-                        # External degradation of geneproduct gp
-                        gp.ext_difference -= 1
-                        complete = True
-                        break
-                if complete:
+        x = 0
+        complete = False
+        for group in self.gene_products:
+            x += len(group)
+            for ii, gp in enumerate(group):
+                i = ii+x
+                if a_i < np.sum(a[:i*5+1]):
+                    # Production of geneproduct gp
+                    gp.concentration += 1
+                    complete = True
                     break
+                elif a_i < np.sum(a[:i*5+2]):
+                    # Degradation of geneproduct gp
+                    gp.concentration -= 1
+                    complete = True
+                    break
+                elif a_i < np.sum(a[:i*5+3]):
+                    # Diffusion of geneproduct gp out of cell
+                    gp.concentration -= 1
+                    gp.ext_difference = gp.strain.biomass
+                    complete = True
+                    break
+                elif a_i < np.sum(a[:i*5+4]):
+                    # Diffusion of geneproduct gp into the cell
+                    gp.concentration += 1
+                    gp.ext_difference = - gp.strain.biomass
+                    complete = True
+                    break
+                elif a_i < np.sum(a[:i*5+5]):
+                    # External degradation of geneproduct gp
+                    gp.ext_difference -= 1
+                    complete = True
+                    break
+            if complete:
+                break
         
         # Reset expression rates for next step and update external concentration
         if type(self.gene_products[0])==list:
