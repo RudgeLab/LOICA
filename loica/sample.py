@@ -205,7 +205,7 @@ class Sample:
     def st_external_substep(self, tau_=None):
         """ 
             method similar to GeneticNetwork.substep()
-            but only for extracellular degradation
+            but only for extracellular degradation. Used in simulation with partitions.
 
             stochastic
         """
@@ -213,18 +213,11 @@ class Sample:
         a = []
 
         # Compute propensities for degradation of gene products
-        if type(self.gene_products[0])==list:
-            for group in self.gene_products:
-                # degradation reaction
-                a.append(group[0].ext_degr_rate * group[0].ext_conc)
-                # reset how much degraded
-                group[0].ext_degraded = 0
-        else:
-            for gp in self.gene_products:
-                # degradation reaction
-                a.append(gp.ext_degr_rate * gp.ext_conc)
-                # reset how much degraded
-                gp.ext_degraded = 0
+        for group in self.gene_products:
+            # degradation reaction
+            a.append(group[0].ext_degr_rate * group[0].ext_conc)
+            # reset how much degraded
+            group[0].ext_degraded = 0
         
         # Make list of propensities into array
         a = np.array(a)
