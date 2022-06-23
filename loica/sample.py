@@ -139,7 +139,7 @@ class Sample:
             concentration_change = 0
             for gp in group:
                 concentration_change += gp.ext_difference   
-            new_ext_conc = group[0].ext_conc + concentration_change - group[0].ext_degraded
+            new_ext_conc = group[0].ext_conc + concentration_change - group[0].ext_degraded # ext_degraded is from stochastic simulation with partitions
             if new_ext_conc<0:
                 new_ext_conc = self.catch_negative_conc(group, stochastic)
             for gp in group:
@@ -244,23 +244,12 @@ class Sample:
         if not tau_:
             return tau
         
-    def correct_metabolism(self, genetic_network):
-        ''' method to pick correct growth rate and biomass '''
-        if type(self.metabolism)==list:
-            i = self.genetic_network.index(genetic_network)
-            biomass = self.biomass[i]
-            growth_rate = self.growth_rate[i]
-        else:
-            biomass = self.biomass
-            growth_rate = self.growth_rate       
-        return growth_rate, biomass
-        
-    def total_substep_stochastic(self, t=0, dt=0.1):
+    def total_substep_stochastic(self, t=0, dt=0.1, type='stochastic'):
         '''
             method that links stochastic substeps for each genetic network and 
-            extracellular space. 
-            Depending on code in genetic_network.py, either 
-            semi-stochastic or fully stochastic with partitions.
+            extracellular space.
+            semi-stochastic or fully stochastic
+            with partitions
         '''
         # shuffle the list
         shuffle(self.options)
@@ -269,22 +258,25 @@ class Sample:
         # and then use this tau in other substeps
         if self.options[0]=="extracellular space":
             tau = self.st_external_substep()
-            for gn in self.options[1:]:
-                growth_rate = self.correct_metabolism(gn)[0](t)
-                biomass = self.correct_metabolism(gn)[1](t)                    
-                gn.substep_stochastic(t, dt, growth_rate, biomass, tau)
+            for s in self.options[1:]:
+                if type=='stochastic':               
+                    s.genetic_network.substep_stochastic(t, dt, s.growth_rate, s.biomass, tau)
+                elif type=='semi-stochastic':
+                    s.genetic_network.substep_semistochastic(t, dt, s.growth_rate, s.biomass, tau)
             self.update_ext_conc()
         else:
-            growth_rate = self.correct_metabolism(self.options[0])[0](t)
-            biomass = self.correct_metabolism(self.options[0])[1](t)
-            tau = self.options[0].substep_stochastic(t, dt, growth_rate, biomass)
-            for gn in self.options[1:]:
-                if gn == "extracellular space":
+            if type=='stochastic':
+                tau = self.options[0].genetic_network.substep_stochastic(t, dt, self.options[0].growth_rate, self.options[0].biomass)
+            elif type=='semi-stochastic':
+                tau = self.options[0].genetic_network.substep_semistochastic(t, dt, self.options[0].growth_rate, self.options[0].biomass)
+            for o in self.options[1:]:
+                if o == "extracellular space":
                     self.st_external_substep(tau_=tau)
                 else:
-                    growth_rate = self.correct_metabolism(gn)[0](t)
-                    biomass = self.correct_metabolism(gn)[1](t)
-                    gn.substep_stochastic(t, dt, growth_rate, biomass, tau)
+                    if type=='stochastic':
+                        o.genetic_network.substep_stochastic(t, dt, o.growth_rate, o.biomass, tau)
+                    elif type=='semi-stochastic':
+                        o.genetic_network.substep_semistochastic(t, dt, o.growth_rate, o.biomass, tau)
             self.update_ext_conc()
                     
         return tau
