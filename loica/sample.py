@@ -260,23 +260,23 @@ class Sample:
             tau = self.st_external_substep()
             for s in self.options[1:]:
                 if type=='stochastic':               
-                    s.genetic_network.substep_stochastic(t, dt, s.growth_rate, s.biomass, tau)
+                    s.genetic_network.substep_stochastic(t, dt, s.growth_rate(t), s.biomass(t), tau)
                 elif type=='semi-stochastic':
-                    s.genetic_network.substep_semistochastic(t, dt, s.growth_rate, s.biomass, tau)
+                    s.genetic_network.substep_semistochastic(t, dt, s.growth_rate(t), s.biomass(t), tau)
             self.update_ext_conc()
         else:
             if type=='stochastic':
-                tau = self.options[0].genetic_network.substep_stochastic(t, dt, self.options[0].growth_rate, self.options[0].biomass)
+                tau = self.options[0].genetic_network.substep_stochastic(t, dt, self.options[0].growth_rate(t), self.options[0].biomass(t))
             elif type=='semi-stochastic':
-                tau = self.options[0].genetic_network.substep_semistochastic(t, dt, self.options[0].growth_rate, self.options[0].biomass)
+                tau = self.options[0].genetic_network.substep_semistochastic(t, dt, self.options[0].growth_rate(t), self.options[0].biomass(t))
             for o in self.options[1:]:
                 if o == "extracellular space":
                     self.st_external_substep(tau_=tau)
                 else:
                     if type=='stochastic':
-                        o.genetic_network.substep_stochastic(t, dt, o.growth_rate, o.biomass, tau)
+                        o.genetic_network.substep_stochastic(t, dt, o.growth_rate(t), o.biomass(t), tau)
                     elif type=='semi-stochastic':
-                        o.genetic_network.substep_semistochastic(t, dt, o.growth_rate, o.biomass, tau)
+                        o.genetic_network.substep_semistochastic(t, dt, o.growth_rate(t), o.biomass(t), tau)
             self.update_ext_conc()
                     
         return tau
@@ -302,7 +302,7 @@ class Sample:
                 # Production reaction
                 a.append(gp.expression_rate)
                 # Degradation
-                a.append((gp.degradation_rate + gp.strain.growth_rate) * gp.concentration)
+                a.append((gp.degradation_rate + gp.strain.growth_rate(t)) * gp.concentration)
                 # Diffusion out of cell
                 a.append(gp.diffusion_rate*gp.concentration)
                 # Difusion into the cell
@@ -342,13 +342,13 @@ class Sample:
                 elif a_i < np.sum(a[:i*5+3]):
                     # Diffusion of geneproduct gp out of cell
                     gp.concentration -= 1
-                    gp.ext_difference = gp.strain.biomass
+                    gp.ext_difference = gp.strain.biomass(t)
                     complete = True
                     break
                 elif a_i < np.sum(a[:i*5+4]):
                     # Diffusion of geneproduct gp into the cell
                     gp.concentration += 1
-                    gp.ext_difference = - gp.strain.biomass
+                    gp.ext_difference = - gp.strain.biomass(t)
                     complete = True
                     break
                 elif a_i < np.sum(a[:i*5+5]):
