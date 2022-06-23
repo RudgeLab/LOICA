@@ -84,91 +84,91 @@ class GeneticNetwork():
                 else: print('Unsupported Type, it should be an Reporter')
         else: print('Unsupported Type, it should be an Reporter')
 
-    # def substep_stochastic(self, t=0, dt=0.1, growth_rate=1, biomass=1, tau_=None):
-    #     ''' diffusion is deterministic '''
-    #     # Propensities
-    #     a = []
+    def substep_semistochastic(self, t=0, dt=0.1, growth_rate=1, biomass=1, tau_=None):
+        ''' diffusion is deterministic '''
+        # Propensities
+        a = []
 
-    #     # Compute expression rates
-    #     for op in self.operators:
-    #         expression_rate = op.expression_rate(t, dt)
-    #         output = op.output
-    #         if type(op.output)!=list:
-    #             output = [output]
-    #         for o in output:
-    #             o.express(expression_rate)
+        # Compute expression rates
+        for op in self.operators:
+            expression_rate = op.expression_rate(t, dt)
+            output = op.output
+            if type(op.output)!=list:
+                output = [output]
+            for o in output:
+                o.express(expression_rate)
 
-    #     # Compute propensities for production and degradation of gene products
-    #     gene_products = self.regulators + self.reporters
-    #     for gp in gene_products:
-    #         # Production reeaction
-    #         a.append(gp.expression_rate)
-    #         a.append((gp.degradation_rate + growth_rate) * gp.concentration)
+        # Compute propensities for production and degradation of gene products
+        gene_products = self.regulators + self.reporters
+        for gp in gene_products:
+            # Production reeaction
+            a.append(gp.expression_rate)
+            a.append((gp.degradation_rate + growth_rate) * gp.concentration)
 
-    #     # Make list of propensities into array
-    #     a = np.array(a)
-    #     # Total of propensities
-    #     A = a.sum()
+        # Make list of propensities into array
+        a = np.array(a)
+        # Total of propensities
+        A = a.sum()
         
-    #     # Time step
-    #     if tau_:
-    #         tau = tau_
-    #     else:
-    #         tau = 1/A * np.log(1/np.random.random())
+        # Time step
+        if tau_:
+            tau = tau_
+        else:
+            tau = 1/A * np.log(1/np.random.random())
         
-    #     # TODO: figure out how to remove this loop
-    #     for gp in gene_products:
-    #         dext_conc_dt = gp.diffusion_rate*(gp.concentration-gp.ext_conc)
-    #         # how much diffuses out of cell per time tau
-    #         gp.int_change += dext_conc_dt*tau
+        # TODO: figure out how to remove this loop
+        for gp in gene_products:
+            dext_conc_dt = gp.diffusion_rate*(gp.concentration-gp.ext_conc)
+            # how much diffuses out of cell per time tau
+            gp.int_change += dext_conc_dt*tau
 
-    #     # Random number to select next reaction
-    #     a_i = np.random.random() * A
+        # Random number to select next reaction
+        a_i = np.random.random() * A
 
-    #     # Find reaction and update gene product levels
-    #     for i,gp in enumerate(gene_products):
-    #         if a_i < np.sum(a[:i*2+1]):
-    #             # Production of geneproduct gp
-    #             gp.concentration += 1
-    #             #test
-    #             # print(f'{gp.name} +conc - {gp.concentration}')
-    #             break
-    #         elif a_i < np.sum(a[:i*2+2]):
-    #             # Degradation of geneproduct gp
-    #             gp.concentration -= 1
-    #             #test
-    #             # print(f'{gp.name} -conc - {gp.concentration}')
-    #             break
+        # Find reaction and update gene product levels
+        for i,gp in enumerate(gene_products):
+            if a_i < np.sum(a[:i*2+1]):
+                # Production of geneproduct gp
+                gp.concentration += 1
+                #test
+                # print(f'{gp.name} +conc - {gp.concentration}')
+                break
+            elif a_i < np.sum(a[:i*2+2]):
+                # Degradation of geneproduct gp
+                gp.concentration -= 1
+                #test
+                # print(f'{gp.name} -conc - {gp.concentration}')
+                break
         
 
-    #     # Reset expression rates for next step
-    #     # and update concentration and ext_difference
-    #     for gp in gene_products:
-    #         # TODO: is there a way to shorten?
-    #         if gp.int_change > 0:
-    #             # internal concentration minus diffusion out
-    #             new_conc = gp.concentration - floor(gp.int_change)
-    #             gp.concentration = new_conc
-    #             # external difference equals what each cell diffused multiplied by number of
-    #             # cells
-    #             gp.ext_difference = floor(gp.int_change) * floor(biomass)
-    #             # update int_change so it would be just leftover float
-    #             updated_int_change = gp.int_change - floor(gp.int_change)
-    #         elif gp.int_change < 0:
-    #             # internal concentration minus diffusion out
-    #             new_conc = gp.concentration - ceil(gp.int_change)
-    #             gp.concentration = new_conc
-    #             # external difference equals what each cell diffused multiplied by number of
-    #             # cells
-    #             gp.ext_difference = ceil(gp.int_change) * floor(biomass)
-    #             # update int_change so it would be just leftover float
-    #             updated_int_change = gp.int_change - ceil(gp.int_change)
-    #             gp.int_change = updated_int_change
-    #         gp.expression_rate = 0
+        # Reset expression rates for next step
+        # and update concentration and ext_difference
+        for gp in gene_products:
+            # TODO: is there a way to shorten?
+            if gp.int_change > 0:
+                # internal concentration minus diffusion out
+                new_conc = gp.concentration - floor(gp.int_change)
+                gp.concentration = new_conc
+                # external difference equals what each cell diffused multiplied by number of
+                # cells
+                gp.ext_difference = floor(gp.int_change) * floor(biomass)
+                # update int_change so it would be just leftover float
+                updated_int_change = gp.int_change - floor(gp.int_change)
+            elif gp.int_change < 0:
+                # internal concentration minus diffusion out
+                new_conc = gp.concentration - ceil(gp.int_change)
+                gp.concentration = new_conc
+                # external difference equals what each cell diffused multiplied by number of
+                # cells
+                gp.ext_difference = ceil(gp.int_change) * floor(biomass)
+                # update int_change so it would be just leftover float
+                updated_int_change = gp.int_change - ceil(gp.int_change)
+                gp.int_change = updated_int_change
+            gp.expression_rate = 0
 
-    #     # Return elapsed time if it was not predefined
-    #     if not tau_:
-    #         return tau
+        # Return elapsed time if it was not predefined
+        if not tau_:
+            return tau
 
     def substep_stochastic(self, t=0, dt=0.1, growth_rate=1, biomass=1, tau_=None):
         ''' with stochastic diffusion'''
@@ -196,19 +196,6 @@ class GeneticNetwork():
             # Difusion into the cell
             a.append(gp.diffusion_rate*gp.ext_conc)
 
-        # test
-        # c = False
-        # for p in a:
-        #     if p<0:
-        #         c = True
-        #         break
-        # if c:
-        #     print(f'''WARNING! Propensity is negative
-        #         Propensities before substep: {a}''')
-        #     for gp in gene_products:
-        #         if gp.concentration<0:
-        #             print(f'{gp.name} conc = {gp.concentration}')
-
         # Make list of propensities into array
         a = np.array(a)
         # Total of propensities
@@ -235,10 +222,6 @@ class GeneticNetwork():
                 # Degradation of geneproduct gp
                 gp.concentration -= 1
                 gp.ext_difference = 0
-                # test
-                if gp.concentration<0:
-                    print(f'''WARNING! {gp.name} concentration is negative due to DEGRADATION
-                    Propensities: {a}''')
                 #test
                 # print(f'{gp.name} -conc - {gp.concentration}')
                 break
@@ -246,10 +229,6 @@ class GeneticNetwork():
                 # Diffusion of geneproduct gp out of cell
                 gp.concentration -= 1
                 gp.ext_difference = biomass
-                # test
-                if gp.concentration<0:
-                    print(f'''WARNING! {gp.name} concentration is negative due to DIFFUSION OUT
-                    Propensities: {a}''')
                 #test
                 # print(f'{gp.name} -conc (+ext) - {gp.concentration}')
                 break
@@ -257,9 +236,6 @@ class GeneticNetwork():
                 # Diffusion of geneproduct gp into the cell
                 gp.concentration += 1
                 gp.ext_difference = - biomass
-                #test
-                if gp.ext_difference != 0 and gp.concentration == 0:
-                    print("Alarm!")
                 # print(f'{gp.name} +conc (-ext) - {gp.concentration}')
                 break
             else:
