@@ -221,9 +221,16 @@ class Sample:
         a = np.array(a)
         # Total of propensities
         A = a.sum()
+
+        if A == 0:
+            if tau_:
+                tau = tau_
+            else:
+                tau = 0
+            return tau
         
         # Time step
-        if tau_:
+        if tau_ and tau_ != 0:
             tau = tau_
         else:
             tau = 1/A * np.log(1/np.random.random())
@@ -240,9 +247,8 @@ class Sample:
                 # print(f'{group[0].name} ext degradation')
                 break
 
-        # Return elapsed time if it was not predefined
-        if not tau_:
-            return tau
+        # Return elapsed time
+        return tau
         
     def total_substep_stochastic(self, t=0, dt=0.1, type='stochastic'):
         '''
@@ -259,24 +265,27 @@ class Sample:
         if self.options[0]=="extracellular space":
             tau = self.st_external_substep()
             for s in self.options[1:]:
-                if type=='stochastic':               
-                    s.genetic_network.substep_stochastic(t, dt, s.growth_rate(t), s.biomass(t), tau)
-                elif type=='semi-stochastic':
-                    s.genetic_network.substep_semistochastic(t, dt, s.growth_rate(t), s.biomass(t), tau)
+                if type=='full+comp':               
+                    new_tau = s.genetic_network.substep_stochastic(t, dt, s.growth_rate(t), s.biomass(t), tau)
+                elif type=='semi+comp':
+                    new_tau = s.genetic_network.substep_semistochastic(t, dt, s.growth_rate(t), s.biomass(t), tau)
+                    tau = new_tau
             self.update_ext_conc()
         else:
-            if type=='stochastic':
+            if type=='full+comp':
                 tau = self.options[0].genetic_network.substep_stochastic(t, dt, self.options[0].growth_rate(t), self.options[0].biomass(t))
-            elif type=='semi-stochastic':
+            elif type=='semi+comp':
                 tau = self.options[0].genetic_network.substep_semistochastic(t, dt, self.options[0].growth_rate(t), self.options[0].biomass(t))
             for o in self.options[1:]:
                 if o == "extracellular space":
-                    self.st_external_substep(tau_=tau)
+                    new_tau = self.st_external_substep(tau_=tau)
+                    tau = new_tau
                 else:
-                    if type=='stochastic':
-                        o.genetic_network.substep_stochastic(t, dt, o.growth_rate(t), o.biomass(t), tau)
-                    elif type=='semi-stochastic':
-                        o.genetic_network.substep_semistochastic(t, dt, o.growth_rate(t), o.biomass(t), tau)
+                    if type=='full+comp':
+                        new_tau = o.genetic_network.substep_stochastic(t, dt, o.growth_rate(t), o.biomass(t), tau)
+                    elif type=='semi+comp':
+                        new_tau = o.genetic_network.substep_semistochastic(t, dt, o.growth_rate(t), o.biomass(t), tau)
+                        tau = new_tau
             self.update_ext_conc()
                     
         return tau
@@ -383,10 +392,10 @@ class Sample:
             while delta_t < dt:
                 # print(f'Elapsed time: {delta_t}')
                 delta_t += self.substep_stochastic(t, dt)
-        elif type=='semi or partitions':
+        elif type=='semi+comp' or type=='full+comp':
             while delta_t < dt:
                 # print(f'Elapsed time: {delta_t}')
-                delta_t += self.total_substep_stochastic(t, dt)
+                delta_t += self.total_substep_stochastic(t, dt, type)
 
     def step(self, t, dt, stochastic=False):
         if self.gene_products and self.biomass:
@@ -394,7 +403,10 @@ class Sample:
                 supp.concentration = conc
                 self.supplement_is_gp(supp)
             if stochastic:
-                self.step_stochastic(t, dt)
+                if type(stochastic)==str:
+                    self.step_stochastic(t, dt, type=stochastic)
+                else:
+                    self.step_stochastic(t, dt)
             else:
                 for s in self.strain:
                     s.genetic_network.step(s.biomass(t), s.growth_rate(t), t, dt)
