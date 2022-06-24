@@ -109,6 +109,13 @@ class GeneticNetwork():
         a = np.array(a)
         # Total of propensities
         A = a.sum()
+
+        if A == 0:
+            if tau_:
+                tau = tau_
+            else:
+                tau = 0
+            return tau
         
         # Time step
         if tau_:
@@ -200,6 +207,13 @@ class GeneticNetwork():
         a = np.array(a)
         # Total of propensities
         A = a.sum()
+
+        if A == 0:
+            if tau_:
+                tau = tau_
+            else:
+                tau = 0
+            return tau
         
         # Time step
         if tau_:
