@@ -173,9 +173,8 @@ class GeneticNetwork():
                 gp.int_change = updated_int_change
             gp.expression_rate = 0
 
-        # Return elapsed time if it was not predefined
-        if not tau_:
-            return tau
+        # Return elapsed time 
+        return tau
 
     def substep_stochastic(self, t=0, dt=0.1, growth_rate=1, biomass=1, tau_=None):
         ''' with stochastic diffusion'''
@@ -259,9 +258,8 @@ class GeneticNetwork():
         for gp in gene_products:
             gp.expression_rate = 0
 
-        # Return elapsed time if it was not predefined
-        if not tau_:
-            return tau
+        # Return elapsed time
+        return tau
                 
     def step_stochastic(self, growth_rate=1, t=0, dt=0.1):
         delta_t = 0
