@@ -180,7 +180,7 @@ class Sample:
             diffused_out = []
             for gp in group:
                 if gp.ext_difference<0:
-                    diffused_out.append[gp]
+                    diffused_out.append(gp)
                 else:
                     new_ext_conc += gp.ext_difference
             ideal_diffusion_out = 0
@@ -270,7 +270,7 @@ class Sample:
                 elif type=='semi+comp':
                     new_tau = s.genetic_network.substep_semistochastic(t, dt, s.growth_rate(t), s.biomass(t), tau)
                     tau = new_tau
-            self.update_ext_conc()
+            self.update_ext_conc(stochastic=True)
         else:
             if type=='full+comp':
                 tau = self.options[0].genetic_network.substep_stochastic(t, dt, self.options[0].growth_rate(t), self.options[0].biomass(t))
@@ -286,7 +286,7 @@ class Sample:
                     elif type=='semi+comp':
                         new_tau = o.genetic_network.substep_semistochastic(t, dt, o.growth_rate(t), o.biomass(t), tau)
                         tau = new_tau
-            self.update_ext_conc()
+            self.update_ext_conc(stochastic=True)
                     
         return tau
 
