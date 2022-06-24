@@ -396,6 +396,8 @@ class Sample:
             while delta_t < dt:
                 # print(f'Elapsed time: {delta_t}')
                 delta_t += self.total_substep_stochastic(t, dt, type)
+                if delta_t == 0:
+                    return
 
     def step(self, t, dt, stochastic=False):
         if self.gene_products and self.biomass:
