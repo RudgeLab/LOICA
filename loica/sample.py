@@ -94,9 +94,9 @@ class Sample:
                     gp.ext_conc += supplement.concentration
 
     def set_ext_conc(self, chemical_name, ext_concentration):
-        ''' set initial externl concentration '''
+        ''' set initial external concentration '''
+        
         for group in self.gene_products:
-            print(group[0].name)
             if group[0].name == chemical_name:
                 for gp in group:
                     gp.init_ext_conc = ext_concentration
@@ -326,7 +326,6 @@ class Sample:
         x = 0
         complete = False
         for group in self.gene_products:
-            x += len(group)
             for ii, gp in enumerate(group):
                 i = ii+x
                 if a_i < np.sum(a[:i*5+1]):
@@ -358,6 +357,7 @@ class Sample:
                     break
             if complete:
                 break
+            x += len(group)
         
         # Reset expression rates for next step and update external concentration
         for group in self.gene_products:
