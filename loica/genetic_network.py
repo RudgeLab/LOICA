@@ -118,7 +118,7 @@ class GeneticNetwork():
             return tau
         
         # Time step
-        if tau_:
+        if tau_ and tau_ != 0:
             tau = tau_
         else:
             tau = 1/A * np.log(1/np.random.random())
@@ -216,7 +216,7 @@ class GeneticNetwork():
             return tau
         
         # Time step
-        if tau_:
+        if tau_ and tau_ != 0:
             tau = tau_
         else:
             tau = 1/A * np.log(1/np.random.random())
