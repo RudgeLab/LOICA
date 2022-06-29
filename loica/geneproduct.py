@@ -1,3 +1,4 @@
+from .metabolism import convert_to_cells
 import numpy as np
 
 class GeneProduct:
@@ -50,7 +51,7 @@ class GeneProduct:
     def express(self, rate):
         self.expression_rate += rate
 
-    def step(self, growth_rate, dt, biomass):
+    def step(self, growth_rate, dt, biomass, ppod=100):
         # this is how much diffused in/out of the cell
         dext_conc_dt = self.diffusion_rate*(self.concentration-self.ext_conc)
         # change of concentration within cell
@@ -59,7 +60,8 @@ class GeneProduct:
         self.concentration = self.next_concentration
         # then external concentration change based on number of cells that produce
         # or intake this molecule
-        self.ext_difference = dext_conc_dt * dt * biomass
+        cell_number = convert_to_cells(biomass, ppod)
+        self.ext_difference = dext_conc_dt * dt * cell_number
         self.expression_rate = 0
         # test
         # print(f'{self.name} new concentration = {self.concentration}')
