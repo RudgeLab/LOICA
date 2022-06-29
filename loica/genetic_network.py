@@ -269,7 +269,7 @@ class GeneticNetwork():
 
     # added biomass parameter to follow on changes in geneproduct step
     # this parameter is related to OD of the strain-genetic network   
-    def step(self, biomass, growth_rate=1, t=0, dt=0.1):
+    def step(self, biomass, growth_rate=1, t=0, dt=0.1, ppod=100):
         for op in self.operators:
             expression_rate = op.expression_rate(t, dt)
             if type(op.output)==list:
@@ -279,10 +279,10 @@ class GeneticNetwork():
                 op.output.express(expression_rate)
 
         for regulator in self.regulators:
-            regulator.step(growth_rate, dt, biomass)
+            regulator.step(growth_rate, dt, biomass, ppod)
 
         for reporter in self.reporters:
-            reporter.step(growth_rate, dt, biomass)
+            reporter.step(growth_rate, dt, biomass, ppod)
 
 
     def to_graph(self):
