@@ -56,7 +56,7 @@ class Assay:
         self.biomass_signal_id = biomass_signal_id
 
 
-    def run(self, substeps=10, nsr=0, biomass_bg=0, fluo_bg=0, stochastic=False, track_all=False):
+    def run(self, substeps=10, nsr=0, biomass_bg=0, fluo_bg=0, stochastic=False, track_all=False, ppod=100):
         '''
         Run the assay measuring at specified time points, with simulation time step dt
         '''
@@ -200,10 +200,15 @@ class Assay:
                                     'Sample':sample_id
                                     }
                             self.measurements = self.measurements.append(row, ignore_index=True)
+                    # Add ppod to sample so cell number could be calculated from absorbance
+                    sample.calibrate(ppod)
                     # Compute next time step
                     if stochastic:
                         time = t * self.interval
-                        sample.step(time, self.interval, stochastic=True)
+                        if stochastic=='semi+comp' or stochastic=='full+comp':
+                            sample.step(time, self.interval, stochastic)
+                        else:
+                            sample.step(time, self.interval, stochastic=True)
                     else:
                         for tt in range(substeps):
                             time = t * self.interval + tt * dt
