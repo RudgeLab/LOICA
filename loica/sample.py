@@ -158,13 +158,13 @@ class Sample:
             if result is negative, diffusion does not happen and molecules
             are returned to the cell
         '''
+        new_ext_conc = group[0].ext_conc
         if stochastic:
             # only needed if using for semi-stochastic and fully stochastic with partitions 
             ext_options = ["degradation"]
             for gp in group:
                 ext_options.append(gp) 
             shuffle(ext_options)
-            new_ext_conc = group[0].ext_conc
             for opt in ext_options:
                 if opt == "degradation":
                     new_ext_conc -= group[0].ext_degraded
