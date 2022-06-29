@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
 
-def convert_to_cfu(od, ppod):
+def convert_to_cells(od, ppod):
     ''' 
         od - OD600 measurement
         ppod - particles per OD600 measurement (calculated according to iGEM OD600 
