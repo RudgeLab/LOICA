@@ -1,4 +1,5 @@
 from itertools import groupby
+from .metabolism import convert_to_cells
 import numpy as np
 from random import shuffle
 from .strain import Strain
@@ -135,7 +136,7 @@ class Sample:
             for gp in group:
                 gp.ext_conc = new_ext_conc
 
-    def update_ext_conc(self, stochastic=False):  
+    def update_ext_conc(self, t, stochastic=False):  
         '''
             Method to update external concentration of all gene products based on the
             geneproduct.ext_difference 
@@ -146,11 +147,11 @@ class Sample:
                 concentration_change += gp.ext_difference   
             new_ext_conc = group[0].ext_conc + concentration_change - group[0].ext_degraded # ext_degraded is from stochastic simulation with partitions
             if new_ext_conc<0:
-                new_ext_conc = self.catch_negative_conc(group, stochastic)
+                new_ext_conc = self.catch_negative_conc(group, t, stochastic)
             for gp in group:
                 gp.ext_conc = new_ext_conc
 
-    def catch_negative_conc(self, group, stochastic=False):
+    def catch_negative_conc(self, group, t, stochastic=False):
         ''' 
             used if external concentration becomes negative due to multiple strains
             taking molecules out of the extracellular space simultaneously.
@@ -199,7 +200,8 @@ class Sample:
                 # change that happened
                 can_take = ((-gp.ext_difference)/ideal_diffusion_out*new_ext_conc)
                 # calculate "extra" concentration of the gp in the strain it belongs to
-                extra_taken = (-gp.ext_difference-can_take)/gp.strain.biomass
+                cell_number = convert_to_cells(gp.strain.biomass(t), self.ppod)
+                extra_taken = (-gp.ext_difference-can_take)/cell_number
                 # correct the internal gp concentration
                 fixed_conc = gp.concentration - extra_taken
                 gp.concentration = fixed_conc
@@ -419,7 +421,7 @@ class Sample:
                     s.genetic_network.step(s.biomass(t), s.growth_rate(t), t, dt, self.ppod)
                 # update the exctracellular concentration
                 self.external_step(dt)
-                self.update_ext_conc(stochastic)
+                self.update_ext_conc(t, stochastic)
 
 
 
