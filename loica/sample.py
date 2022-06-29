@@ -31,6 +31,7 @@ class Sample:
         self.growth_rate = []
         self.biomass = []
         self.supplements = {}
+        self.ppod = 100
         # self.resources = resources        
 
         if issubclass(type(strain), Strain):
@@ -64,6 +65,10 @@ class Sample:
         # create an options list for semi-stochastic simulation 
         # (used in self.total_substep_stochastic(self))
         self.options = self.strain[:]
+    
+    def calibrate(self, ppod):
+        ''' sets particle per OD600 - used to convert absorbance to cell number'''
+        self.ppod = ppod
 
     def set_extracel_degr(self, chemical_name, ext_degr_rate):
         ''' 
@@ -411,7 +416,7 @@ class Sample:
                     self.step_stochastic(t, dt)
             else:
                 for s in self.strain:
-                    s.genetic_network.step(s.biomass(t), s.growth_rate(t), t, dt)
+                    s.genetic_network.step(s.biomass(t), s.growth_rate(t), t, dt, self.ppod)
                 # update the exctracellular concentration
                 self.external_step(dt)
                 self.update_ext_conc(stochastic)
