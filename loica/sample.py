@@ -297,7 +297,7 @@ class Sample:
                     
         return tau
 
-    def substep_stochastic(self, t=0, dt=0.1):
+    def substep_stochastic(self, t=0, dt=0.1, ppod=100):
         ''' fully stochasic, only one reaction happens out of all'''
         # Propensities
         a = []
@@ -357,13 +357,13 @@ class Sample:
                 elif a_i < np.sum(a[:i*5+3]):
                     # Diffusion of geneproduct gp out of cell
                     gp.concentration -= 1
-                    gp.ext_difference = gp.strain.biomass(t)
+                    gp.ext_difference = convert_to_cells(gp.strain.biomass(t), ppod)
                     complete = True
                     break
                 elif a_i < np.sum(a[:i*5+4]):
                     # Diffusion of geneproduct gp into the cell
                     gp.concentration += 1
-                    gp.ext_difference = - gp.strain.biomass(t)
+                    gp.ext_difference = - convert_to_cells(gp.strain.biomass(t), ppod)
                     complete = True
                     break
                 elif a_i < np.sum(a[:i*5+5]):
@@ -376,6 +376,7 @@ class Sample:
             x += len(group)
         
         # Reset expression rates for next step and update external concentration
+        # TODO: catch negative external concentration
         for group in self.gene_products:
             concentration_change = 0
             for gp in group:
@@ -388,7 +389,7 @@ class Sample:
         # Return elapsed time
         return tau
 
-    def step_stochastic(self, t=0, dt=0.1, type='full_stochastic'):
+    def step_stochastic(self, t=0, dt=0.1, type='full_stochastic', ppod=100):
         ''' 
             similar to GeneticNetwork.step_stochastic(). 
             Use but uses either 
@@ -398,7 +399,7 @@ class Sample:
         if type=='full_stochastic':
             while delta_t < dt:
                 # print(f'Elapsed time: {delta_t}')
-                delta_t += self.substep_stochastic(t, dt)
+                delta_t += self.substep_stochastic(t, dt, ppod=ppod)
         elif type=='semi+comp' or type=='full+comp':
             while delta_t < dt:
                 # print(f'Elapsed time: {delta_t}')
@@ -415,7 +416,7 @@ class Sample:
                 if type(stochastic)==str:
                     self.step_stochastic(t, dt, type=stochastic)
                 else:
-                    self.step_stochastic(t, dt)
+                    self.step_stochastic(t, dt, self.ppod)
             else:
                 for s in self.strain:
                     s.genetic_network.step(s.biomass(t), s.growth_rate(t), t, dt, self.ppod)
