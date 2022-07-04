@@ -32,7 +32,7 @@ class Sample:
         self.growth_rate = []
         self.biomass = []
         self.supplements = {}
-        self.ppod = 100
+        self.ppod = 2.66*10**9
         # self.resources = resources        
 
         if issubclass(type(strain), Strain):
@@ -297,7 +297,7 @@ class Sample:
                     
         return tau
 
-    def substep_stochastic(self, t=0, dt=0.1, ppod=100):
+    def substep_stochastic(self, t=0, dt=0.1, ppod=2.66*10**9):
         ''' fully stochasic, only one reaction happens out of all'''
         # Propensities
         a = []
@@ -389,7 +389,7 @@ class Sample:
         # Return elapsed time
         return tau
 
-    def step_stochastic(self, t=0, dt=0.1, type='full_stochastic', ppod=100):
+    def step_stochastic(self, t=0, dt=0.1, type='full_stochastic', ppod=2.66*10**9):
         ''' 
             similar to GeneticNetwork.step_stochastic(). 
             Use but uses either 
