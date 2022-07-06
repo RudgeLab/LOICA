@@ -56,7 +56,7 @@ class Assay:
         self.biomass_signal_id = biomass_signal_id
 
 
-    def run(self, substeps=10, nsr=0, biomass_bg=0, fluo_bg=0, stochastic=False, track_all=False, ppod=100):
+    def run(self, substeps=10, nsr=0, biomass_bg=0, fluo_bg=0, stochastic=False, track_all=False, ppod=2.66*10**9):
         '''
         Run the assay measuring at specified time points, with simulation time step dt
         '''
@@ -66,6 +66,8 @@ class Assay:
         with tqdm(total=100) as pbar:
             for sample_id, sample in enumerate(self.samples):
                 sample.initialize()
+                # Add ppod to sample so cell number could be calculated from absorbance
+                sample.calibrate(ppod)
                 # Integrate models
                 for t in range(self.n_measurements):
                     # print(f'Current t={t}')
@@ -200,8 +202,6 @@ class Assay:
                                     'Sample':sample_id
                                     }
                             self.measurements = self.measurements.append(row, ignore_index=True)
-                    # Add ppod to sample so cell number could be calculated from absorbance
-                    sample.calibrate(ppod)
                     # Compute next time step
                     if stochastic:
                         time = t * self.interval
