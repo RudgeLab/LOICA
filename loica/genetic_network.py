@@ -286,7 +286,7 @@ class GeneticNetwork():
                 print(f't={t}')
                 print(f'''{regulator.name} ext conc = {regulator.ext_conc}
                 int conc = {regulator.concentration}''')
-            regulator.step(growth_rate, dt, biomass, ppod)
+            regulator.step(growth_rate, dt, biomass, ppod, sample_volume)
             # test
             if t>=10 and t<=13:
                 print(f'''after step in genetic network: ext conc = {regulator.ext_conc}
@@ -298,7 +298,7 @@ class GeneticNetwork():
                 ext diff = {regulator.ext_difference}''')
 
         for reporter in self.reporters:
-            reporter.step(growth_rate, dt, biomass, ppod)
+            reporter.step(growth_rate, dt, biomass, ppod, sample_volume)
 
 
     def to_graph(self):
