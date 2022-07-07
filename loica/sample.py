@@ -216,13 +216,17 @@ class Sample:
                 # calculate "extra" concentration of the gp in the strain it belongs to
                 cell_number = convert_to_cells(gp.strain.biomass(t), self.ppod, self.volume)
                 extra_taken = (-gp.ext_difference-can_take)/cell_number
+                # convert concentration to concentration within cell:
+                in_moles = extra_taken * self.volume
+                extra_conc_converted = in_moles / gp.strain.cell_volume
                 # correct the internal gp concentration
-                fixed_conc = gp.concentration - extra_taken
+                fixed_conc = gp.concentration - extra_conc_converted
                 # test
                 if t>=10 and t<=13:
                     print(f''' {gp.strain.name} can take = {can_take}
                     cell_number = {cell_number}
-                    it has taken in extra {extra_taken}
+                    it has taken in extra {extra_taken} per cell
+                    which is {extra_conc_converted} within cell
                     conc before correction = {gp.concentration}
                     after correction = {fixed_conc}
                     ''')
