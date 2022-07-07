@@ -1,3 +1,4 @@
+from random import sample
 from .metabolism import convert_to_cells
 import numpy as np
 
@@ -57,8 +58,28 @@ class GeneProduct:
     def step(self, growth_rate, dt, biomass, ppod=2.66*10**9, sample_volume=1):
         # this is how much diffused in/out of the cell
         dext_conc_dt = self.diffusion_rate*(self.concentration-self.ext_conc)
+
+        # this section deals with concentration difference between sample and cell 
+        # (which is due to different volume)
+        if dext_conc_dt<0:
+            # convert incoming concentration to moles, then to concentration within cell
+            in_moles = dext_conc_dt * sample_volume
+            converted_conc_change = in_moles / self.strain.cell_volume
+            diffusion_cell = converted_conc_change
+            diffusion_sample = dext_conc_dt
+        elif dext_conc_dt>0:
+            # convert outcoming concentration to moles, then to concentration within sample
+            in_moles = dext_conc_dt * self.strain.cell_volume
+            converted_conc_change = in_moles / sample_volume
+            diffusion_cell = dext_conc_dt
+            diffusion_sample= converted_conc_change
+        else:
+            diffusion_cell = dext_conc_dt
+            diffusion_sample = dext_conc_dt
+
         # change of concentration within cell
-        dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration - dext_conc_dt
+        dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration - diffusion_cell
+        
         # test
         without_def = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
         self.test = without_def * dt
@@ -68,7 +89,7 @@ class GeneProduct:
         # then external concentration change based on number of cells that produce
         # or intake this molecule
         cell_number = convert_to_cells(biomass, ppod, sample_volume)
-        self.ext_difference = dext_conc_dt * dt * cell_number
+        self.ext_difference = diffusion_sample * dt * cell_number
         self.expression_rate = 0
         # test
         # print(f'{self.name} new concentration = {self.concentration}')
