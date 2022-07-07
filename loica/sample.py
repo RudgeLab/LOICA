@@ -23,7 +23,7 @@ class Sample:
     add_supplement(supplement, concentration)
         establishes the concentration of Supplement
     """
-    def __init__(self, strain=None, media=None): # resources=None
+    def __init__(self, strain=None, media=None, volume=1): # resources=None
 
         self.strain = []
         self.media = media
@@ -32,7 +32,8 @@ class Sample:
         self.growth_rate = []
         self.biomass = []
         self.supplements = {}
-        self.ppod = 2.66*10**9
+        self.volume = volume    # default volume is 1ml, since 
+        self.ppod = 2.66*10**9  # default ppod is cells/ml
         # self.resources = resources        
 
         if issubclass(type(strain), Strain):
@@ -213,7 +214,7 @@ class Sample:
                 # change that happened
                 can_take = ((-gp.ext_difference)/ideal_diffusion_out*new_ext_conc)
                 # calculate "extra" concentration of the gp in the strain it belongs to
-                cell_number = convert_to_cells(gp.strain.biomass(t), self.ppod)
+                cell_number = convert_to_cells(gp.strain.biomass(t), self.ppod, self.volume)
                 extra_taken = (-gp.ext_difference-can_take)/cell_number
                 # correct the internal gp concentration
                 fixed_conc = gp.concentration - extra_taken
@@ -379,13 +380,13 @@ class Sample:
                 elif a_i < np.sum(a[:i*5+3]):
                     # Diffusion of geneproduct gp out of cell
                     gp.concentration -= 1
-                    gp.ext_difference = convert_to_cells(gp.strain.biomass(t), ppod)
+                    gp.ext_difference = convert_to_cells(gp.strain.biomass(t), ppod, self.volume)
                     complete = True
                     break
                 elif a_i < np.sum(a[:i*5+4]):
                     # Diffusion of geneproduct gp into the cell
                     gp.concentration += 1
-                    gp.ext_difference = - convert_to_cells(gp.strain.biomass(t), ppod)
+                    gp.ext_difference = - convert_to_cells(gp.strain.biomass(t), ppod, self.volume)
                     complete = True
                     break
                 elif a_i < np.sum(a[:i*5+5]):
