@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.interpolate import interp1d
+from math import floor
 
 def convert_to_cells(od, ppod):
     ''' 
@@ -8,6 +9,7 @@ def convert_to_cells(od, ppod):
                calibration protocol)
     '''
     return od*ppod
+    # return floor(od*ppod)
 
 def ramp_growth_rate(t, start, slope):
     gr = np.maximum(0, slope*(t-start))
