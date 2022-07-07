@@ -271,7 +271,7 @@ class GeneticNetwork():
 
     # added biomass parameter to follow on changes in geneproduct step
     # this parameter is related to OD of the strain-genetic network   
-    def step(self, biomass, growth_rate=1, t=0, dt=0.1, ppod=2.66*10**9):
+    def step(self, biomass, growth_rate=1, t=0, dt=0.1, ppod=2.66*10**9, sample_volume=1):
         for op in self.operators:
             expression_rate = op.expression_rate(t, dt)
             if type(op.output)==list:
@@ -294,7 +294,7 @@ class GeneticNetwork():
                 total new int conc = {regulator.concentration}
                 biomass = {biomass}
                 ppod = {ppod}
-                cell number = {convert_to_cells(biomass, ppod)}
+                cell number = {convert_to_cells(biomass, ppod, sample_volume)}
                 ext diff = {regulator.ext_difference}''')
 
         for reporter in self.reporters:

@@ -442,7 +442,7 @@ class Sample:
                     self.step_stochastic(t, dt, self.ppod)
             else:
                 for s in self.strain:
-                    s.genetic_network.step(s.biomass(t), s.growth_rate(t), t, dt, self.ppod)
+                    s.genetic_network.step(s.biomass(t), s.growth_rate(t), t, dt, self.ppod, self.volume)
                 # update the exctracellular concentration
                 self.external_step(dt)
                 # test
