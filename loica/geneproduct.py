@@ -43,6 +43,9 @@ class GeneProduct:
         self.ext_degraded=0
         self.strain = None
 
+        # test
+        self.test = 0
+
 
     def initialize(self):
         self.concentration = self.init_concentration
@@ -56,6 +59,10 @@ class GeneProduct:
         dext_conc_dt = self.diffusion_rate*(self.concentration-self.ext_conc)
         # change of concentration within cell
         dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration - dext_conc_dt
+        # test
+        without_def = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
+        self.test = without_def * dt
+        
         self.next_concentration = self.concentration + dconcdt * dt
         self.concentration = self.next_concentration
         # then external concentration change based on number of cells that produce

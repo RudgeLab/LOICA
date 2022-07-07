@@ -10,6 +10,8 @@ from .operators.source import Source
 from typing import List #, Dict, Tuple, Optional, Union, Any
 import numpy as np
 from math import floor, ceil
+# test
+from .metabolism import convert_to_cells
 
 class GeneticNetwork():
     """
@@ -279,7 +281,21 @@ class GeneticNetwork():
                 op.output.express(expression_rate)
 
         for regulator in self.regulators:
+            # test
+            if t>=10 and t<=13:
+                print(f't={t}')
+                print(f'''{regulator.name} ext conc = {regulator.ext_conc}
+                int conc = {regulator.concentration}''')
             regulator.step(growth_rate, dt, biomass, ppod)
+            # test
+            if t>=10 and t<=13:
+                print(f'''after step in genetic network: ext conc = {regulator.ext_conc}
+                added internal conc (without diffusion)= {regulator.test}
+                total new int conc = {regulator.concentration}
+                biomass = {biomass}
+                ppod = {ppod}
+                cell number = {convert_to_cells(biomass, ppod)}
+                ext diff = {regulator.ext_difference}''')
 
         for reporter in self.reporters:
             reporter.step(growth_rate, dt, biomass, ppod)
