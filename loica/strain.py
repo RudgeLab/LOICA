@@ -16,10 +16,11 @@ class Strain:
     
     """
 
-    def __init__(self, name=None, genetic_network=None, metabolism=None, strain=None):
+    def __init__(self, name=None, genetic_network=None, metabolism=None, cell_volume=10**-15, strain=None):
         self.name = name
         self.genetic_network = genetic_network
         self.metabolism = metabolism
+        self.cell_volume = cell_volume
         if self.genetic_network:
             self.reporters = self.genetic_network.reporters
             self.regulators = self.genetic_network.regulators
