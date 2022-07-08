@@ -282,7 +282,7 @@ class GeneticNetwork():
                 else:
                     op.output.express(expression_rate)
             if hasattr(op, 'degradation_rate'):
-                degradation_rate = op.degradation_rate()
+                degradation_rate = op.degradation_rate(dt)
                 if type(op.output)==list:
                     for i, o in enumerate(op.output):
                         o.degrade(degradation_rate[i])
