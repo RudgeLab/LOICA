@@ -152,11 +152,11 @@ class Sample:
             for gp in group:
                 gp.ext_conc = new_ext_conc
             # test 
-            if t>=10 and t<=13:
+            if t>=4 and t<=7:
                 for gp in group:
                     print(f'''After update:
                     {gp.name} new ext conc = {gp.ext_conc}
-                    int conc = {gp.concentration}''')
+                    int conc in {gp.strain.name} = {gp.concentration}''')
 
     def catch_negative_conc(self, group, t, stochastic=False):
         ''' 
@@ -190,7 +190,7 @@ class Sample:
             return new_ext_conc
         else:
             # test
-            if t>=10 and t<=13:
+            if t>=4 and t<=7:
                 print("triggered negative update")
             # list of gene products that diffuse out of the extracellular space
             diffused_out = []
@@ -205,7 +205,7 @@ class Sample:
                 # enough resources
                 ideal_diffusion_out -= gp.ext_difference
              # test
-            if t>=10 and t<=13:
+            if t>=4 and t<=7:
                 print(f''' {group[0].name} ideal diffusion out = {ideal_diffusion_out}
                 while ext conc after addition to it = {new_ext_conc}''')
             for gp in diffused_out:
@@ -222,7 +222,7 @@ class Sample:
                 # correct the internal gp concentration
                 fixed_conc = gp.concentration - extra_conc_converted
                 # test
-                if t>=10 and t<=13:
+                if t>=4 and t<=7:
                     print(f''' {gp.strain.name} can take = {can_take}
                     cell_number = {cell_number}
                     it has taken in extra {extra_taken} per cell
@@ -450,7 +450,7 @@ class Sample:
                 # update the exctracellular concentration
                 self.external_step(dt)
                 # test
-                if t>=10 and t<=13:
+                if t>=4 and t<=7:
                     for group in self.gene_products:
                         for gp in group:
                             if gp.ext_degr_rate > 0:

@@ -282,13 +282,13 @@ class GeneticNetwork():
 
         for regulator in self.regulators:
             # test
-            if t>=10 and t<=13:
+            if t>=4 and t<=7:
                 print(f't={t}')
                 print(f'''{regulator.name} ext conc = {regulator.ext_conc}
-                int conc = {regulator.concentration}''')
+                int conc in {regulator.strain.name} = {regulator.concentration}''')
             regulator.step(growth_rate, dt, biomass, ppod, sample_volume)
             # test
-            if t>=10 and t<=13:
+            if t>=4 and t<=7:
                 print(f'''after step in genetic network: ext conc = {regulator.ext_conc}
                 added internal conc (without diffusion)= {regulator.test}
                 total new int conc = {regulator.concentration}
