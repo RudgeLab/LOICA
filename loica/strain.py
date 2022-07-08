@@ -11,6 +11,14 @@ class Strain:
         genetic network that is part of the strain
     metabolism : Metabolism
         metabolism that drives the genetic network in the strain
+    cell_volume : int | float
+        average cell volume. 
+        Default cell volume has been taken from Supplementary data in:
+            Yáñez Feliú, G., Vidal, G., Muñoz Silva M., Rudge, T. J. (2020). 
+            Novel Tunable Spatio-Temporal Patterns From a Simple Genetic Oscillator Circuit. 
+            Frontiers in Bioengineering and Biotechnology 8, 893. 
+            https://doi.org/10.3389/FBIOE.2020.00893/BIBTEX
+        
     strain : str
         Name of the strain in the sample (link to Flapjack)
     
