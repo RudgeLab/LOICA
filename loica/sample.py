@@ -17,13 +17,15 @@ class Sample:
         strain that is part of the sample
     media : str
         Name of the media in the sample
+    volume: int | float
+        Sample volume. By default is set to 0.2 ml to represent a well in 96-well plate
     
      Methods
     -------
     add_supplement(supplement, concentration)
         establishes the concentration of Supplement
     """
-    def __init__(self, strain=None, media=None, volume=1): # resources=None
+    def __init__(self, strain=None, media=None, volume=0.2): # resources=None
 
         self.strain = []
         self.media = media
@@ -34,6 +36,11 @@ class Sample:
         self.supplements = {}
         self.volume = volume    # default volume is 1ml, since 
         self.ppod = 2.66*10**9  # default ppod is cells/ml
+        ''' Default ppod(cells per 1 OD600 per volume) has been taken from:
+                Yap, P. Y., Trau, D. (2019). 
+                DIRECT E.COLI CELL COUNT AT OD600. 
+                https://tipbiosystems.com/wp-content/uploads/2020/05/AN102-E.coli-Cell-Count_2019_04_25.pdf
+        '''
         # self.resources = resources        
 
         if issubclass(type(strain), Strain):
