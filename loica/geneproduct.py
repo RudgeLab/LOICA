@@ -28,6 +28,7 @@ class GeneProduct:
         self.init_concentration = init_concentration
         self.concentration = init_concentration
         self.degradation_rate = degradation_rate
+        self.degradation_r = degradation_rate # constant used to reset degradation_rate
         self.diffusion_rate=diffusion_rate
         self.name = name
         self.expression_rate = 0
@@ -54,6 +55,9 @@ class GeneProduct:
 
     def express(self, rate):
         self.expression_rate += rate
+
+    def degrade(self, rate):
+        self.degradation_rate += rate
 
     def step(self, growth_rate, dt, biomass, ppod=2.66*10**9, sample_volume=1):
         # this is how much diffused in/out of the cell
@@ -90,7 +94,9 @@ class GeneProduct:
         # or intake this molecule
         cell_number = convert_to_cells(biomass, ppod, sample_volume)
         self.ext_difference = diffusion_sample * dt * cell_number
+        # reset rates
         self.expression_rate = 0
+        self.degradation_rate = self.degradation_r
         # test
         # print(f'{self.name} new concentration = {self.concentration}')
         # print(f'{self.name} ext change = {self.ext_difference}')
