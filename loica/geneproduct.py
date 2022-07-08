@@ -62,19 +62,19 @@ class GeneProduct:
     def step(self, growth_rate, dt, biomass, ppod=2.66*10**9, sample_volume=1):
         # this is how much diffused in/out of the cell
         dext_conc_dt = self.diffusion_rate*(self.concentration-self.ext_conc)
-
+        cell_number = convert_to_cells(biomass, ppod, sample_volume)
         # this section deals with concentration difference between sample and cell 
         # (which is due to different volume)
         if dext_conc_dt<0:
             # convert incoming concentration to moles, then to concentration within cell
-            in_moles = dext_conc_dt * sample_volume
+            in_moles = dext_conc_dt * (sample_volume - self.strain.cell_volume * cell_number)
             converted_conc_change = in_moles / self.strain.cell_volume
             diffusion_cell = converted_conc_change
             diffusion_sample = dext_conc_dt
         elif dext_conc_dt>0:
             # convert outcoming concentration to moles, then to concentration within sample
             in_moles = dext_conc_dt * self.strain.cell_volume
-            converted_conc_change = in_moles / sample_volume
+            converted_conc_change = in_moles / (sample_volume - self.strain.cell_volume * cell_number)
             diffusion_cell = dext_conc_dt
             diffusion_sample= converted_conc_change
         else:
@@ -92,7 +92,6 @@ class GeneProduct:
         self.concentration = self.next_concentration
         # then external concentration change based on number of cells that produce
         # or intake this molecule
-        cell_number = convert_to_cells(biomass, ppod, sample_volume)
         self.ext_difference = diffusion_sample * dt * cell_number
         # reset rates
         self.expression_rate = 0
