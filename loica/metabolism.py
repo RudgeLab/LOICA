@@ -2,13 +2,14 @@ import numpy as np
 from scipy.interpolate import interp1d
 from math import floor
 
-def convert_to_cells(od, ppod):
+def convert_to_cells(od, ppod, sample_volume):
     ''' 
         od - OD600 measurement
-        ppod - particles per OD600 measurement (calculated according to iGEM OD600 
-               calibration protocol)
+        ppod - particles per OD600 measurement per volume (calculated according to iGEM OD600 
+               calibration protocol). 
+        sample volume - should be in the same units as volume unit ppod was determined for
     '''
-    return od*ppod
+    return od*ppod*sample_volume
     # return floor(od*ppod)
 
 def ramp_growth_rate(t, start, slope):
