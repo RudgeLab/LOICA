@@ -284,10 +284,11 @@ class GeneticNetwork():
             if hasattr(op, 'degradation_rate'):
                 degradation_rate = op.degradation_rate()
                 if type(op.output)==list:
-                    for o in op.output:
-                        o.degrade(degradation_rate)
+                    for i, o in enumerate(op.output):
+                        o.degrade(degradation_rate[i])
                 else:
-                    op.output.degrade(degradation_rate)
+                    for i, o in enumerate([op.output]):
+                        o.degrade(degradation_rate[i])
 
         for regulator in self.regulators:
             # test
