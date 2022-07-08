@@ -273,12 +273,21 @@ class GeneticNetwork():
     # this parameter is related to OD of the strain-genetic network   
     def step(self, biomass, growth_rate=1, t=0, dt=0.1, ppod=2.66*10**9, sample_volume=1):
         for op in self.operators:
-            expression_rate = op.expression_rate(t, dt)
-            if type(op.output)==list:
-                for o in op.output:
-                    o.express(expression_rate)
-            else:
-                op.output.express(expression_rate)
+
+            if hasattr(op, 'expression_rate'):
+                expression_rate = op.expression_rate(t, dt)
+                if type(op.output)==list:
+                    for o in op.output:
+                        o.express(expression_rate)
+                else:
+                    op.output.express(expression_rate)
+            if hasattr(op, 'degradation_rate'):
+                degradation_rate = op.degradation_rate()
+                if type(op.output)==list:
+                    for o in op.output:
+                        o.degrade(degradation_rate)
+                else:
+                    op.output.degrade(degradation_rate)
 
         for regulator in self.regulators:
             # test
