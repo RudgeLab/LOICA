@@ -1,18 +1,15 @@
-from .operator import *
-import numpy as np
-from scipy.optimize import least_squares
-from .receiver import *
+from .impactor import *
 
-class Degrader(Operator):
+class Degrader(Impactor):
     """
     A class that represents an enzyme that degrades a substrate (or substrates).
     ...
     
     Attributes
     ----------
-    input : Regulator | GeneProduct
+    enzyme : Regulator | GeneProduct
         The enzyme that degrades substrate
-    output : Regulator | Reporter | GeneProduct | List [Regulator | Reporter | GeneProduct]
+    substrate : Regulator | Reporter | GeneProduct | List [Regulator | Reporter | GeneProduct]
         The substrate that is degraded by enzyme
     k1 : int | float | List [int | float]
         Binding constant to produce enzyme-substrate complex
@@ -27,9 +24,9 @@ class Degrader(Operator):
 
     """
 
-    def __init__(self, input, output, k1, k1r, k2, name=None, uri=None, sbol_comp=None, color='skyblue'):
-        super().__init__(output, name, uri, sbol_comp, color)
-        self.input = input
+    def __init__(self, enzyme, substrate, k1, k1r, k2, name=None, uri=None, sbol_comp=None, color='skyblue'):
+        super().__init__(substrate, name, uri, sbol_comp, color)
+        self.enzyme = enzyme
 
         if type(k1)==list:
             self.k1 = k1
@@ -46,13 +43,13 @@ class Degrader(Operator):
         else:
             self.k2 = [k2]
 
-        if type(output)==list:
-            self.output = output
+        if type(substrate)==list:
+            self.substrate = substrate
         else:
-            self.output = [output]
+            self.substrate = [substrate]
 
         self.es_complex = []
-        for o in self.output:
+        for o in self.substrate:
             self.es_complex.append(0)
 
     def __str__(self):
@@ -64,20 +61,20 @@ class Degrader(Operator):
         degradation_rate = []
         enzyme = []
         
-        for i, output in enumerate(self.output):
+        for i, substrate in enumerate(self.substrate):
             # test
-            print(f'{(self.input.concentration / len(self.output) - self.es_complex[i])} split enzyme conc')
+            print(f'{(self.enzyme.concentration / len(self.substrate) - self.es_complex[i])} split enzyme conc')
             # if enzyme has multiple substrates, enzyme is split equally between all substrates (account for enzymes in complex)
-            enzyme.append(self.input.concentration / len(self.output) - self.es_complex[i])
+            enzyme.append(self.enzyme.concentration / len(self.substrate) - self.es_complex[i])
 
             # calculate substrate degradation rate
-            substrate_change_rate = -self.k1[i] * enzyme[i] * output.concentration + self.k1r[i] * self.es_complex[i] - self.k2[i] * self.es_complex[i]
+            substrate_change_rate = -self.k1[i] * enzyme[i] * substrate.concentration + self.k1r[i] * self.es_complex[i] - self.k2[i] * self.es_complex[i]
             # test
             print(f'degr_rate is {substrate_change_rate}')
             degradation_rate.append(-substrate_change_rate)
 
             # update enzyme-substrate complex concentrations
-            es_change = self.k1[i] * enzyme[i] * output.concentration - self.k1r[i] * self.es_complex[i] - self.k2[i] * self.es_complex[i]
+            es_change = self.k1[i] * enzyme[i] * substrate.concentration - self.k1r[i] * self.es_complex[i] - self.k2[i] * self.es_complex[i]
             new_es = self.es_complex[i] + es_change * dt
             self.es_complex[i] = new_es
 
