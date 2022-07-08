@@ -71,14 +71,13 @@ class Degrader(Operator):
             enzyme.append(self.input.concentration / len(self.output) - self.es_complex[i])
 
             # calculate substrate degradation rate
-            substrate_change_rate = -self.k1 * enzyme[i] * output.concentration + self.k1r * self.es_complex[i] - self.k2 * self.es_complex[i]
+            substrate_change_rate = -self.k1[i] * enzyme[i] * output.concentration + self.k1r[i] * self.es_complex[i] - self.k2[i] * self.es_complex[i]
             # test
             print(f'degr_rate is {substrate_change_rate}')
             degradation_rate.append(-substrate_change_rate)
 
             # update enzyme-substrate complex concentrations
-            es_change = self.k1 * enzyme[i] * output.concentration - self.k1r * self.es_complex[i] - self.k2 * self.es_complex[i]
-            # enzyme_change = -self.k1 * enzyme[i] * output.concentration + self.k1r * self.es_complex[i] + self.k2 * self.es_complex[i]
+            es_change = self.k1[i] * enzyme[i] * output.concentration - self.k1r[i] * self.es_complex[i] - self.k2[i] * self.es_complex[i]
             new_es = self.es_complex[i] + es_change * dt
             self.es_complex[i] = new_es
 
