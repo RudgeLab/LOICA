@@ -7,3 +7,4 @@ from .geneproduct import *
 from .supplement import *
 from .util import *
 from .colony import *
+from .impactors import *
