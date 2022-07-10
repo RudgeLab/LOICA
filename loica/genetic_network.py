@@ -7,6 +7,9 @@ from .operators.hill1 import Hill1
 from .operators.hill2 import Hill2
 from .operators.receiver import Receiver
 from .operators.source import Source
+from .impactors.impactor import Impactor
+from .impactors.degrader import Degrader
+from .impactors.producer import Producer
 from typing import List #, Dict, Tuple, Optional, Union, Any
 import numpy as np
 from math import floor, ceil
@@ -41,6 +44,7 @@ class GeneticNetwork():
     """
     def __init__(self, vector=None):
         self.operators = []
+        self.impactors = []
         self.regulators = []
         self.reporters = []
         self.gene_products = []
@@ -61,6 +65,16 @@ class GeneticNetwork():
                     self.operators.append(op)
                 else: print('Unsupported Type, it should be an Operator')
         else: print('Unsupported Type, it should be an Operator')
+
+    def add_impactor(self, imps):
+        if issubclass(type(imps), Impactor):
+            self.impactors.append(imps)
+        elif type(imps)==list:
+            for imp in imps:
+                if issubclass(type(imp), Impactor):
+                    self.impactors.append(imp)
+                else: print('Unsupported Type, it should be an Impactor')
+        else: print('Unsupported Type, it should be an Impactor')
 
     def add_regulator(self, regs):
         if issubclass(type(regs), Regulator):
@@ -273,32 +287,43 @@ class GeneticNetwork():
     # this parameter is related to OD of the strain-genetic network   
     def step(self, biomass, growth_rate=1, t=0, dt=0.1, ppod=2.66*10**9, sample_volume=1):
         for op in self.operators:
+            expression_rate = op.expression_rate(t, dt)
+            if type(op.output)==list:
+                for o in op.output:
+                    o.express(expression_rate)
+            else:
+                op.output.express(expression_rate)
 
-            if hasattr(op, 'expression_rate'):
-                expression_rate = op.expression_rate(t, dt)
-                if type(op.output)==list:
-                    for o in op.output:
-                        o.express(expression_rate)
+        for imp in self.impactors:
+            if issubclass(type(imp), Degrader):
+                degradation_rate = imp.degradation_rate(dt)
+                # test
+                if t<1:
+                    print('Degradation in action')
+                    print(degradation_rate)
+                if type(imp.substrate)==list:
+                    for i, s in enumerate(imp.substrate):
+                        s.degrade(degradation_rate[i])
                 else:
-                    op.output.express(expression_rate)
-            if hasattr(op, 'degradation_rate'):
-                degradation_rate = op.degradation_rate(dt)
-                if type(op.output)==list:
-                    for i, o in enumerate(op.output):
-                        o.degrade(degradation_rate[i])
-                else:
-                    for i, o in enumerate([op.output]):
-                        o.degrade(degradation_rate[i])
+                    for i, s in enumerate([imp.substrate]):
+                        s.degrade(degradation_rate[i])
+            if issubclass(type(imp), Producer):
+                production_rate = imp.production_rate()
+                # test
+                if t<1:
+                    print('Production in action')
+                    print(production_rate)
+                imp.product.express(production_rate)
 
         for regulator in self.regulators:
             # test
-            if t>=4 and t<=7:
+            if t<1:
                 print(f't={t}')
                 print(f'''{regulator.name} ext conc = {regulator.ext_conc}
                 int conc in {regulator.strain.name} = {regulator.concentration}''')
             regulator.step(growth_rate, dt, biomass, ppod, sample_volume)
             # test
-            if t>=4 and t<=7:
+            if t<1:
                 print(f'''after step in genetic network: ext conc = {regulator.ext_conc}
                 added internal conc (without diffusion)= {regulator.test}
                 total new int conc = {regulator.concentration}
