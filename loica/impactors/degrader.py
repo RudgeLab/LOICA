@@ -25,7 +25,7 @@ class Degrader(Impactor):
     """
 
     def __init__(self, enzyme, substrate, k1, k1r, k2, name=None, uri=None, sbol_comp=None, color='skyblue'):
-        super().__init__(enzyme, name, uri, sbol_comp, color)
+        super().__init__(enzyme, name, color)
         self.enzyme = enzyme
 
         if type(k1)==list:

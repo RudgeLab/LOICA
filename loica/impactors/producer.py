@@ -25,7 +25,7 @@ class Producer(Impactor):
     """
 
     def __init__(self, enzyme, product, k2, name=None, uri=None, sbol_comp=None, color='skyblue'):
-        super().__init__(enzyme, name, uri, sbol_comp, color)
+        super().__init__(enzyme, name, color)
         self.enzyme = enzyme
         self.k2 = k2
         self.product = product
