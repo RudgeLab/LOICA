@@ -89,7 +89,22 @@ class GeneProduct:
         self.test = without_def * dt
         
         self.next_concentration = self.concentration + dconcdt * dt
-        self.concentration = self.next_concentration
+        if self.next_concentration < 0:
+            if dext_conc_dt>0:
+                # if there is diffusion out of cell, then diffusion and degradation are
+                # proportional. This corrects diffusion
+                degr_and_gr = ((self.degradation_rate + growth_rate)*self.concentration) * dt
+                diff_out = diffusion_cell * dt
+                total_minus = degr_and_gr + diff_out
+                total_before_minus = self.concentration + self.expression_rate * dt
+                proportion_diff = diff_out/total_minus
+                corrected_diff = total_before_minus * proportion_diff
+                in_moles = corrected_diff * self.strain.cell_volume
+                converted_conc_change = in_moles / (sample_volume - self.strain.cell_volume * cell_number)
+                diffusion_sample= converted_conc_change
+            self.concentration = 0
+        else:
+            self.concentration = self.next_concentration
         # then external concentration change based on number of cells that produce
         # or intake this molecule
         self.ext_difference = diffusion_sample * dt * cell_number
