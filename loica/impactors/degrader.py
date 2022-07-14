@@ -11,10 +11,8 @@ class Degrader(Impactor):
         The enzyme that degrades substrate
     substrate : Regulator | Reporter | GeneProduct | List [Regulator | Reporter | GeneProduct]
         The substrate that is degraded by enzyme
-    k1 : int | float | List [int | float]
-        Binding constant to produce enzyme-substrate complex
-    k1r : int | float | List [int | float]
-        Dissociation constant to reduce the enzyme-substrate complex
+    Km : int | float | List [int | float]
+        Michaelis constant
     k2 : int | float | List [int | float]
         Degradation constant to reduce enzyme-substrate complex into enzyme only
     name : str, optional
@@ -22,21 +20,22 @@ class Degrader(Impactor):
     color: str, optional
         Color displayed on the network representation
 
+    Methods
+    ----------
+    degradation rate() - is calculated based on Michaelis-Menten law. Enzyme-substrate 
+    complex is assumed to be in quasi-steady-state (its concenration barely changes 
+    over time).
+    
     """
 
-    def __init__(self, enzyme, substrate, k1, k1r, k2, name=None, uri=None, sbol_comp=None, color='skyblue'):
+    def __init__(self, enzyme, substrate, Km, k2, name=None, uri=None, sbol_comp=None, color='skyblue'):
         super().__init__(enzyme, name, color)
         self.enzyme = enzyme
 
-        if type(k1)==list:
-            self.k1 = k1
+        if type(Km)==list:
+            self.km = Km
         else:
-            self.k1 = [k1]
-
-        if type(k1r)==list:
-            self.k1r = k1r
-        else:
-            self.k1r = [k1r]
+            self.km = [Km]
 
         if type(k2)==list:
             self.k2 = k2
@@ -48,34 +47,27 @@ class Degrader(Impactor):
         else:
             self.substrate = [substrate]
 
-        self.es_complex = []
-        for o in self.substrate:
-            self.es_complex.append(0)
-
     def __str__(self):
         if self.name == None:
             return 'DEGRADER'
         else: return self.name
         
-    def degradation_rate(self, dt):
+    def degradation_rate(self):
         degradation_rate = []
         enzyme = []
         
         for i, substrate in enumerate(self.substrate):
             # test
-            print(f'{(self.enzyme.concentration / len(self.substrate) - self.es_complex[i])} split enzyme conc')
-            # if enzyme has multiple substrates, enzyme is split equally between all substrates (account for enzymes in complex)
-            enzyme.append(self.enzyme.concentration / len(self.substrate) - self.es_complex[i])
+            print(f'{(self.enzyme.concentration / len(self.substrate))} split enzyme conc')
 
+            # if enzyme has multiple substrates, enzyme is split equally between all substrates
+            enzyme.append(self.enzyme.concentration / len(self.substrate))
+            # calculate Vmax
+            vmax = self.k2[i] * self.enzyme[i]
             # calculate substrate degradation rate
-            substrate_change_rate = -self.k1[i] * enzyme[i] * substrate.concentration + self.k1r[i] * self.es_complex[i] - self.k2[i] * self.es_complex[i]
+            substrate_change_rate = -(vmax * substrate.concentration) / (self.km[i] + substrate.concentration)
             # test
             print(f'degr_rate is {substrate_change_rate}')
-            degradation_rate.append(-substrate_change_rate)
-
-            # update enzyme-substrate complex concentrations
-            es_change = self.k1[i] * enzyme[i] * substrate.concentration - self.k1r[i] * self.es_complex[i] - self.k2[i] * self.es_complex[i]
-            new_es = self.es_complex[i] + es_change * dt
-            self.es_complex[i] = new_es
+            degradation_rate.append(substrate_change_rate)
 
         return degradation_rate

@@ -296,7 +296,7 @@ class GeneticNetwork():
 
         for imp in self.impactors:
             if issubclass(type(imp), Degrader):
-                degradation_rate = imp.degradation_rate(dt)
+                degradation_rate = imp.degradation_rate()
                 # test
                 if t<1:
                     print('Degradation in action')
