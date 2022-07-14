@@ -63,9 +63,9 @@ class Degrader(Impactor):
             # if enzyme has multiple substrates, enzyme is split equally between all substrates
             enzyme.append(self.enzyme.concentration / len(self.substrate))
             # calculate Vmax
-            vmax = self.k2[i] * self.enzyme[i]
+            vmax = self.k2[i] * enzyme[i]
             # calculate substrate degradation rate
-            substrate_change_rate = -(vmax * substrate.concentration) / (self.km[i] + substrate.concentration)
+            substrate_change_rate = (vmax * substrate.concentration) / (self.km[i] + substrate.concentration)
             # test
             print(f'degr_rate is {substrate_change_rate}')
             degradation_rate.append(substrate_change_rate)
