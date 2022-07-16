@@ -34,7 +34,7 @@ class Sample:
         self.growth_rate = []
         self.biomass = []
         self.supplements = {}
-        self.volume = volume    # default volume is 1ml, since 
+        self.volume = volume    # default volume is in ml, since 
         self.ppod = 2.66*10**9  # default ppod is cells/ml
         ''' Default ppod(cells per 1 OD600 per volume) has been taken from:
                 Yap, P. Y., Trau, D. (2019). 
@@ -136,7 +136,8 @@ class Sample:
         ''' this function calculates extracellular volume of the sample '''
         extracel_v = self.extracel_vol
         for s in self.strain:
-            extracel_v -= convert_to_cells(s.biomass(t), self.ppod, self.volume) * s.cell_volume
+            s.cell_number = convert_to_cells(s.biomass(t), self.ppod, self.volume)
+            extracel_v -= s.cell_number * s.cell_volume
         self.extracel_vol = extracel_v
 
     
@@ -233,17 +234,16 @@ class Sample:
                 # change that happened
                 can_take = ((-gp.ext_difference)/ideal_minus*new_ext_conc)
                 # calculate "extra" concentration of the gp in the strain it belongs to
-                cell_number = convert_to_cells(gp.strain.biomass(t), self.ppod, self.volume)
-                extra_taken = (-gp.ext_difference-can_take)/cell_number
+                extra_taken = (-gp.ext_difference-can_take)/gp.strain.cell_number 
                 # convert concentration to concentration within cell:
-                in_moles = extra_taken * (self.volume- self.strain.cell_volume * cell_number) #TODO: continue fixing
+                in_moles = extra_taken * self.extracel_vol
                 extra_conc_converted = in_moles / gp.strain.cell_volume
                 # correct the internal gp concentration
                 fixed_conc = gp.concentration - extra_conc_converted
                 # test
                 if t>3.5 and t<5:
                     print(f''' {gp.strain.name} can take = {can_take}
-                    cell_number = {cell_number}
+                    cell_number = {gp.strain.cell_number}
                     it has taken in extra {extra_taken} per cell
                     which is {extra_conc_converted} within cell
                     conc before correction = {gp.concentration}
@@ -467,8 +467,7 @@ class Sample:
             else:
                 self.extracel_volume(t)
                 for s in self.strain:
-                    s.cell_number = convert_to_cells(s.biomass(t), self.ppod, self.volume)
-                    s.genetic_network.step(s.growth_rate(t), t, dt, self.volume)
+                    s.genetic_network.step(s.growth_rate(t), t, dt, self.extracel_vol)
                 # update the exctracellular concentration
                 self.external_step(dt)
                 # test
