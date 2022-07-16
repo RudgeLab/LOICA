@@ -283,9 +283,7 @@ class GeneticNetwork():
             #print(f'Elapsed time: {delta_t}')
             delta_t += self.substep_stochastic(t=t, dt=dt, growth_rate=growth_rate)
 
-    # added biomass parameter to follow on changes in geneproduct step
-    # this parameter is related to OD of the strain-genetic network   
-    def step(self, biomass, growth_rate=1, t=0, dt=0.1, ppod=2.66*10**9, sample_volume=1):
+    def step(self, growth_rate=1, t=0, dt=0.1, sample_volume=1):
         for op in self.operators:
             expression_rate = op.expression_rate(t, dt)
             if type(op.output)==list:
@@ -321,19 +319,16 @@ class GeneticNetwork():
                 print(f't={t}')
                 print(f'''{regulator.name} ext conc = {regulator.ext_conc}
                 int conc in {regulator.strain.name} = {regulator.concentration}''')
-            regulator.step(growth_rate, dt, biomass, ppod, sample_volume)
+            regulator.step(growth_rate, dt, sample_volume)
             # test
             if t>3.5 and t<5:
                 print(f'''after step in genetic network: ext conc = {regulator.ext_conc}
                 added internal conc (without diffusion)= {regulator.test}
                 total new int conc = {regulator.concentration}
-                biomass = {biomass}
-                ppod = {ppod}
-                cell number = {convert_to_cells(biomass, ppod, sample_volume)}
                 ext diff = {regulator.ext_difference}''')
 
         for reporter in self.reporters:
-            reporter.step(growth_rate, dt, biomass, ppod, sample_volume)
+            reporter.step(growth_rate, dt, sample_volume)
 
 
     def to_graph(self):

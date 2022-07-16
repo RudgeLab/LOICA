@@ -29,6 +29,7 @@ class Strain:
         self.genetic_network = genetic_network
         self.metabolism = metabolism
         self.cell_volume = cell_volume # default volume is in ml
+        self.cell_number = 0
         if self.genetic_network:
             self.reporters = self.genetic_network.reporters
             self.regulators = self.genetic_network.regulators

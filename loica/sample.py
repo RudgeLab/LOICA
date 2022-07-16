@@ -41,6 +41,7 @@ class Sample:
                 DIRECT E.COLI CELL COUNT AT OD600. 
                 https://tipbiosystems.com/wp-content/uploads/2020/05/AN102-E.coli-Cell-Count_2019_04_25.pdf
         '''
+        self.extracel_vol = volume
         # self.resources = resources        
 
         if issubclass(type(strain), Strain):
@@ -130,6 +131,14 @@ class Sample:
                     if rep.name == name:
                         rep.init_concentration = concentration
                     else: pass
+
+    def extracel_volume(self, t):
+        ''' this function calculates extracellular volume of the sample '''
+        extracel_v = self.extracel_vol
+        for s in self.strain:
+            extracel_v -= convert_to_cells(s.biomass(t), self.ppod, self.volume) * s.cell_volume
+        self.extracel_vol = extracel_v
+
     
     def external_step(self, dt):
         """ 
@@ -227,7 +236,7 @@ class Sample:
                 cell_number = convert_to_cells(gp.strain.biomass(t), self.ppod, self.volume)
                 extra_taken = (-gp.ext_difference-can_take)/cell_number
                 # convert concentration to concentration within cell:
-                in_moles = extra_taken * self.volume
+                in_moles = extra_taken * (self.volume- self.strain.cell_volume * cell_number) #TODO: continue fixing
                 extra_conc_converted = in_moles / gp.strain.cell_volume
                 # correct the internal gp concentration
                 fixed_conc = gp.concentration - extra_conc_converted
@@ -447,6 +456,7 @@ class Sample:
     def step(self, t, dt, stochastic=False):
         if self.gene_products and self.biomass:
             for supp,conc in self.supplements.items():
+                # TODO: change
                 supp.concentration = conc
                 self.supplement_is_gp(supp)
             if stochastic:
@@ -455,8 +465,10 @@ class Sample:
                 else:
                     self.step_stochastic(t, dt, self.ppod)
             else:
+                self.extracel_volume(t)
                 for s in self.strain:
-                    s.genetic_network.step(s.biomass(t), s.growth_rate(t), t, dt, self.ppod, self.volume)
+                    s.cell_number = convert_to_cells(s.biomass(t), self.ppod, self.volume)
+                    s.genetic_network.step(s.growth_rate(t), t, dt, self.volume)
                 # update the exctracellular concentration
                 self.external_step(dt)
                 # test
