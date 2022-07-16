@@ -298,7 +298,7 @@ class GeneticNetwork():
             if issubclass(type(imp), Degrader):
                 degradation_rate = imp.degradation_rate()
                 # test
-                if t<1:
+                if t>3.5 and t<5:
                     print('Degradation in action')
                     print(degradation_rate)
                 if type(imp.substrate)==list:
@@ -310,20 +310,20 @@ class GeneticNetwork():
             if issubclass(type(imp), Producer):
                 production_rate = imp.production_rate()
                 # test
-                if t<1:
+                if t>3.5 and t<5:
                     print('Production in action')
                     print(production_rate)
                 imp.product.express(production_rate)
 
         for regulator in self.regulators:
             # test
-            if t<1:
+            if t>3.5 and t<5:
                 print(f't={t}')
                 print(f'''{regulator.name} ext conc = {regulator.ext_conc}
                 int conc in {regulator.strain.name} = {regulator.concentration}''')
             regulator.step(growth_rate, dt, biomass, ppod, sample_volume)
             # test
-            if t<1:
+            if t>3.5 and t<5:
                 print(f'''after step in genetic network: ext conc = {regulator.ext_conc}
                 added internal conc (without diffusion)= {regulator.test}
                 total new int conc = {regulator.concentration}

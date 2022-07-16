@@ -58,7 +58,7 @@ class Degrader(Impactor):
         
         for i, substrate in enumerate(self.substrate):
             # test
-            print(f'{(self.enzyme.concentration / len(self.substrate))} split enzyme conc')
+            # print(f'{(self.enzyme.concentration / len(self.substrate))} split enzyme conc')
 
             # if enzyme has multiple substrates, enzyme is split equally between all substrates
             enzyme.append(self.enzyme.concentration / len(self.substrate))
@@ -67,7 +67,7 @@ class Degrader(Impactor):
             # calculate substrate degradation rate
             substrate_change_rate = (vmax * substrate.concentration) / (self.km[i] + substrate.concentration)
             # test
-            print(f'degr_rate is {substrate_change_rate}')
+            # print(f'degr_rate is {substrate_change_rate}')
             degradation_rate.append(substrate_change_rate)
 
         return degradation_rate
