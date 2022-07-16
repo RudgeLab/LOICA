@@ -139,10 +139,9 @@ class Sample:
             deterministic
         """
         for group in self.gene_products: 
-            ext_degr = group[0].ext_conc * group[0].ext_degr_rate
-            new_ext_conc = group[0].ext_conc - ext_degr * dt
+            ext_degr = group[0].ext_conc * group[0].ext_degr_rate * dt
             for gp in group:
-                gp.ext_conc = new_ext_conc
+                gp.ext_degraded = ext_degr
 
     def update_ext_conc(self, t, stochastic=False):  
         '''
@@ -153,7 +152,7 @@ class Sample:
             concentration_change = 0
             for gp in group:
                 concentration_change += gp.ext_difference   
-            new_ext_conc = group[0].ext_conc + concentration_change - group[0].ext_degraded # ext_degraded is from stochastic simulation with partitions
+            new_ext_conc = group[0].ext_conc + concentration_change - group[0].ext_degraded
             if new_ext_conc<0:
                 new_ext_conc = self.catch_negative_conc(group, t, stochastic)
             for gp in group:
@@ -176,6 +175,7 @@ class Sample:
         new_ext_conc = group[0].ext_conc
         if stochastic:
             # only needed if using for semi-stochastic and fully stochastic with partitions 
+            # needs to be revised
             ext_options = ["degradation"]
             for gp in group:
                 ext_options.append(gp) 
@@ -206,20 +206,23 @@ class Sample:
                     diffused_out.append(gp)
                 else:
                     new_ext_conc += gp.ext_difference
-            ideal_diffusion_out = 0
+            # how much would ideally be taken out and degraded
+            ideal_minus = 0
             for gp in diffused_out:
                 # calculate what would be the change of concentration if there were 
                 # enough resources
-                ideal_diffusion_out -= gp.ext_difference
-             # test
+                ideal_minus -= gp.ext_difference
+            if group[0].ext_degraded > 0:
+                ideal_minus += group[0].ext_degraded
+            # test
             if t>3.5 and t<5:
-                print(f''' {group[0].name} ideal diffusion out = {ideal_diffusion_out}
+                print(f''' {group[0].name} ideal diffusion out with degr = {ideal_minus}
                 while ext conc after addition to it = {new_ext_conc}''')
             for gp in diffused_out:
                 # calculate proportion of molecules each strain would take in from total
                 # then multiply by the available concentration to get the concentration
                 # change that happened
-                can_take = ((-gp.ext_difference)/ideal_diffusion_out*new_ext_conc)
+                can_take = ((-gp.ext_difference)/ideal_minus*new_ext_conc)
                 # calculate "extra" concentration of the gp in the strain it belongs to
                 cell_number = convert_to_cells(gp.strain.biomass(t), self.ppod, self.volume)
                 extra_taken = (-gp.ext_difference-can_take)/cell_number
