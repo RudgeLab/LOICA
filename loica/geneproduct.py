@@ -59,21 +59,21 @@ class GeneProduct:
     def degrade(self, rate):
         self.degradation_rate += rate
 
-    def step(self, growth_rate, dt, sample_volume=1):
+    def step(self, growth_rate, dt, extracellular_volume):
         # this is how much diffused in/out of the cell
         dext_conc_dt = self.diffusion_rate*(self.concentration-self.ext_conc)
-        # this section deals with concentration difference between sample and cell 
+        # this section deals with concentration difference between extracellular space and cell 
         # (which is due to different volume)
         if dext_conc_dt<0:
             # convert incoming concentration to moles, then to concentration within cell
-            in_moles = dext_conc_dt * (sample_volume - self.strain.cell_volume * self.strain.cell_number)
+            in_moles = dext_conc_dt * extracellular_volume
             converted_conc_change = in_moles / self.strain.cell_volume
             diffusion_cell = converted_conc_change
             diffusion_sample = dext_conc_dt
         elif dext_conc_dt>0:
             # convert outcoming concentration to moles, then to concentration within sample
             in_moles = dext_conc_dt * self.strain.cell_volume
-            converted_conc_change = in_moles / (sample_volume - self.strain.cell_volume * self.strain.cell_number)
+            converted_conc_change = in_moles / extracellular_volume
             diffusion_cell = dext_conc_dt
             diffusion_sample= converted_conc_change
         else:
@@ -99,7 +99,7 @@ class GeneProduct:
                 proportion_diff = diff_out/total_minus
                 corrected_diff = total_before_minus * proportion_diff
                 in_moles = corrected_diff * self.strain.cell_volume
-                converted_conc_change = in_moles / (sample_volume - self.strain.cell_volume * self.strain.cell_number)
+                converted_conc_change = in_moles / extracellular_volume
                 diffusion_sample= converted_conc_change
             self.concentration = 0
         else:
