@@ -24,11 +24,11 @@ class Strain:
     
     """
 
-    def __init__(self, name=None, genetic_network=None, metabolism=None, cell_volume=10**-12, strain=None):
+    def __init__(self, name=None, genetic_network=None, metabolism=None, cell_volume=10**-15, strain=None):
         self.name = name
         self.genetic_network = genetic_network
         self.metabolism = metabolism
-        self.cell_volume = cell_volume # default volume is in ml
+        self.cell_volume = cell_volume # default volume is in L
         self.cell_number = 0
         if self.genetic_network:
             self.reporters = self.genetic_network.reporters
