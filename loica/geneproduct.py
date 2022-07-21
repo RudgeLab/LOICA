@@ -75,7 +75,7 @@ class GeneProduct:
             in_moles = dext_conc_dt * self.strain.cell_volume
             converted_conc_change = in_moles / extracellular_volume
             diffusion_cell = dext_conc_dt
-            diffusion_sample= converted_conc_change
+            diffusion_sample = converted_conc_change
         else:
             diffusion_cell = dext_conc_dt
             diffusion_sample = dext_conc_dt
@@ -100,7 +100,7 @@ class GeneProduct:
                 corrected_diff = total_before_minus * proportion_diff
                 in_moles = corrected_diff * self.strain.cell_volume
                 converted_conc_change = in_moles / extracellular_volume
-                diffusion_sample= converted_conc_change
+                diffusion_sample = converted_conc_change
             self.concentration = 0
         else:
             self.concentration = self.next_concentration
