@@ -168,11 +168,11 @@ class Sample:
             for gp in group:
                 gp.ext_conc = new_ext_conc
             # test 
-            if t<5:
-                for gp in group:
-                    print(f'''After update:
-                    {gp.name} new ext conc = {gp.ext_conc}
-                    int conc in {gp.strain.name} = {gp.concentration}''')
+            # if t<5:
+            #     for gp in group:
+            #         print(f'''After update:
+            #         {gp.name} new ext conc = {gp.ext_conc}
+            #         int conc in {gp.strain.name} = {gp.concentration}''')
 
     def catch_negative_conc(self, group, t, stochastic=False):
         ''' 
@@ -207,8 +207,8 @@ class Sample:
             return new_ext_conc
         else:
             # test
-            if t<5:
-                print("triggered negative update")
+            # if t<5:
+            #     print("triggered negative update")
             # list of gene products that diffuse out of the extracellular space
             diffused_out = []
             for gp in group:
@@ -225,9 +225,9 @@ class Sample:
             if group[0].ext_degraded > 0:
                 ideal_minus += group[0].ext_degraded
             # test
-            if t<5:
-                print(f''' {group[0].name} ideal diffusion out with degr = {ideal_minus}
-                while ext conc after addition to it = {new_ext_conc}''')
+            # if t<5:
+            #     print(f''' {group[0].name} ideal diffusion out with degr = {ideal_minus}
+            #     while ext conc after addition to it = {new_ext_conc}''')
             for gp in diffused_out:
                 # calculate proportion of molecules each strain would take in from total
                 # then multiply by the available concentration to get the concentration
@@ -241,14 +241,14 @@ class Sample:
                 # correct the internal gp concentration
                 fixed_conc = gp.concentration - extra_conc_converted
                 # test
-                if t<5:
-                    print(f''' {gp.strain.name} can take = {can_take}
-                    cell_number = {gp.strain.cell_number}
-                    it has taken in extra {extra_taken} per cell
-                    which is {extra_conc_converted} within cell
-                    conc before correction = {gp.concentration}
-                    after correction = {fixed_conc}
-                    ''')
+                # if t<5:
+                #     print(f''' {gp.strain.name} can take = {can_take}
+                #     cell_number = {gp.strain.cell_number}
+                #     it has taken in extra {extra_taken} per cell
+                #     which is {extra_conc_converted} within cell
+                #     conc before correction = {gp.concentration}
+                #     after correction = {fixed_conc}
+                #     ''')
                 if fixed_conc < 0:
                     # this might happen if extra concentration that diffused into the cell was 
                     # degraded straight away
@@ -476,12 +476,12 @@ class Sample:
                 # update the exctracellular concentration
                 self.external_step(dt)
                 # test
-                if t<5:
-                    for group in self.gene_products:
-                        for gp in group:
-                            if gp.ext_degr_rate > 0:
-                                print(f'''After degradation 
-                                {gp.name} in {gp.strain.name} ext conc = {gp.ext_conc}''')
+                # if t<5:
+                #     for group in self.gene_products:
+                #         for gp in group:
+                #             if gp.ext_degr_rate > 0:
+                #                 print(f'''After degradation 
+                #                 {gp.name} in {gp.strain.name} ext conc = {gp.ext_conc}''')
                 self.update_ext_conc(t, stochastic)
 
 

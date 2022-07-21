@@ -84,8 +84,8 @@ class GeneProduct:
         dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration - diffusion_cell
         
         # test
-        without_def = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
-        self.test = without_def * dt
+        # without_def = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
+        # self.test = without_def * dt
         
         self.next_concentration = self.concentration + dconcdt * dt
         if self.next_concentration < 0:
