@@ -133,7 +133,8 @@ class Sample:
                     else: pass
 
     def extracel_volume(self, t):
-        ''' this function calculates extracellular volume of the sample '''
+        ''' this function calculates extracellular volume of the sample as well as 
+        updates cell_number of each strain'''
         extracel_v = self.extracel_vol
         for s in self.strain:
             s.cell_number = convert_to_cells(s.biomass(t), self.ppod, self.volume)
