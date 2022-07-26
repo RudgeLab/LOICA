@@ -56,7 +56,7 @@ class Assay:
         self.biomass_signal_id = biomass_signal_id
 
 
-    def run(self, substeps=10, nsr=0, biomass_bg=0, fluo_bg=0, stochastic=False, track_all=False, ppod=2.66*10**9):
+    def run(self, substeps=10, nsr=0, biomass_bg=0, fluo_bg=0, stochastic=False, mode=None, ppod=2.66*10**9):
         '''
         Run the assay measuring at specified time points, with simulation time step dt
         '''
@@ -72,7 +72,7 @@ class Assay:
                 for t in range(self.n_measurements):
                     # print(f'Current t={t}')
                     time = t * self.interval
-                    if track_all:
+                    if mode == 'track_all':
                     # Record raw measurements of each gene product both intracellularly 
                     # and extracellularly
                         for group in sample.gene_products:
@@ -114,9 +114,28 @@ class Assay:
                                 'Sample':sample_id
                                 }
                         self.measurements = self.measurements.append(row, ignore_index=True)
-                    
+        
+                    elif mode=='single_cell':
+                        for strain in sample.strain:
+                            for reporter in strain.reporters:
+                                sig = reporter.concentration
+                                signal_id = reporter.signal_id
+                                signal_name = reporter.name
+                                noise = np.random.normal(scale=np.sqrt(nsr))
+                                meas = fluo_bg + reporter.ext_conc 
+                                noisy_meas = (1 + noise) * meas
+                                noise_bg = np.random.normal(scale=np.sqrt(nsr))
+                                corr_meas = noisy_meas - (1 + noise_bg) * fluo_bg
+                                row = {
+                                        'Time': time, 
+                                        'Signal_id': signal_id, 
+                                        'Signal': f'{signal_name} in {strain.name}', 
+                                        'Measurement': corr_meas,
+                                        'Sample':sample_id
+                                        }
+                                self.measurements = self.measurements.append(row, ignore_index=True)
                     else:
-                        for i, reporter in enumerate(sample.reporters):
+                        for reporter in sample.reporters:
                             signal_id = reporter.signal_id
                             signal_name = reporter.name
                             noise = np.random.normal(scale=np.sqrt(nsr))
