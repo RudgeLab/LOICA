@@ -32,20 +32,29 @@ class Degrader(Impactor):
         super().__init__(enzyme, name, color)
         self.enzyme = enzyme
 
-        if type(Km)==list:
-            self.km = Km
-        else:
-            self.km = [Km]
-
-        if type(k2)==list:
-            self.k2 = k2
-        else:
-            self.k2 = [k2]
-
         if type(substrate)==list:
             self.substrate = substrate
         else:
             self.substrate = [substrate]
+
+        if type(Km)==list:
+            self.km = Km
+            if len(self.km)>len(self.substrate) or (len(self.km)<len(self.substrate) and len(self.km)!=1):
+                print('There should be either the same number of Km constants as substrates, or one Km value for all')
+        else:
+            self.km = []
+            for s in self.substrate:
+                self.km.append(Km)
+
+        if type(k2)==list:
+            self.k2 = k2
+            if len(self.km)>len(self.substrate) or (len(self.k2)<len(self.substrate) and len(self.k2)!=1):
+                print('There should be either the same number of k2 parameters as substrates, or one k2 value for all')
+        else:
+            self.k2 = []
+            for s in self.substrate:
+                self.k2.append(k2)
+
 
     def __str__(self):
         if self.name == None:
