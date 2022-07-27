@@ -22,8 +22,9 @@ class Degrader(Impactor):
 
     Methods
     ----------
-    degradation rate() - is calculated based on Michaelis-Menten law. Enzyme-substrate 
-    complex is assumed to be in quasi-steady-state (its concenration barely changes 
+    degradation rate() - is calculated based on Michaelis-Menten law and equation 4 
+    (competing substrates kinetics) from https://doi.org/10.1016/j.febslet.2013.06.025. 
+    Enzyme-substrate complex is assumed to be in quasi-steady-state (its concenration barely changes 
     over time).
     
     """
@@ -63,18 +64,16 @@ class Degrader(Impactor):
         
     def degradation_rate(self):
         degradation_rate = []
-        enzyme = []
         
         for i, substrate in enumerate(self.substrate):
-            # test
-            # print(f'{(self.enzyme.concentration / len(self.substrate))} split enzyme conc')
-
-            # if enzyme has multiple substrates, enzyme is split equally between all substrates
-            enzyme.append(self.enzyme.concentration / len(self.substrate))
+            x = 1
+            for ii, s in enumerate(self.substrate):
+                if i != ii:
+                    x+= s.concentration / self.km[ii]
             # calculate Vmax
-            vmax = self.k2[i] * enzyme[i]
+            vmax = self.k2[i] * self.enzyme.concentration
             # calculate substrate degradation rate
-            substrate_change_rate = (vmax * substrate.concentration) / (self.km[i] + substrate.concentration)
+            substrate_change_rate = (vmax * substrate.concentration) / (self.km[i]*x + substrate.concentration)
             # test
             # print(f'degr_rate is {substrate_change_rate}')
             degradation_rate.append(substrate_change_rate)
