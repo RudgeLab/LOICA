@@ -43,7 +43,7 @@ For more details please refer to our [Wiki](https://github.com/RudgeLab/LOICA/wi
 
 ## Documentation
 
- Please visit our documentation with API reference at Read the Docs [loica.rtfd.io](loica.rtfd.io)
+ Please visit our documentation with API reference at Read the Docs [loica.rtfd.io](https://loica.rtfd.io)
 
 ## Tutorials
 
