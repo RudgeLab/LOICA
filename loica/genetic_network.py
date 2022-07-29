@@ -347,6 +347,16 @@ class GeneticNetwork():
                     g.add_edge(op, o, type='positive')
             else:
                 g.add_edge(op, op.output, type='positive')
+        for im in self.impactors:
+            g.add_edge(im.enzyme, im, type='positive')
+            if issubclass(type(im), Producer):
+                g.add_edge(im, im.product, type='positive')
+            elif issubclass(type(im), Degrader):
+                if type(im.substrate)==list:
+                    for s in im.substrate:
+                        g.add_edge(im, s, type='negative')
+                else:
+                    g.add_edge(im, im.substrate, type='negative')
         return g
 
     def to_contracted_graph(self):
