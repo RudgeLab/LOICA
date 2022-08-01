@@ -77,10 +77,10 @@ class Degrader(Impactor):
                 if i != ii:
                     if self.mode=='papers':
                         substrate_change_rate = (vmax * substrate.concentration) / (self.km[i] + substrate.concentration + s.concentration)
-                    elif not self.node:
+                    elif not self.mode:
                         x+= s.concentration / self.km[ii]
     
-            if not self.node:
+            if not self.mode:
                 substrate_change_rate = (vmax * substrate.concentration) / (self.km[i]*x + substrate.concentration)
             # test
             # print(f'degr_rate is {substrate_change_rate}')
