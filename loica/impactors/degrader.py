@@ -29,7 +29,7 @@ class Degrader(Impactor):
     
     """
 
-    def __init__(self, enzyme, substrate, Km, k2, name=None, uri=None, sbol_comp=None, color='skyblue'):
+    def __init__(self, enzyme, substrate, Km, k2, mode=None, name=None, uri=None, sbol_comp=None, color='skyblue'):
         super().__init__(enzyme, name, color)
         self.enzyme = enzyme
 
@@ -56,6 +56,8 @@ class Degrader(Impactor):
             for s in self.substrate:
                 self.k2.append(k2)
 
+        self.mode=mode
+
 
     def __str__(self):
         if self.name == None:
@@ -64,7 +66,7 @@ class Degrader(Impactor):
         
     def degradation_rate(self):
         degradation_rate = []
-        
+
         for i, substrate in enumerate(self.substrate):
             x = 1
             for ii, s in enumerate(self.substrate):
@@ -73,7 +75,10 @@ class Degrader(Impactor):
             # calculate Vmax
             vmax = self.k2[i] * self.enzyme.concentration
             # calculate substrate degradation rate
-            substrate_change_rate = (vmax * substrate.concentration) / (self.km[i]*x + substrate.concentration)
+            if self.mode=='papers':
+                substrate_change_rate = (vmax * substrate.concentration) / (self.km[i] + substrate.concentration + self.substrate[i+1].concentration)
+            elif not self.node:
+                substrate_change_rate = (vmax * substrate.concentration) / (self.km[i]*x + substrate.concentration)
             # test
             # print(f'degr_rate is {substrate_change_rate}')
             degradation_rate.append(substrate_change_rate)
