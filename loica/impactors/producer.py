@@ -32,7 +32,7 @@ class Producer(Impactor):
 
     def __str__(self):
         if self.name == None:
-            return 'DEGRADER'
+            return 'PRODUCER'
         else: return self.name
         
     def production_rate(self):
