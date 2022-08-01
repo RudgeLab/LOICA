@@ -69,15 +69,18 @@ class Degrader(Impactor):
 
         for i, substrate in enumerate(self.substrate):
             x = 1
-            for ii, s in enumerate(self.substrate):
-                if i != ii:
-                    x+= s.concentration / self.km[ii]
             # calculate Vmax
             vmax = self.k2[i] * self.enzyme.concentration
+
             # calculate substrate degradation rate
-            if self.mode=='papers':
-                substrate_change_rate = (vmax * substrate.concentration) / (self.km[i] + substrate.concentration + self.substrate[i+1].concentration)
-            elif not self.node:
+            for ii, s in enumerate(self.substrate):
+                if i != ii:
+                    if self.mode=='papers':
+                        substrate_change_rate = (vmax * substrate.concentration) / (self.km[i] + substrate.concentration + s.concentration)
+                    elif not self.node:
+                        x+= s.concentration / self.km[ii]
+    
+            if not self.node:
                 substrate_change_rate = (vmax * substrate.concentration) / (self.km[i]*x + substrate.concentration)
             # test
             # print(f'degr_rate is {substrate_change_rate}')
