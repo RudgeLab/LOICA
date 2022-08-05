@@ -84,6 +84,7 @@ class Assay:
                                     'Sample':sample_id
                                     }
                             self.measurements = self.measurements.append(row, ignore_index=True)
+                            total = group[0].ext_conc
                             for gp in group:
                                 row = {
                                     'Time': time, 
@@ -93,6 +94,15 @@ class Assay:
                                     'Sample':sample_id
                                     }
                                 self.measurements = self.measurements.append(row, ignore_index=True)
+                                total += gp.concentration
+                            row = {
+                                'Time': time, 
+                                'Signal_id': None, 
+                                'Signal': f'Total {gp.name}', 
+                                'Measurement': total,
+                                'Sample':sample_id
+                                }
+                            self.measurements = self.measurements.append(row, ignore_index=True)
                         total = 0
                         # biomass of each strain recorded separately
                         for strain in sample.strain:
