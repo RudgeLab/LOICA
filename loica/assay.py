@@ -95,6 +95,7 @@ class Assay:
                                     }
                                 self.measurements = self.measurements.append(row, ignore_index=True)
                                 total += gp.concentration
+                            # TODO: calculate total at total M per total V
                             row = {
                                 'Time': time, 
                                 'Signal_id': None, 
