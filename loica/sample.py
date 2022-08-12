@@ -35,7 +35,7 @@ class Sample:
         self.biomass = []
         self.supplements = {}
         self.volume = volume    # default volume is in L
-        self.ppod = 2.66*10**6  # and default ppod is cells/L
+        self.ppod = 2.66*10**12  # and default ppod is cells/L
         ''' Default ppod(cells per 1 OD600 per volume) has been taken from:
                 Yap, P. Y., Trau, D. (2019). 
                 DIRECT E.COLI CELL COUNT AT OD600. 
