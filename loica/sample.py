@@ -137,8 +137,12 @@ class Sample:
         updates cell_number of each strain'''
         extracel_v = self.extracel_vol
         for s in self.strain:
-            s.cell_number = convert_to_cells(s.biomass(t), self.ppod, self.volume)
-            extracel_v -= s.cell_number * s.cell_volume
+            current_cell_n = convert_to_cells(s.biomass(t), self.ppod, self.volume)
+            difference = s.cell_number - current_cell_n 
+            s.cell_number = current_cell_n
+            # if there are more cells, difference is negative, extracellular volume 
+            # decreases
+            extracel_v += difference * s.cell_volume    
         self.extracel_vol = extracel_v
 
     
