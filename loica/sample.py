@@ -154,9 +154,10 @@ class Sample:
             deterministic
         """
         for group in self.gene_products: 
-            ext_degr = group[0].ext_conc * group[0].ext_degr_rate * dt
-            for gp in group:
-                gp.ext_degraded = ext_degr
+            if group[0].ext_degr_rate != 0:
+                ext_degr = group[0].ext_conc * group[0].ext_degr_rate * dt
+                for gp in group:
+                    gp.ext_degraded = ext_degr
 
     def update_ext_conc(self, t, stochastic=False):  
         '''
