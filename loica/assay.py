@@ -56,7 +56,7 @@ class Assay:
         self.biomass_signal_id = biomass_signal_id
 
 
-    def run(self, substeps=10, nsr=0, biomass_bg=0, fluo_bg=0, stochastic=False, mode=None, ppod=2.66*10**9):
+    def run(self, substeps=10, nsr=0, biomass_bg=0, fluo_bg=0, stochastic=False, mode=None, ppod=None):
         '''
         Run the assay measuring at specified time points, with simulation time step dt
         '''
@@ -67,7 +67,8 @@ class Assay:
             for sample_id, sample in enumerate(self.samples):
                 sample.initialize()
                 # Add ppod to sample so cell number could be calculated from absorbance
-                sample.calibrate(ppod)
+                if ppod:
+                    sample.calibrate(ppod)
                 # Integrate models
                 for t in range(self.n_measurements):
                     # print(f'Current t={t}')
