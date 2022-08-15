@@ -66,11 +66,7 @@ class GeneProduct:
             # diffusion into cell
             # convert incoming concentration to moles, then to concentration within cell
             in_moles = dext_conc_dt * extracellular_volume
-            # test
-            # print(f'In moles {in_moles}')
             converted_conc_change = in_moles / self.strain.cell_volume
-            # test
-            # print(f'Converted conc change {converted_conc_change}')
             diffusion_cell = converted_conc_change
             diffusion_sample = dext_conc_dt
         elif dext_conc_dt>0:
@@ -82,23 +78,15 @@ class GeneProduct:
         else:
             diffusion_cell = dext_conc_dt
             diffusion_sample = dext_conc_dt
-        # test
-        # print(f'Diff cell {diffusion_cell}')
-        # print(f'Diff sample {diffusion_sample}')
 
         # change of concentration within cell
         dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration - diffusion_cell
-        # test
-        # print(f'dconcdt {dconcdt}')
-        # test
-        # without_def = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
-        # self.test = without_def * dt
-        
         self.next_concentration = self.concentration + dconcdt * dt
+        # check if resulting concentration is negative
         if self.next_concentration < 0:
             if dext_conc_dt>0:
                 # if there is diffusion out of cell, then diffusion and degradation are
-                # proportional. This corrects diffusion
+                # proportional. This secion of code corrects diffusion
                 degr_and_gr = ((self.degradation_rate + growth_rate)*self.concentration) * dt
                 diff_out = diffusion_cell * dt
                 total_minus = degr_and_gr + diff_out
@@ -111,15 +99,12 @@ class GeneProduct:
             self.concentration = 0
         else:
             self.concentration = self.next_concentration
-        # then external concentration change based on number of cells that produce
+        # ideal external concentration change is based on number of cells that produce
         # or intake this molecule
         self.ext_difference = diffusion_sample * dt * self.strain.cell_number
         # reset rates
         self.expression_rate = 0
         self.degradation_rate = self.degradation_r
-        # test
-        # print(f'{self.name} new concentration = {self.concentration}')
-        # print(f'{self.name} ext change = {self.ext_difference}')
 
     def __str__(self):
         return self.name
