@@ -113,10 +113,6 @@ class GeneticNetwork():
         for imp in self.impactors:
             if issubclass(type(imp), Degrader):
                 degradation_rate = imp.degradation_rate()
-                # test
-                # if t<5:
-                #     print('Degradation in action')
-                #     print(degradation_rate)
                 if type(imp.substrate)==list:
                     for i, s in enumerate(imp.substrate):
                         s.degrade(degradation_rate[i])
@@ -125,39 +121,11 @@ class GeneticNetwork():
                         s.degrade(degradation_rate[i])
             if issubclass(type(imp), Producer):
                 production_rate = imp.production_rate()
-                # test
-                # if t<5:
-                #     print('Production in action')
-                #     print(production_rate)
                 imp.product.express(production_rate)
 
         for regulator in self.regulators:
-            # test
-            # if True:
-            # # if t<=0.0048 or t>23.9:
-            # # if t>2 and t<2.1:
-            #     if regulator.diffusion_rate > 0:
-            #         print(f't={t}')
-            #         print(f'''{regulator.name} ext conc = {regulator.ext_conc}
-            #         int conc in {regulator.strain.name} = {regulator.concentration}
-            #         {regulator.diffusion_rate} diff r
-            #         {extracellular_volume} ext vol
-            #         {regulator.strain.cell_volume} cell vol
-            #         {dt} dt
-            #         {regulator.strain.cell_number} cell number
-            #         {growth_rate} growth rate
-            #         ''')
             regulator.step(growth_rate, dt, extracellular_volume)
-            # test
-            # if True:
-            # # if t<=0.0048 or t>23.9:
-            # # if t>2 and t<2.1:
-            #     if regulator.diffusion_rate > 0:
-            #         print(f'''after step in genetic network:
-            #         "next conc" {regulator.next_concentration}
-            #         new int conc = {regulator.concentration}
-            #         ext diff = {regulator.ext_difference}''')
-
+            
         for reporter in self.reporters:
             reporter.step(growth_rate, dt, extracellular_volume)
 
