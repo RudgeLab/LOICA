@@ -1,7 +1,5 @@
 from itertools import groupby
 from .metabolism import convert_to_cells
-import numpy as np
-from random import shuffle
 from .strain import Strain
 
 class Sample:
