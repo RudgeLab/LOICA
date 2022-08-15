@@ -24,8 +24,14 @@ class Sample:
     -------
     add_supplement(supplement, concentration)
         establishes the concentration of Supplement
+    calibrate(ppod)
+        sets particles per OD600, used to calculate cell number
+    set_extracel_degr(chemical_name, ext_degr_rate)
+        set extracellular degradation rate for GeneProducts with the same name
+    set_ext_conc(chemical_name, ext_concentration)
+        set starting extracellular concentration for GeneProducts with the same name
     """
-    def __init__(self, strain=None, media=None, volume=0.0002): # resources=None
+    def __init__(self, strain=None, media=None, volume=0.0002):
 
         self.strain = []
         self.media = media
@@ -41,8 +47,7 @@ class Sample:
                 DIRECT E.COLI CELL COUNT AT OD600. 
                 https://tipbiosystems.com/wp-content/uploads/2020/05/AN102-E.coli-Cell-Count_2019_04_25.pdf
         '''
-        self.extracel_vol = volume
-        # self.resources = resources        
+        self.extracel_vol = volume        
 
         if issubclass(type(strain), Strain):
             self.strain = [strain]
@@ -91,10 +96,15 @@ class Sample:
             s.genetic_network.initialize()
 
     def set_supplement(self, supplement, concentration):
+        # TODO: also set how often it is added, how much volume
         self.supplements[supplement] = concentration
 
     def supplement_is_gp(self, supplement):
-        ''' set external concentration of gp to supplement concentration is they have the same name'''
+        ''' 
+            Sets external concentration of gp to supplement concentration is they 
+            have the same name
+        '''
+        # TODO: recalculate concentration based on moles per new volume
         for group in self.gene_products:
             if group[0].name == supplement.name:
                 for gp in group:
@@ -124,8 +134,10 @@ class Sample:
                     else: pass
 
     def extracel_volume(self, t):
-        ''' this function calculates extracellular volume of the sample as well as 
-        updates cell_number of each strain'''
+        ''' 
+            Calculates extracellular volume of the sample as well as 
+            updates cell_number of each strain
+        '''
         extracel_v = self.extracel_vol
         for s in self.strain:
             current_cell_n = convert_to_cells(s.biomass(t), self.ppod, self.volume)
@@ -146,10 +158,8 @@ class Sample:
     
     def external_step(self, dt):
         """ 
-            method that calculates the change in the extracellular concentration
+            Calculates the change in the extracellular concentration
             due to degradation
-
-            deterministic
         """
         for group in self.gene_products: 
             if group[0].ext_degr_rate != 0:
@@ -215,242 +225,22 @@ class Sample:
                 gp.concentration = fixed_conc
         return 0
                 
-    def st_external_substep(self, tau_=None):
-        """ 
-            method similar to GeneticNetwork.substep()
-            but only for extracellular degradation. Used in simulation with partitions.
-
-            stochastic
-        """
-        # Propensities
-        a = []
-
-        # Compute propensities for degradation of gene products
-        for group in self.gene_products:
-            # degradation reaction
-            a.append(group[0].ext_degr_rate * group[0].ext_conc)
-            # reset how much degraded
-            group[0].ext_degraded = 0
-        
-        # Make list of propensities into array
-        a = np.array(a)
-        # Total of propensities
-        A = a.sum()
-
-        if A == 0:
-            if tau_:
-                tau = tau_
-            else:
-                tau = 0
-            return tau
-        
-        # Time step
-        if tau_ and tau_ != 0:
-            tau = tau_
-        else:
-            tau = 1/A * np.log(1/np.random.random())
-
-        # Random number to select next reaction
-        a_i = np.random.random() * A
-
-        # Find reaction and update gene product levels
-        for i, group in enumerate(self.gene_products):
-            if a_i < np.sum(a[:i+1]):
-                # Mark extracellular degradation of geneproduct in group
-                group[0].ext_degraded = 1
-                # #test
-                # print(f'{group[0].name} ext degradation')
-                break
-
-        # Return elapsed time
-        return tau
-        
-    def total_substep_stochastic(self, t=0, dt=0.1, type='stochastic'):
-        '''
-            method that links stochastic substeps for each genetic network and 
-            extracellular space.
-            semi-stochastic or fully stochastic
-            with partitions
-        '''
-        # shuffle the list
-        shuffle(self.options)
-
-        # get tau by running substep for the first item in the shuffled list
-        # and then use this tau in other substeps
-        if self.options[0]=="extracellular space":
-            tau = self.st_external_substep()
-            for s in self.options[1:]:
-                if type=='full+comp':               
-                    new_tau = s.genetic_network.substep_stochastic(t, dt, s.growth_rate(t), s.biomass(t), tau)
-                elif type=='semi+comp':
-                    new_tau = s.genetic_network.substep_semistochastic(t, dt, s.growth_rate(t), s.biomass(t), tau)
-                    tau = new_tau
-            self.update_ext_conc(stochastic=True)
-        else:
-            if type=='full+comp':
-                tau = self.options[0].genetic_network.substep_stochastic(t, dt, self.options[0].growth_rate(t), self.options[0].biomass(t))
-            elif type=='semi+comp':
-                tau = self.options[0].genetic_network.substep_semistochastic(t, dt, self.options[0].growth_rate(t), self.options[0].biomass(t))
-            for o in self.options[1:]:
-                if o == "extracellular space":
-                    new_tau = self.st_external_substep(tau_=tau)
-                    tau = new_tau
-                else:
-                    if type=='full+comp':
-                        new_tau = o.genetic_network.substep_stochastic(t, dt, o.growth_rate(t), o.biomass(t), tau)
-                    elif type=='semi+comp':
-                        new_tau = o.genetic_network.substep_semistochastic(t, dt, o.growth_rate(t), o.biomass(t), tau)
-                        tau = new_tau
-            self.update_ext_conc(stochastic=True)
-                    
-        return tau
-
-    def substep_stochastic(self, t=0, dt=0.1, ppod=2.66*10**12):
-        ''' fully stochasic, only one reaction happens out of all'''
-        # Propensities
-        a = []
-
-        # Compute expression rates
-        for s in self.strain:
-            for op in s.genetic_network.operators:
-                expression_rate = op.expression_rate(t, dt)
-                output = op.output
-                if type(op.output)!=list:
-                    output = [output]
-                for o in output:
-                    o.express(expression_rate)
-
-        # Compute propensities for production, degradation, diffusion in and out of gene products
-        for group in self.gene_products:
-            for gp in group:
-                # Production reaction
-                a.append(gp.expression_rate)
-                # Degradation
-                a.append((gp.degradation_rate + gp.strain.growth_rate(t)) * gp.concentration)
-                # Diffusion out of cell
-                a.append(gp.diffusion_rate*gp.concentration)
-                # Difusion into the cell
-                a.append(gp.diffusion_rate*gp.ext_conc)
-                # External degradation
-                a.append(gp.ext_conc*gp.ext_degr_rate)
-                # reset values
-                gp.ext_difference = 0
-
-        # Make list of propensities into array
-        a = np.array(a)
-        # Total of propensities
-        A = a.sum()
-        
-        # Time step
-        tau = 1/A * np.log(1/np.random.random())
-        # Random number to select next reaction
-        a_i = np.random.random() * A
-
-        # Find reaction and update gene product levels
-        x = 0
-        complete = False
-        for group in self.gene_products:
-            for ii, gp in enumerate(group):
-                i = ii+x
-                if a_i < np.sum(a[:i*5+1]):
-                    # Production of geneproduct gp
-                    gp.concentration += 1
-                    complete = True
-                    break
-                elif a_i < np.sum(a[:i*5+2]):
-                    # Degradation of geneproduct gp
-                    gp.concentration -= 1
-                    complete = True
-                    break
-                elif a_i < np.sum(a[:i*5+3]):
-                    # Diffusion of geneproduct gp out of cell
-                    gp.concentration -= 1
-                    gp.ext_difference = convert_to_cells(gp.strain.biomass(t), ppod, self.volume)
-                    complete = True
-                    break
-                elif a_i < np.sum(a[:i*5+4]):
-                    # Diffusion of geneproduct gp into the cell
-                    gp.concentration += 1
-                    gp.ext_difference = - convert_to_cells(gp.strain.biomass(t), ppod, self.volume)
-                    complete = True
-                    break
-                elif a_i < np.sum(a[:i*5+5]):
-                    # External degradation of geneproduct gp
-                    gp.ext_difference -= 1
-                    complete = True
-                    break
-            if complete:
-                break
-            x += len(group)
-        
-        # Reset expression rates for next step and update external concentration
-        # TODO: catch negative external concentration
-        for group in self.gene_products:
-            concentration_change = 0
-            for gp in group:
-                gp.expression_rate = 0
-                concentration_change += gp.ext_difference   
-            new_ext_conc = group[0].ext_conc + concentration_change
-            for gp in group:
-                gp.ext_conc = new_ext_conc
-        
-        # Return elapsed time
-        return tau
-
-    def step_stochastic(self, t=0, dt=0.1, type='full_stochastic', ppod=2.66*10**12):
-        ''' 
-            similar to GeneticNetwork.step_stochastic(). 
-            Use but uses either 
-            self.total_substep_stochastic() or GeneticNetwork.step_stochastic()
-        '''
-        delta_t = 0
-        if type=='full_stochastic':
-            while delta_t < dt:
-                # print(f'Elapsed time: {delta_t}')
-                delta_t += self.substep_stochastic(t, dt, ppod=ppod)
-        elif type=='semi+comp' or type=='full+comp':
-            while delta_t < dt:
-                # print(f'Elapsed time: {delta_t}')
-                delta_t += self.total_substep_stochastic(t, dt, type)
-                if delta_t == 0:
-                    return
-
-    def step(self, t, dt, stochastic=False):
+    def step(self, t, dt):
+        ''' deterministic '''
         if self.gene_products and self.biomass:
             for supp,conc in self.supplements.items():
                 # TODO: change
                 supp.concentration = conc
                 self.supplement_is_gp(supp)
-            if stochastic:
-                if type(stochastic)==str:
-                    self.step_stochastic(t, dt, type=stochastic)
-                else:
-                    self.step_stochastic(t, dt, self.ppod)
-            else:
-                self.extracel_volume(t)
-                for s in self.strain:
-                    s.genetic_network.step(s.growth_rate(t), t, dt, self.extracel_vol)
-                # update the exctracellular concentration
-                self.external_step(dt)
-                # test
-                # if t<5:
-                #     for group in self.gene_products:
-                #         for gp in group:
-                #             if gp.ext_degr_rate > 0:
-                #                 print(f'''After degradation 
-                #                 {gp.name} in {gp.strain.name} ext conc = {gp.ext_conc}''')
-                self.update_ext_conc(t)
-                # test
-                # for group in self.gene_products:
-                #         if group[0].ext_conc == 0:
-                #             print(t)
-                # if True:
-                # # if t<=0.0048 or t>23.9:
-                # # if t>2 and t<2.1:
-                #     for group in self.gene_products:
-                #         for gp in group:
-                #             print(f'''After update {gp.concentration} in cell
-                #             {gp.ext_conc} extracellular''')
+            # calculate cell number, extracellular volume and external concentration
+            self.extracel_volume(t)
+            # step
+            for s in self.strain:
+                s.genetic_network.step(s.growth_rate(t), t, dt, self.extracel_vol)
+            # update the exctracellular concentration
+            self.external_step(dt)
+            self.update_ext_conc(t)
+
 
 
 
