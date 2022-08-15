@@ -13,8 +13,6 @@ from .impactors.producer import Producer
 from typing import List #, Dict, Tuple, Optional, Union, Any
 import numpy as np
 from math import floor, ceil
-# test
-from .metabolism import convert_to_cells
 
 class GeneticNetwork():
     """
