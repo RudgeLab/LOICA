@@ -29,8 +29,13 @@ class Assay:
 
     Methods
     -------
-    run(substeps=10, nsr=0, biomass_bg=0, fluo_bg=0)
+    run(substeps=10, nsr=0, biomass_bg=0, fluo_bg=0, mode=None, ppod=None)
         Runs the Assay time series
+        mode can be either:
+        (empty) - gives overall fluorescence and biomass measurements
+        'track all' - raw numbers from the simulation. Records all GeneProducts in each
+                      strain and extracellular space. Also records biomass of each strain.
+        'single_cell' - fluorescence measurements of a cell per strain
     upload(flapjack, study)
         Upload the data produced by running the Assay to Flapjack into the Study
     """
@@ -56,7 +61,7 @@ class Assay:
         self.biomass_signal_id = biomass_signal_id
 
 
-    def run(self, substeps=10, nsr=0, biomass_bg=0, fluo_bg=0, stochastic=False, mode=None, ppod=None):
+    def run(self, substeps=10, nsr=0, biomass_bg=0, fluo_bg=0, mode=None, ppod=None):
         '''
         Run the assay measuring at specified time points, with simulation time step dt
         '''
@@ -66,7 +71,7 @@ class Assay:
         with tqdm(total=100) as pbar:
             for sample_id, sample in enumerate(self.samples):
                 sample.initialize()
-                # Add ppod to sample so cell number could be calculated from absorbance
+                # Calibrate sample so cell number could be calculated from absorbance
                 if ppod:
                     sample.calibrate(ppod)
                 # Integrate models
@@ -86,7 +91,6 @@ class Assay:
                                         'Sample':sample_id
                                         }
                                 self.measurements = self.measurements.append(row, ignore_index=True)
-                                total = group[0].ext_conc
                                 for gp in group:
                                     row = {
                                         'Time': time, 
@@ -96,16 +100,7 @@ class Assay:
                                         'Sample':sample_id
                                         }
                                     self.measurements = self.measurements.append(row, ignore_index=True)
-                                    total += gp.concentration
-                                # TODO: calculate total at total M per total V
-                                row = {
-                                    'Time': time, 
-                                    'Signal_id': None, 
-                                    'Signal': f'Total {gp.name}', 
-                                    'Measurement': total,
-                                    'Sample':sample_id
-                                    }
-                                self.measurements = self.measurements.append(row, ignore_index=True)
+                                   
                             total = 0
                             # biomass of each strain recorded separately
                             for strain in sample.strain:
@@ -175,9 +170,6 @@ class Assay:
                         # Record measurement of biomass
                         noise = np.random.normal(scale=np.sqrt(nsr))
                         noise_bg = np.random.normal(scale=np.sqrt(nsr))
-                        # if there are multiple strains with different metabolisms, then each biomass
-                        # is recorded separately (as if others do not exist) and then all together
-                        # TODO: find out if I need to change self.biomass_signal_id
                         meas = biomass_bg
                         for strain in sample.strain:
                             meas += strain.biomass(time)
@@ -192,16 +184,9 @@ class Assay:
                                 }
                         self.measurements = self.measurements.append(row, ignore_index=True)
                     # Compute next time step
-                    # if stochastic:
-                    #     time = t * self.interval
-                    #     if stochastic=='semi+comp' or stochastic=='full+comp':
-                    #         sample.step(time, self.interval, stochastic)
-                    #     else:
-                    #         sample.step(time, self.interval, stochastic=True)
-                    # else:
-                    #     for tt in range(substeps):
-                    #         time = t * self.interval + tt * dt
-                    #         sample.step(time, dt)
+                    for tt in range(substeps):
+                        time = t * self.interval + tt * dt
+                        sample.step(time, dt)
                 pbar.update(1 / n_samples * 100)
             pbar.close()
                 
