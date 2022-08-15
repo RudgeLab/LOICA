@@ -100,188 +100,6 @@ class GeneticNetwork():
                 else: print('Unsupported Type, it should be an Reporter')
         else: print('Unsupported Type, it should be an Reporter')
 
-    def substep_semistochastic(self, t=0, dt=0.1, growth_rate=1, biomass=1, tau_=None):
-        ''' diffusion is deterministic '''
-        # Propensities
-        a = []
-
-        # Compute expression rates
-        for op in self.operators:
-            expression_rate = op.expression_rate(t, dt)
-            output = op.output
-            if type(op.output)!=list:
-                output = [output]
-            for o in output:
-                o.express(expression_rate)
-
-        # Compute propensities for production and degradation of gene products
-        gene_products = self.regulators + self.reporters
-        for gp in gene_products:
-            # Production reeaction
-            a.append(gp.expression_rate)
-            a.append((gp.degradation_rate + growth_rate) * gp.concentration)
-
-        # Make list of propensities into array
-        a = np.array(a)
-        # Total of propensities
-        A = a.sum()
-
-        if A == 0:
-            if tau_:
-                tau = tau_
-            else:
-                tau = 0
-            return tau
-        
-        # Time step
-        if tau_ and tau_ != 0:
-            tau = tau_
-        else:
-            tau = 1/A * np.log(1/np.random.random())
-        
-        # TODO: figure out how to remove this loop
-        for gp in gene_products:
-            dext_conc_dt = gp.diffusion_rate*(gp.concentration-gp.ext_conc)
-            # how much diffuses out of cell per time tau
-            gp.int_change += dext_conc_dt*tau
-
-        # Random number to select next reaction
-        a_i = np.random.random() * A
-
-        # Find reaction and update gene product levels
-        for i,gp in enumerate(gene_products):
-            if a_i < np.sum(a[:i*2+1]):
-                # Production of geneproduct gp
-                gp.concentration += 1
-                #test
-                # print(f'{gp.name} +conc - {gp.concentration}')
-                break
-            elif a_i < np.sum(a[:i*2+2]):
-                # Degradation of geneproduct gp
-                gp.concentration -= 1
-                #test
-                # print(f'{gp.name} -conc - {gp.concentration}')
-                break
-        
-
-        # Reset expression rates for next step
-        # and update concentration and ext_difference
-        for gp in gene_products:
-            # TODO: is there a way to shorten?
-            if gp.int_change > 0:
-                # internal concentration minus diffusion out
-                new_conc = gp.concentration - floor(gp.int_change)
-                gp.concentration = new_conc
-                # external difference equals what each cell diffused multiplied by number of
-                # cells
-                gp.ext_difference = floor(gp.int_change) * floor(biomass)
-                # update int_change so it would be just leftover float
-                updated_int_change = gp.int_change - floor(gp.int_change)
-            elif gp.int_change < 0:
-                # internal concentration minus diffusion out
-                new_conc = gp.concentration - ceil(gp.int_change)
-                gp.concentration = new_conc
-                # external difference equals what each cell diffused multiplied by number of
-                # cells
-                gp.ext_difference = ceil(gp.int_change) * floor(biomass)
-                # update int_change so it would be just leftover float
-                updated_int_change = gp.int_change - ceil(gp.int_change)
-                gp.int_change = updated_int_change
-            gp.expression_rate = 0
-
-        # Return elapsed time 
-        return tau
-
-    def substep_stochastic(self, t=0, dt=0.1, growth_rate=1, biomass=1, tau_=None):
-        ''' with stochastic diffusion'''
-        # Propensities
-        a = []
-
-        # Compute expression rates
-        for op in self.operators:
-            expression_rate = op.expression_rate(t, dt)
-            output = op.output
-            if type(op.output)!=list:
-                output = [output]
-            for o in output:
-                o.express(expression_rate)
-
-        # Compute propensities for production and degradation of gene products
-        gene_products = self.regulators + self.reporters
-        for gp in gene_products:
-            # Production reaction
-            a.append(gp.expression_rate)
-            # Degradation
-            a.append((gp.degradation_rate + growth_rate) * gp.concentration)
-            # Diffusion out of cell
-            a.append(gp.diffusion_rate*gp.concentration)
-            # Difusion into the cell
-            a.append(gp.diffusion_rate*gp.ext_conc)
-
-        # Make list of propensities into array
-        a = np.array(a)
-        # Total of propensities
-        A = a.sum()
-
-        if A == 0:
-            if tau_:
-                tau = tau_
-            else:
-                tau = 0
-            return tau
-        
-        # Time step
-        if tau_ and tau_ != 0:
-            tau = tau_
-        else:
-            tau = 1/A * np.log(1/np.random.random())
-        # Random number to select next reaction
-        a_i = np.random.random() * A
-
-        # Find reaction and update gene product levels
-        for i,gp in enumerate(gene_products):
-            if a_i < np.sum(a[:i*4+1]):
-                # Production of geneproduct gp
-                gp.concentration += 1
-                gp.ext_difference = 0
-                #test
-                # print(f'{gp.name} +conc - {gp.concentration}')
-                break
-            elif a_i < np.sum(a[:i*4+2]):
-                # Degradation of geneproduct gp
-                gp.concentration -= 1
-                gp.ext_difference = 0
-                #test
-                # print(f'{gp.name} -conc - {gp.concentration}')
-                break
-            elif a_i < np.sum(a[:i*4+3]):
-                # Diffusion of geneproduct gp out of cell
-                gp.concentration -= 1
-                gp.ext_difference = biomass
-                #test
-                # print(f'{gp.name} -conc (+ext) - {gp.concentration}')
-                break
-            elif a_i < np.sum(a[:i*4+4]):
-                # Diffusion of geneproduct gp into the cell
-                gp.concentration += 1
-                gp.ext_difference = - biomass
-                # print(f'{gp.name} +conc (-ext) - {gp.concentration}')
-                break
-            else:
-                gp.ext_difference = 0
-        
-        # Reset expression rates for next step
-        for gp in gene_products:
-            gp.expression_rate = 0
-
-        # Return elapsed time
-        return tau
-                
-    def step_stochastic(self, growth_rate=1, t=0, dt=0.1):
-        delta_t = 0
-        while delta_t < dt:
-            #print(f'Elapsed time: {delta_t}')
-            delta_t += self.substep_stochastic(t=t, dt=dt, growth_rate=growth_rate)
 
     def step(self, growth_rate=1, t=0, dt=0.1, extracellular_volume=1):
         for op in self.operators:
@@ -315,17 +133,30 @@ class GeneticNetwork():
 
         for regulator in self.regulators:
             # test
-            # if t<5:
-            #     print(f't={t}')
-            #     print(f'''{regulator.name} ext conc = {regulator.ext_conc}
-            #     int conc in {regulator.strain.name} = {regulator.concentration}''')
+            # if True:
+            # # if t<=0.0048 or t>23.9:
+            # # if t>2 and t<2.1:
+            #     if regulator.diffusion_rate > 0:
+            #         print(f't={t}')
+            #         print(f'''{regulator.name} ext conc = {regulator.ext_conc}
+            #         int conc in {regulator.strain.name} = {regulator.concentration}
+            #         {regulator.diffusion_rate} diff r
+            #         {extracellular_volume} ext vol
+            #         {regulator.strain.cell_volume} cell vol
+            #         {dt} dt
+            #         {regulator.strain.cell_number} cell number
+            #         {growth_rate} growth rate
+            #         ''')
             regulator.step(growth_rate, dt, extracellular_volume)
             # test
-            # if t<5:
-            #     print(f'''after step in genetic network: ext conc = {regulator.ext_conc}
-            #     added internal conc (without diffusion)= {regulator.test}
-            #     total new int conc = {regulator.concentration}
-            #     ext diff = {regulator.ext_difference}''')
+            # if True:
+            # # if t<=0.0048 or t>23.9:
+            # # if t>2 and t<2.1:
+            #     if regulator.diffusion_rate > 0:
+            #         print(f'''after step in genetic network:
+            #         "next conc" {regulator.next_concentration}
+            #         new int conc = {regulator.concentration}
+            #         ext diff = {regulator.ext_difference}''')
 
         for reporter in self.reporters:
             reporter.step(growth_rate, dt, extracellular_volume)
