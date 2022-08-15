@@ -45,9 +45,6 @@ class GeneProduct:
         self.ext_degraded=0
         self.strain = None
 
-        # test
-        self.test = 0
-
 
     def initialize(self):
         self.concentration = self.init_concentration
@@ -65,9 +62,15 @@ class GeneProduct:
         # this section deals with concentration difference between extracellular space and cell 
         # (which is due to different volume)
         if dext_conc_dt<0:
+            # if this is negative, there is higher concentration outside of cell
+            # diffusion into cell
             # convert incoming concentration to moles, then to concentration within cell
             in_moles = dext_conc_dt * extracellular_volume
+            # test
+            # print(f'In moles {in_moles}')
             converted_conc_change = in_moles / self.strain.cell_volume
+            # test
+            # print(f'Converted conc change {converted_conc_change}')
             diffusion_cell = converted_conc_change
             diffusion_sample = dext_conc_dt
         elif dext_conc_dt>0:
@@ -79,10 +82,14 @@ class GeneProduct:
         else:
             diffusion_cell = dext_conc_dt
             diffusion_sample = dext_conc_dt
+        # test
+        # print(f'Diff cell {diffusion_cell}')
+        # print(f'Diff sample {diffusion_sample}')
 
         # change of concentration within cell
         dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration - diffusion_cell
-        
+        # test
+        # print(f'dconcdt {dconcdt}')
         # test
         # without_def = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration
         # self.test = without_def * dt
