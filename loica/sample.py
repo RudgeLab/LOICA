@@ -60,7 +60,7 @@ class Sample:
                 if s.genetic_network:
                     self.reporters += s.reporters
                     list_gp += s.gene_products
-                # assign strain to each gene_product (for self.catch_negative_conc())
+                # assign strain to each gene_product
                 for gp in s.gene_products:
                     gp.strain = s
                 if s.metabolism:
@@ -71,10 +71,6 @@ class Sample:
             # group into sublists based on the identity and add to self.gene_products
             for name, identical_gproducts in groupby(list_gp, lambda x: x.name):
                 self.gene_products.append(list(identical_gproducts))
-
-        # create an options list for semi-stochastic simulation 
-        # (used in self.total_substep_stochastic(self))
-        self.options = self.strain[:]
     
     def calibrate(self, ppod):
         ''' sets particle per OD600 - used to convert absorbance to cell number'''
@@ -89,10 +85,6 @@ class Sample:
             if group[0].name == chemical_name:
                 for gp in group:
                     gp.ext_degr_rate = ext_degr_rate
-        
-        # this ensures that self.st_external_substep() is called later in self.total_substep_stochastic()
-        if "extracellular space" not in self.options:
-            self.options.append("extracellular space")
 
     def initialize(self):
         for s in self.strain:
@@ -110,7 +102,6 @@ class Sample:
 
     def set_ext_conc(self, chemical_name, ext_concentration):
         ''' set initial external concentration '''
-        
         for group in self.gene_products:
             if group[0].name == chemical_name:
                 for gp in group:
@@ -142,7 +133,14 @@ class Sample:
             s.cell_number = current_cell_n
             # if there are more cells, difference is negative, extracellular volume 
             # decreases
-            extracel_v += difference * s.cell_volume    
+            extracel_v += difference * s.cell_volume
+        # update external concentration due to volume change:
+        if t != 0:
+            for group in self.gene_products:
+                moles = group[0].ext_conc / self.extracel_vol
+                updated_ext_conc = moles / extracel_v
+                for gp in group: 
+                    gp.ext_conc = updated_ext_conc
         self.extracel_vol = extracel_v
 
     
@@ -354,7 +352,7 @@ class Sample:
                     
         return tau
 
-    def substep_stochastic(self, t=0, dt=0.1, ppod=2.66*10**9):
+    def substep_stochastic(self, t=0, dt=0.1, ppod=2.66*10**12):
         ''' fully stochasic, only one reaction happens out of all'''
         # Propensities
         a = []
@@ -446,7 +444,7 @@ class Sample:
         # Return elapsed time
         return tau
 
-    def step_stochastic(self, t=0, dt=0.1, type='full_stochastic', ppod=2.66*10**9):
+    def step_stochastic(self, t=0, dt=0.1, type='full_stochastic', ppod=2.66*10**12):
         ''' 
             similar to GeneticNetwork.step_stochastic(). 
             Use but uses either 
@@ -489,6 +487,17 @@ class Sample:
                 #                 print(f'''After degradation 
                 #                 {gp.name} in {gp.strain.name} ext conc = {gp.ext_conc}''')
                 self.update_ext_conc(t, stochastic)
+                # test
+                # for group in self.gene_products:
+                #         if group[0].ext_conc == 0:
+                #             print(t)
+                # if True:
+                # # if t<=0.0048 or t>23.9:
+                # # if t>2 and t<2.1:
+                #     for group in self.gene_products:
+                #         for gp in group:
+                #             print(f'''After update {gp.concentration} in cell
+                #             {gp.ext_conc} extracellular''')
 
 
 
