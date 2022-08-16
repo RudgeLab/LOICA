@@ -22,8 +22,6 @@ class Sample:
     -------
     add_supplement(supplement, concentration)
         establishes the concentration of Supplement
-    calibrate(ppod)
-        sets particles per OD600, used to calculate cell number
     set_extracel_degr(chemical_name, ext_degr_rate)
         set extracellular degradation rate for GeneProducts with the same name
     set_ext_conc(chemical_name, ext_concentration)
@@ -147,7 +145,7 @@ class Sample:
         # update external concentration due to volume change:
         if t != 0:
             for group in self.gene_products:
-                moles = group[0].ext_conc / self.extracel_vol
+                moles = group[0].ext_conc * self.extracel_vol
                 updated_ext_conc = moles / extracel_v
                 for gp in group: 
                     gp.ext_conc = updated_ext_conc
