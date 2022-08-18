@@ -37,11 +37,12 @@ class Sample:
         self.biomass = []
         self.supplements = {}
         self.volume = volume    # default volume is in L
-        self.ppod = 2.66*10**12  # and default ppod is cells/L
-        ''' Default ppod(cells per 1 OD600 per volume) has been taken from:
-                Yap, P. Y., Trau, D. (2019). 
-                DIRECT E.COLI CELL COUNT AT OD600. 
-                https://tipbiosystems.com/wp-content/uploads/2020/05/AN102-E.coli-Cell-Count_2019_04_25.pdf
+        self.ppod = 3.26*10**11 # and default ppod is cells/L
+        ''' Default ppod(cells per 1 OD600 per volume) has been taken from example
+            data for iGEM 2019 calibration protocol:
+            example data - https://static.igem.org/mediawiki/2019/2/29/IGEM_2019_Data_Analysis_Template_Particle_Standard_Curve_Protocol_v2.xlsx
+            protocol - Beal, J., Haddock-Angelli, T., Gershater, M., Sanchania, V., Buckley-Taylor, R., Baldwin, G., Farny, N., Tennant, R., &#38; Rutten, P. (2020). 
+                       Calibration Protocol - Plate Reader Abs600 (OD) Calibration with Microsphere Particles V.3. https://www.protocols.io/view/calibration-protocol-plate-reader-abs600-od-calibr-ewov1ypoovr2/v3
         '''
         self.extracel_vol = volume        
 
