@@ -59,36 +59,20 @@ class GeneProduct:
     def step(self, growth_rate, dt, extracellular_volume):
         # this is how much diffused in/out of the cell
         dext_conc_dt = self.diffusion_rate*(self.concentration-self.ext_conc)
-        # this section deals with concentration difference between extracellular space and cell 
-        # (which is due to different volume)
-        if dext_conc_dt<0:
-            # if this is negative, there is higher concentration outside of cell
-            # diffusion into cell
-            # convert incoming concentration to moles, then to concentration within cell
-            in_moles = dext_conc_dt * extracellular_volume
-            converted_conc_change = in_moles / self.strain.cell_volume
-            diffusion_cell = converted_conc_change
-            diffusion_sample = dext_conc_dt
-        elif dext_conc_dt>0:
-            # convert outcoming concentration to moles, then to concentration within sample
-            in_moles = dext_conc_dt * self.strain.cell_volume
-            converted_conc_change = in_moles / extracellular_volume
-            diffusion_cell = dext_conc_dt
-            diffusion_sample = converted_conc_change
-        else:
-            diffusion_cell = dext_conc_dt
-            diffusion_sample = dext_conc_dt
+        diffusion_sample = dext_conc_dt * self.strain.cell_volume/extracellular_volume
 
         # change of concentration within cell
-        dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration - diffusion_cell
+        dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration - dext_conc_dt
         self.next_concentration = self.concentration + dconcdt * dt
         # check if resulting concentration is negative
+        # TODO: might be not needed
         if self.next_concentration < 0:
+            print('New external concentration is negative!')
             if dext_conc_dt>0:
                 # if there is diffusion out of cell, then diffusion and degradation are
                 # proportional. This secion of code corrects diffusion
                 degr_and_gr = ((self.degradation_rate + growth_rate)*self.concentration) * dt
-                diff_out = diffusion_cell * dt
+                diff_out = dext_conc_dt * dt
                 total_minus = degr_and_gr + diff_out
                 total_before_minus = self.concentration + self.expression_rate * dt
                 proportion_diff = diff_out/total_minus
