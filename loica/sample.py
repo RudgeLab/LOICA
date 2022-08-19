@@ -136,18 +136,30 @@ class Sample:
             updates cell_number of each strain
         '''
         extracel_v = self.extracel_vol
+        changed = False
         for s in self.strain:
             current_cell_n = convert_to_cells(s.biomass(t), self.ppod, self.volume)
-            difference = s.cell_number - current_cell_n 
+            difference = s.cell_number - current_cell_n
+            # test
+            print(f'''old cell number={s.cell_number}
+            new cell umber={current_cell_n}
+            difference={difference}''')
             s.cell_number = current_cell_n
             # if there are more cells, difference is negative, extracellular volume 
             # decreases
             extracel_v += difference * s.cell_volume
+            print(f'New exracellular volume = {extracel_v}')
+            if difference != 0:
+                changed = True
+
         # update external concentration due to volume change:
-        if t != 0:
+        if t!=0 and changed:
             for group in self.gene_products:
                 moles = group[0].ext_conc * self.extracel_vol
                 updated_ext_conc = moles / extracel_v
+                # test
+                print(f'''Moles = {moles}
+                updated_ext_conc = {updated_ext_conc}''')
                 for gp in group: 
                     gp.ext_conc = updated_ext_conc
         self.extracel_vol = extracel_v
@@ -179,6 +191,7 @@ class Sample:
             for gp in group:
                 gp.ext_conc = new_ext_conc
 
+    # TODO: this might not be needed
     def catch_negative_conc(self, group):
         ''' 
             used if external concentration becomes negative due to multiple strains/
@@ -188,6 +201,7 @@ class Sample:
             Diffusion is recalculated to be proportionate and molecules are "returned" 
             from the cell.
         '''
+        print('Triggered negative extracellular concentration')
         new_ext_conc = group[0].ext_conc
         # list of gene products that diffuse out of the extracellular space
         diffused_out = []
@@ -230,6 +244,8 @@ class Sample:
                 supp.concentration = conc
                 self.supplement_is_gp(supp)
             # calculate cell number, extracellular volume and external concentration
+            # test
+            print(f'''t={t}''')
             self.extracel_volume(t)
             # step
             for s in self.strain:
@@ -237,6 +253,11 @@ class Sample:
             # update the exctracellular concentration
             self.external_step(dt)
             self.update_ext_conc(t)
+            # test
+            for group in self.gene_products:
+                print(f'''Ext. conc after update is = {group[0].ext_conc}
+                int conc = {group[0].concentration}''')
+
 
 
 
