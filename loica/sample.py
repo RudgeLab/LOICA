@@ -136,7 +136,6 @@ class Sample:
             updates cell_number of each strain
         '''
         extracel_v = self.extracel_vol
-        changed = False
         for s in self.strain:
             current_cell_n = convert_to_cells(s.biomass(t), self.ppod, self.volume)
             difference = s.cell_number - current_cell_n
@@ -149,16 +148,14 @@ class Sample:
             # decreases
             extracel_v += difference * s.cell_volume
             print(f'New exracellular volume = {extracel_v}')
-            if difference != 0:
-                changed = True
 
         # update external concentration due to volume change:
-        if t!=0 and changed:
+        if t!=0 and extracel_v!=self.extracel_vol:
             for group in self.gene_products:
                 moles = group[0].ext_conc * self.extracel_vol
                 updated_ext_conc = moles / extracel_v
                 # test
-                print(f'''Moles = {moles}
+                print(f'''Moles = {moles}s
                 updated_ext_conc = {updated_ext_conc}''')
                 for gp in group: 
                     gp.ext_conc = updated_ext_conc
