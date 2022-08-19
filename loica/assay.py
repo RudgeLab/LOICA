@@ -81,49 +81,49 @@ class Assay:
                     if mode == 'track_all':
                     # Record raw measurements of each gene product both intracellularly 
                     # and extracellularly
-                        for tt in range(substeps):
-                            for group in sample.gene_products:
-                                row = {
-                                        'Time': time, 
-                                        'Signal_id': None, 
-                                        'Signal': f'Extracellular {group[0].name}', 
-                                        'Measurement': group[0].ext_conc,
-                                        'Sample':sample_id
-                                        }
-                                self.measurements = self.measurements.append(row, ignore_index=True)
-                                for gp in group:
-                                    row = {
-                                        'Time': time, 
-                                        'Signal_id': None, 
-                                        'Signal': f'{gp.name} in {gp.strain.name}', 
-                                        'Measurement': gp.concentration,
-                                        'Sample':sample_id
-                                        }
-                                    self.measurements = self.measurements.append(row, ignore_index=True)
-                                   
-                            total = 0
-                            # biomass of each strain recorded separately
-                            for strain in sample.strain:
-                                row = {
-                                        'Time': time, 
-                                        'Signal_id': None, 
-                                        'Measurement': strain.biomass(time),
-                                        'Signal':f'{strain.name} biomass', 
-                                        'Sample':sample_id
-                                        }
-                                self.measurements = self.measurements.append(row, ignore_index=True)
-                                total += strain.biomass(time)
-                            # total biomass
+                        # for tt in range(substeps):
+                        for group in sample.gene_products:
                             row = {
                                     'Time': time, 
                                     'Signal_id': None, 
-                                    'Measurement': total,
-                                    'Signal':'Total biomass', 
+                                    'Signal': f'Extracellular {group[0].name}', 
+                                    'Measurement': group[0].ext_conc,
                                     'Sample':sample_id
                                     }
                             self.measurements = self.measurements.append(row, ignore_index=True)
-                            time = t * self.interval + tt * dt
-                            sample.step(time, dt)
+                            for gp in group:
+                                row = {
+                                    'Time': time, 
+                                    'Signal_id': None, 
+                                    'Signal': f'{gp.name} in {gp.strain.name}', 
+                                    'Measurement': gp.concentration,
+                                    'Sample':sample_id
+                                    }
+                                self.measurements = self.measurements.append(row, ignore_index=True)
+                                
+                        total = 0
+                        # biomass of each strain recorded separately
+                        for strain in sample.strain:
+                            row = {
+                                    'Time': time, 
+                                    'Signal_id': None, 
+                                    'Measurement': strain.biomass(time),
+                                    'Signal':f'{strain.name} biomass', 
+                                    'Sample':sample_id
+                                    }
+                            self.measurements = self.measurements.append(row, ignore_index=True)
+                            total += strain.biomass(time)
+                        # total biomass
+                        row = {
+                                'Time': time, 
+                                'Signal_id': None, 
+                                'Measurement': total,
+                                'Signal':'Total biomass', 
+                                'Sample':sample_id
+                                }
+                        self.measurements = self.measurements.append(row, ignore_index=True)
+                            # time = t * self.interval + tt * dt
+                            # sample.step(time, dt)
 
                     elif mode=='single_cell':
                         for strain in sample.strain:
