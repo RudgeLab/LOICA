@@ -16,7 +16,7 @@ class Sample:
     media : str
         Name of the media in the sample
     volume: int | float
-        Sample volume. By default is set to 0.0002 L (200 ul) to represent a well in 96-well plate
+        Sample volume. By default is set to 1.36E-08 L to represent an 85*100*1600 um trap in microfluidic device
     
      Methods
     -------
@@ -27,7 +27,7 @@ class Sample:
     set_ext_conc(chemical_name, ext_concentration)
         set starting extracellular concentration for GeneProducts with the same name
     """
-    def __init__(self, strain=None, media=None, volume=0.0002):
+    def __init__(self, strain=None, media=None, volume=1.36*10**-8):
 
         self.strain = []
         self.media = media
@@ -139,26 +139,22 @@ class Sample:
         for s in self.strain:
             current_cell_n = convert_to_cells(s.biomass(t), self.ppod, self.volume)
             difference = s.cell_number - current_cell_n
-            # test
-            print(f'''old cell number={s.cell_number}
-            new cell umber={current_cell_n}
-            difference={difference}''')
             s.cell_number = current_cell_n
+            # test
+            # print(f'{s.name} has {s.cell_number} cells')
             # if there are more cells, difference is negative, extracellular volume 
             # decreases
             extracel_v += difference * s.cell_volume
-            print(f'New exracellular volume = {extracel_v}')
 
         # update external concentration due to volume change:
         if t!=0 and extracel_v!=self.extracel_vol:
             for group in self.gene_products:
                 moles = group[0].ext_conc * self.extracel_vol
                 updated_ext_conc = moles / extracel_v
-                # test
-                print(f'''Moles = {moles}s
-                updated_ext_conc = {updated_ext_conc}''')
                 for gp in group: 
                     gp.ext_conc = updated_ext_conc
+                #test
+                # print(f'Ext conc after biomass increase: {group[0].ext_conc}')
         self.extracel_vol = extracel_v
 
     
@@ -242,18 +238,24 @@ class Sample:
                 self.supplement_is_gp(supp)
             # calculate cell number, extracellular volume and external concentration
             # test
-            print(f'''t={t}''')
+            # print(f'''t={t}''')
             self.extracel_volume(t)
             # step
             for s in self.strain:
                 s.genetic_network.step(s.growth_rate(t), t, dt, self.extracel_vol)
             # update the exctracellular concentration
             self.external_step(dt)
+            #test
+            # for group in self.gene_products:
+            #     print(f'''Ext. conc before update is = {group[0].ext_conc}
+            #     ''')
             self.update_ext_conc(t)
             # test
-            for group in self.gene_products:
-                print(f'''Ext. conc after update is = {group[0].ext_conc}
-                int conc = {group[0].concentration}''')
+            # for group in self.gene_products:
+            #     print(f'''Ext. conc after update is = {group[0].ext_conc}
+            #     ''')
+            #     for gp in group:
+            #         print(f'int conc in {gp.strain.name} = {gp.concentration}')
 
 
 
