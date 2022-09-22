@@ -11,8 +11,6 @@ from .impactors.impactor import Impactor
 from .impactors.degrader import Degrader
 from .impactors.producer import Producer
 from typing import List #, Dict, Tuple, Optional, Union, Any
-import numpy as np
-from math import floor, ceil
 
 class GeneticNetwork():
     """
@@ -159,6 +157,7 @@ class GeneticNetwork():
         return g
 
     def to_contracted_graph(self):
+        # TODO: add impactors
         g = nx.DiGraph()
         for op in self.operators:
             if hasattr(op, 'input'):
