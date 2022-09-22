@@ -2,18 +2,19 @@ from .impactor import *
 
 class Producer(Impactor):
     """
-    A class that represents an enzyme that synthesizes a product.
+    A class that represents an enzyme active site that synthesizes a product.
 
     Assuming that the concentration of substrate used to synthesize product is high 
-    (increasing to infinity), we can say that all enzymes are engaged in 
-    enzyme-substrate complex. Therefore, only k2 constant is used here.
+    (increasing to infinity), Km+[S]=[S]. This leads to Km+[S] and [S] cancelling each 
+    other in Michaelis-Menten equation, so only k2 constant is needed to calculate 
+    synthesis rate.
     ...
     
     Attributes
     ----------
-    enzyme : Regulator | GeneProduct
+    enzyme : Regulator 
         The enzyme that degrades substrate
-    product : Regulator | Reporter | GeneProduct
+    product : Regulator | Reporter 
         The product synthesized by enzyme
     k2 : int | float
        Synthesis constant to synthesize product from enzyme-substrate complex
