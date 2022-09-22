@@ -41,7 +41,7 @@ class GeneProduct:
         self.ext_flow_rate = 0
         self.ext_difference = 0
         self.int_change=0
-        self.ext_degraded=0
+        self.ext_washed_away=0
         self.strain = None
 
 
