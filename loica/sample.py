@@ -142,8 +142,6 @@ class Sample:
             current_cell_n = convert_to_cells(s.biomass(t), self.ppod, self.volume)
             difference = s.cell_number - current_cell_n
             s.cell_number = current_cell_n
-            # test
-            # print(f'{s.name} has {s.cell_number} cells')
             # if there are more cells, difference is negative, extracellular volume 
             # decreases
             extracel_v += difference * s.cell_volume
@@ -155,8 +153,6 @@ class Sample:
                 updated_ext_conc = moles / extracel_v
                 for gp in group: 
                     gp.ext_conc = updated_ext_conc
-                #test
-                # print(f'Ext conc after biomass increase: {group[0].ext_conc}')
         self.extracel_vol = extracel_v
 
     
@@ -239,25 +235,13 @@ class Sample:
                 supp.concentration = conc
                 self.supplement_is_gp(supp)
             # calculate cell number, extracellular volume and external concentration
-            # test
-            # print(f'''t={t}''')
             self.extracel_volume(t)
             # step
             for s in self.strain:
                 s.genetic_network.step(s.growth_rate(t), t, dt, self.extracel_vol)
             # update the exctracellular concentration
             self.external_step(dt)
-            #test
-            # for group in self.gene_products:
-            #     print(f'''Ext. conc before update is = {group[0].ext_conc}
-            #     ''')
             self.update_ext_conc(t)
-            # test
-            # for group in self.gene_products:
-            #     print(f'''Ext. conc after update is = {group[0].ext_conc}
-            #     ''')
-            #     for gp in group:
-            #         print(f'int conc in {gp.strain.name} = {gp.concentration}')
 
 
 
