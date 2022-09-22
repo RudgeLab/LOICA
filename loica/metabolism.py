@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.interpolate import interp1d
-from math import floor
 
 def convert_to_cells(od, ppod, sample_volume):
     ''' 
@@ -10,7 +9,6 @@ def convert_to_cells(od, ppod, sample_volume):
         sample volume - should be in the same units as volume unit ppod was determined for
     '''
     return od*ppod*sample_volume
-    # return floor(od*ppod)
 
 def ramp_growth_rate(t, start, slope):
     gr = np.maximum(0, slope*(t-start))
