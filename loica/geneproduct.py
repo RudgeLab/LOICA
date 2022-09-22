@@ -62,6 +62,7 @@ class GeneProduct:
         # change of concentration within cell
         dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration - dext_conc_dt
         self.next_concentration = self.concentration + dconcdt * dt
+        self.concentration = self.next_concentration
         # ideal external concentration change is based on number of cells that produce
         # or take this molecule
         self.ext_difference = diffusion_sample * dt * self.strain.cell_number
