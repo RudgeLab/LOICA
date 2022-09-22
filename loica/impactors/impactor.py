@@ -1,6 +1,7 @@
 class Impactor:
     """
-    A class that represents RNA or Protein fragment that encode an impactor.
+    A class that represents RNA or Protein fragment that encode an impactor - active site
+    which impacts other Proteins or RNA.
 
     ...
     
