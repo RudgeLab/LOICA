@@ -38,7 +38,7 @@ class GeneProduct:
 
         self.init_ext_conc = 0
         self.ext_conc = self.init_ext_conc
-        self.ext_degr_rate = 0
+        self.ext_flow_rate = 0
         self.ext_difference = 0
         self.int_change=0
         self.ext_degraded=0
