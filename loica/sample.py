@@ -178,54 +178,9 @@ class Sample:
                 concentration_change += gp.ext_difference   
             new_ext_conc = group[0].ext_conc + concentration_change - group[0].ext_degraded
             if new_ext_conc<0:
-                new_ext_conc = self.catch_negative_conc(group)
+                raise ValueError(f'Negative {group[0].name} extracellular concentration')
             for gp in group:
                 gp.ext_conc = new_ext_conc
-
-    # TODO: this might not be needed
-    def catch_negative_conc(self, group):
-        ''' 
-            used if external concentration becomes negative due to multiple strains/
-            multiple bacteria taking molecules out of the extracellular space 
-            simultaneously.
-            
-            Diffusion is recalculated to be proportionate and molecules are "returned" 
-            from the cell.
-        '''
-        print('Triggered negative extracellular concentration')
-        new_ext_conc = group[0].ext_conc
-        # list of gene products that diffuse out of the extracellular space
-        diffused_out = []
-        for gp in group:
-            if gp.ext_difference<0:
-                diffused_out.append(gp)
-            else:
-                new_ext_conc += gp.ext_difference
-        # calculate what would be the change of concentration ideally
-        ideal_minus = 0
-        for gp in diffused_out:
-            ideal_minus -= gp.ext_difference
-        if group[0].ext_degraded > 0:
-            ideal_minus += group[0].ext_degraded
-        for gp in diffused_out:
-            # calculate proportion of concentration each strain would take
-            # then multiply by the available concentration to get the concentration
-            # change that happened
-            can_take = ((-gp.ext_difference)/ideal_minus*new_ext_conc)
-            # calculate "extra" concentration each cell has taken
-            extra_taken = (-gp.ext_difference-can_take)/gp.strain.cell_number 
-            # convert concentration to concentration within cell:
-            in_moles = extra_taken * self.extracel_vol
-            extra_conc_converted = in_moles / gp.strain.cell_volume
-            # correct the internal gp concentration
-            fixed_conc = gp.concentration - extra_conc_converted
-            if fixed_conc < 0:
-                # this might happen if extra concentration that diffused into the cell was 
-                # degraded straight away
-                gp.concentration = 0
-            else:
-                gp.concentration = fixed_conc
-        return 0
                 
     def step(self, t, dt):
         ''' deterministic '''
