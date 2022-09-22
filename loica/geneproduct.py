@@ -1,6 +1,5 @@
 from random import sample
 from .metabolism import convert_to_cells
-import numpy as np
 
 class GeneProduct:
     """
@@ -60,31 +59,11 @@ class GeneProduct:
         # this is how much diffused in/out of the cell
         dext_conc_dt = self.diffusion_rate*(self.concentration-self.ext_conc)
         diffusion_sample = dext_conc_dt * self.strain.cell_volume/extracellular_volume
-
         # change of concentration within cell
         dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration - dext_conc_dt
         self.next_concentration = self.concentration + dconcdt * dt
-        # check if resulting concentration is negative
-        # TODO: might be not needed
-        if self.next_concentration < 0:
-            print('New external concentration is negative!')
-            if dext_conc_dt>0:
-                # if there is diffusion out of cell, then diffusion and degradation are
-                # proportional. This secion of code corrects diffusion
-                degr_and_gr = ((self.degradation_rate + growth_rate)*self.concentration) * dt
-                diff_out = dext_conc_dt * dt
-                total_minus = degr_and_gr + diff_out
-                total_before_minus = self.concentration + self.expression_rate * dt
-                proportion_diff = diff_out/total_minus
-                corrected_diff = total_before_minus * proportion_diff
-                in_moles = corrected_diff * self.strain.cell_volume
-                converted_conc_change = in_moles / extracellular_volume
-                diffusion_sample = converted_conc_change
-            self.concentration = 0
-        else:
-            self.concentration = self.next_concentration
         # ideal external concentration change is based on number of cells that produce
-        # or intake this molecule
+        # or take this molecule
         self.ext_difference = diffusion_sample * dt * self.strain.cell_number
         # reset rates
         self.expression_rate = 0
