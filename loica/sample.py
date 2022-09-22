@@ -23,8 +23,8 @@ class Sample:
     -------
     add_supplement(supplement, concentration)
         establishes the concentration of Supplement
-    set_extracel_degr(chemical_name, ext_degr_rate)
-        set extracellular degradation rate for GeneProducts with the same name
+    set_extracel_flow(chemical_name, ext_flow_rate)
+        set extracellular diffusion due to flow rate for GeneProducts with the same name
     set_ext_conc(chemical_name, ext_concentration)
         set starting extracellular concentration for GeneProducts with the same name
     """
@@ -80,15 +80,15 @@ class Sample:
             assumes that all strains have same ppod value'''
         self.ppod = ppod
 
-    def set_extracel_degr(self, chemical_name, ext_degr_rate):
+    def set_extracel_flow(self, chemical_name, ext_flow_rate):
         ''' 
             this method ensures that all gene products with the same identity 
-            have the same extracellular degradation rate
+            have the same extracellular diffusion due to flow rate
         '''
         for group in self.gene_products:
             if group[0].name == chemical_name:
                 for gp in group:
-                    gp.ext_degr_rate = ext_degr_rate
+                    gp.ext_flow_rate = ext_flow_rate
 
     def initialize(self):
         for s in self.strain:
@@ -159,13 +159,13 @@ class Sample:
     def external_step(self, dt):
         """ 
             Calculates the change in the extracellular concentration
-            due to degradation
+            due to diffusion due to flow
         """
         for group in self.gene_products: 
-            if group[0].ext_degr_rate != 0:
-                ext_degr = group[0].ext_conc * group[0].ext_degr_rate * dt
+            if group[0].ext_flow_rate != 0:
+                ext_flow = group[0].ext_conc * group[0].ext_flow_rate * dt
                 for gp in group:
-                    gp.ext_degraded = ext_degr
+                    gp.ext_washed_away = ext_flow
 
     def update_ext_conc(self, t):  
         '''
@@ -176,7 +176,7 @@ class Sample:
             concentration_change = 0
             for gp in group:
                 concentration_change += gp.ext_difference   
-            new_ext_conc = group[0].ext_conc + concentration_change - group[0].ext_degraded
+            new_ext_conc = group[0].ext_conc + concentration_change - group[0].ext_washed_away
             if new_ext_conc<0:
                 raise ValueError(f'Negative {group[0].name} extracellular concentration')
             for gp in group:
