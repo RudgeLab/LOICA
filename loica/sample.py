@@ -12,11 +12,12 @@ class Sample:
     Attributes
     ----------
     strain : List[Strain] or Strain
-        strain that is part of the sample
+        strains which are in the sample
     media : str
         Name of the media in the sample
     volume: int | float
-        Sample volume. By default is set to 1.36E-08 L to represent an 85*100*1600 um trap in microfluidic device
+        Sample volume. By default is set to 1.36E-08 L to represent an 85*100*1600 um trap
+        in microfluidic device from https://doi.org/10.1126%2Fscience.aaa3794
     
      Methods
     -------
@@ -75,7 +76,8 @@ class Sample:
                 self.gene_products.append(list(identical_gproducts))
     
     def calibrate(self, ppod):
-        ''' sets particle per OD600 - used to convert absorbance to cell number'''
+        ''' sets particle per OD600 - used to convert absorbance to cell number
+            assumes that all strains have same ppod value'''
         self.ppod = ppod
 
     def set_extracel_degr(self, chemical_name, ext_degr_rate):
