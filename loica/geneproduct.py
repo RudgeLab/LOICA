@@ -23,12 +23,12 @@ class GeneProduct:
         SBOL Component
     """
     shape = '^'
-    def __init__(self, name, init_concentration=0, degradation_rate=0, diffusion_rate=0, uri=None, sbol_comp=None, type_='PRO', color='silver'):
+    def __init__(self, name, init_concentration=0, degradation_rate=0, permeability_const=0, uri=None, sbol_comp=None, type_='PRO', color='silver'):
         self.init_concentration = init_concentration
         self.concentration = init_concentration
         self.degradation_rate = degradation_rate
         self.degradation_r = degradation_rate # constant used to reset degradation_rate
-        self.diffusion_rate=diffusion_rate
+        self.permeability_const=permeability_const
         self.name = name
         self.expression_rate = 0
         self.uri = uri
@@ -57,7 +57,7 @@ class GeneProduct:
 
     def step(self, growth_rate, dt, extracellular_volume):
         # this is how much diffused in/out of the cell
-        dext_conc_dt = self.diffusion_rate*(self.concentration-self.ext_conc)
+        dext_conc_dt = self.permeability_const*(self.concentration-self.ext_conc)
         diffusion_sample = dext_conc_dt * self.strain.cell_volume/extracellular_volume
         # change of concentration within cell
         dconcdt = self.expression_rate - (self.degradation_rate + growth_rate) * self.concentration - dext_conc_dt
@@ -78,8 +78,8 @@ class Regulator(GeneProduct):
     Representation of a regulatory gene product.
     Child of GeneProduct.
     """
-    def __init__(self, name, init_concentration=0, degradation_rate=0, diffusion_rate=0, sbol_comp=None, color='lightgreen'):
-        super().__init__(name, init_concentration, degradation_rate, diffusion_rate, sbol_comp,color='lightgreen')
+    def __init__(self, name, init_concentration=0, degradation_rate=0, permeability_const=0, sbol_comp=None, color='lightgreen'):
+        super().__init__(name, init_concentration, degradation_rate, permeability_const, sbol_comp,color='lightgreen')
         self.sbol_comp = sbol_comp
 
 class Reporter(GeneProduct):
@@ -93,8 +93,8 @@ class Reporter(GeneProduct):
     color : str, optional
         Color of the reporter
     """
-    def __init__(self, name, init_concentration=0, degradation_rate=0, diffusion_rate=0, signal_id=None, color='w', sbol_comp=None):
-        super().__init__(name, init_concentration, degradation_rate, diffusion_rate, sbol_comp)
+    def __init__(self, name, init_concentration=0, degradation_rate=0, permeability_const=0, signal_id=None, color='w', sbol_comp=None):
+        super().__init__(name, init_concentration, degradation_rate, permeability_const, sbol_comp)
         self.signal_id = signal_id
         self.color = color
         self.sbol_comp = sbol_comp
