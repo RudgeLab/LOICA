@@ -21,7 +21,7 @@ DOI https://doi.org/10.1021/acssynbio.1c00603
 
 Get the BibTeX in [Google Scholar](https://scholar.google.com/scholar?hl=es&as_sdt=0%2C5&q=LOICA%3A+Integrating+Models+with+Data+for+Genetic+Network+Design+Automation&btnG=) 
 
-## Instalation
+## Installation
 
 Installing LOICA is way easier than pronuncing it! 
 
