@@ -108,7 +108,7 @@ class Assay:
                         for tt in range(substeps):
                             time = t * self.interval + tt * dt
                             sample.step(time, dt)
-                pbar.update(1 / n_samples * 100)
+                    pbar.update(1 / self.n_measurements / n_samples * 100)
             pbar.close()
                 
     def upload(self, flapjack, study):
