@@ -1,28 +1,61 @@
+from .operator import *
 import numpy as np
 from scipy.optimize import least_squares
 from .receiver import *
 
-class Hill2:
-    color = 'orange'
-    shape = 's'
-    def __init__(self, input, output, alpha, K, n, uri=None, sbol_comp=None):
+class Hill2(Operator):
+    """
+    A class that represents a DNA fragment that encode a genetic operator.
+    The Hill2 Operator is an abstraction of a set of two repressible or inducible promoters that
+    maps an  2 inputs into an output using a Hill function.
+
+    ...
+    
+    Attributes
+    ----------
+    input : List [Regulator | Supplement]
+        The inputs of the operator that regulates the expression of the output
+    output : Regulator | Reporter | List
+        The output of the operator that is regulated by the input
+    alpha : List
+        [Basal expression rate, Regulated expression rate in MEFL/second]
+    K : int | float
+        Half expression input concentration in Molar 
+    n : int | float
+        Hill coefficient, cooperative degree (unitless)
+    uri : str, optional
+        SynBioHub URI
+    sbol_comp : SBOL Component, optional
+        SBOL Component
+    name : str, optional
+        Name of the operator displayed on the network representation
+    color: str, optional
+        Color displayed on the network representation
+
+    Methods
+    -------
+    characterize(flapjack, receiver, inverter, media, strain, signal, biomass_signal, gamma)
+        Parameterize the Operator model that maps Input concentration into Output expression rate
+    """
+    def __init__(self, input, output, alpha, K, n, name=None, uri=None, sbol_comp=None, color='orange'):
+        super().__init__(output, name, uri, sbol_comp, color)
         self.alpha = alpha
         self.K = K
         self.n = n
         self.input = input
-        self.output = output
-        self.uri = uri
-        self.sbol_comp = sbol_comp
 
     def __str__(self):
-        return 'HILL2'
+        if self.name == None:
+            return 'HILL2'
+        else: return self.name
 
     def expression_rate(self, t, dt):
         input_repressor1 = self.input[0].concentration
         input_repressor2 = self.input[1].concentration
         r1 = (input_repressor1/self.K[0])**self.n[0]
         r2 = (input_repressor2/self.K[1])**self.n[1]
-        r12 = (input_repressor1 * input_repressor2 / self.K[0] / self.K[1])**(self.n[0] + self.n[1])
+        #r12 = (input_repressor1 * input_repressor2 / self.K[0] / self.K[1])**(self.n[0] + self.n[1])
+        r12 = r1 * r2
         num = self.alpha[0] + self.alpha[1] * r1 + self.alpha[2] * r2 + self.alpha[3] * r12
         denom = 1 + r1 + r2 + r12
         return num / denom
@@ -65,7 +98,8 @@ class Hill2:
                 # Reporter output
                 r1 = (rep1/od/rep1_K)**rep1_n
                 r2 = (rep2/od/rep2_K)**rep2_n
-                r12 = (rep1*rep2/od/od/rep1_K/rep2_K)**(rep1_n+rep2_n)
+                #r12 = (rep1*rep2/od/od/rep1_K/rep2_K)**(rep1_n+rep2_n)
+                r12 = r1 * r2
                 num = alpha0 + alpha1 * r1 + alpha2 * r2 + alpha3 * r12
                 denom = 1 + r1 + r2 + r12
                 expression_rate = num / denom
@@ -142,7 +176,10 @@ class Hill2:
             strain, 
             signal, 
             biomass_signal,
-            gamma
+            gamma,
+            lower_bounds=[0]*8,
+            upper_bounds=[1e8, 8, 1e8, 8, 1e8, 1e8, 1e8, 1e8],
+            init_x = [1,2,1,2,1,0,0,0]
             ):
         # Get biomass time series
         biomass_df = flapjack.analysis(type='Background Correct', 
@@ -163,8 +200,8 @@ class Hill2:
             signal=signal,
             biomass_signal=biomass_signal
         )
-        self.a_A = rec1.a
-        self.b_A = rec1.b
+        self.a_A = rec1.alpha[0]
+        self.b_A = rec1.alpha[1]
         self.K_A = rec1.K
         self.n_A = rec1.n
 
@@ -178,8 +215,8 @@ class Hill2:
             signal=signal,
             biomass_signal=biomass_signal
         )
-        self.a_B = rec2.a
-        self.b_B = rec2.b
+        self.a_B = rec2.alpha[0]
+        self.b_B = rec2.alpha[1]
         self.K_B = rec2.K
         self.n_B = rec2.n
 
@@ -193,8 +230,8 @@ class Hill2:
                          )
 
         # Bounds for fitting
-        lower_bounds = [0]*8
-        upper_bounds = [1e8, 8, 1e8, 8, 1e8, 1e8, 1e8, 1e8]
+        #lower_bounds = [0]*8
+        #upper_bounds = [1e8, 8, 1e8, 8, 1e8, 1e8, 1e8, 1e8]
         bounds = [lower_bounds, upper_bounds]
 
         '''
@@ -210,7 +247,7 @@ class Hill2:
                                 chemical1, chemical2,
                                 gamma=gamma
                             )
-        res = least_squares(residuals, [1,2,1,2,1,0,0,0], bounds=bounds)
+        res = least_squares(residuals, init_x, bounds=bounds)
         self.res = res
         self.rep1_K, self.rep1_n = res.x[0:2]
         self.rep2_K, self.rep2_n = res.x[2:4]

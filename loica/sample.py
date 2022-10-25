@@ -44,12 +44,24 @@ class Sample:
     def initialize(self):
         self.genetic_network.initialize()
 
-    def add_supplement(self, supplement, concentration, profile=None):
+    def set_supplement(self, supplement, concentration, profile=None):
         if not profile:
             def prof(t):
                 return 1
             profile = prof
         self.supplements[supplement] = (concentration, profile)
+
+    def set_regulator(self, name, concentration):
+        for reg in self.genetic_network.regulators:
+            if reg.name == name:
+                reg.init_concentration = concentration
+            else: pass
+
+    def set_reporter(self, name, concentration):
+        for rep in self.genetic_network.reporters:
+            if rep.name == name:
+                rep.init_concentration = concentration
+            else: pass
 
     def step(self, t, dt, stochastic=False):
         if self.genetic_network and self.metabolism:

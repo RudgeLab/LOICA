@@ -55,6 +55,7 @@ class Assay:
         self.description = description
         self.biomass_signal_id = biomass_signal_id
 
+
     def run(self, substeps=10, nsr=0, biomass_bg=0, fluo_bg=0, stochastic=False):
         '''
         Run the assay measuring at specified time points, with simulation time step dt

@@ -1,7 +1,8 @@
+from .operator import *
 import numpy as np
 from scipy.optimize import least_squares
 
-class Source:
+class Source(Operator):
     """
     A class that represents a DNA fragment that encode a genetic operator.
     The Source Operator is an abstraction of a constitutive promoter that
@@ -13,24 +14,26 @@ class Source:
     ----------
     output : Regulator | Reporter
         The output of the operator that is constitutively expressed
-   rate : float
-        Output constitutive expression rate
+    rate : float
+        Output constitutive expression rate in MEFL/second
     uri : str, optional
         SynBioHub URI
     sbol_comp : SBOL Component, optional
         SBOL Component
+    name : str, optional
+        Name of the operator displayed on the network representation
+    color: str, optional
+        Color displayed on the network representation
 
     Methods
     -------
     characterize(flapjack, receiver, inverter, media, strain, signal, biomass_signal, gamma)
         Parameterize the Operator model that maps Input concentration into Output expression rate
     """
-    color = 'blue'
-    def __init__(self, output, rate, uri=None, sbol_comp=None):
+
+    def __init__(self, output, rate, uri=None, sbol_comp=None, color='blue', name=None):
+        super().__init__(output, name, uri, sbol_comp, color)
         self.rate = rate
-        self.output = output
-        self.uri = uri
-        self.sbol_comp = sbol_comp
 
     def __str__(self):
         return 'SRC'

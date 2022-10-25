@@ -1,8 +1,9 @@
+from .operator import *
 import numpy as np
 from scipy.optimize import least_squares
 from .source import *
 
-class Receiver:
+class Receiver(Operator):
     """
     A class that represents a DNA fragment that encode a genetic operator.
     The Receiver Operator is an abstraction of an inducible promoter that
@@ -16,36 +17,39 @@ class Receiver:
         The input of the operator that regulates the expression of the output
     output : Regulator | Reporter
         The output of the operator that is regulated by the input
-    a : int | float
-        Basal expression rate, LOW
-    b : int | float
-        Regulated expression rate, HIGH
+    alpha : List
+        [Basal expression rate, Regulated expression rate in MEFL/second]
     K : int | float
-        Half expression input concentration
+        Half expression input concentration in Molar 
     n : int | float
-        Hill coefficient, cooperative degree
+        Hill coefficient, cooperative degree (unitless)
     uri : str, optional
         SynBioHub URI
     sbol_comp : SBOL Component, optional
         SBOL Component
+    name : str, optional
+        Name of the operator displayed on the network representation
+    color: str, optional
+        Color displayed on the network representation
+    unit: str, optional
+        Units of the characterization data
 
     Methods
     -------
     characterize(flapjack, receiver, inverter, media, strain, signal, biomass_signal, gamma)
         Parameterize the Operator model that maps Input concentration into Output expression rate
     """
-    color = 'orange'
-    def __init__(self, input, output, alpha, K, n, uri=None, sbol_comp=None):
+    def __init__(self, input, output, alpha, K, n, name=None, uri=None, sbol_comp=None, color='skyblue'):
+        super().__init__(output, name, uri, sbol_comp, color)
         self.alpha = alpha
         self.K = K
         self.n = n
         self.input = input
-        self.output = output
-        self.uri = uri
-        self.sbol_comp = sbol_comp
 
     def __str__(self):
-        return 'REC'
+        if self.name == None:
+            return 'REC'
+        else: return self.name
         
     def expression_rate(self, t, dt):
         inducer = self.input.concentration
