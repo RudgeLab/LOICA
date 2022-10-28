@@ -1,4 +1,6 @@
-class Sum:
+from .operator import *
+
+class Sum(Operator):
     color = 'skyblue'
     shape = 's'
     def __init__(self, input, output, alpha, K, n, uri=None, sbol_comp=None):
