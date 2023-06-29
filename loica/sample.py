@@ -44,8 +44,12 @@ class Sample:
     def initialize(self):
         self.genetic_network.initialize()
 
-    def set_supplement(self, supplement, concentration):
-        self.supplements[supplement] = concentration
+    def set_supplement(self, supplement, concentration, profile=None):
+        if not profile:
+            def prof(t):
+                return 1
+            profile = prof
+        self.supplements[supplement] = (concentration, profile)
 
     def set_regulator(self, name, concentration):
         for reg in self.genetic_network.regulators:
@@ -62,8 +66,8 @@ class Sample:
     def step(self, t, dt, stochastic=False):
         if self.genetic_network and self.metabolism:
             growth_rate = self.metabolism.growth_rate(t)
-            for supp,conc in self.supplements.items():
-                supp.concentration = conc
+            for supp,(conc,prof) in self.supplements.items():
+                supp.concentration = conc * prof(t)
             if stochastic:
                 self.genetic_network.step_stochastic(growth_rate, t, dt)
             else:

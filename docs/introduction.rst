@@ -6,6 +6,8 @@ Welcome to the LOICA (Logical Operators for Integrated Cell Algorithms) reposito
 
 .. figure:: ../images/LOICA_Logo.svg
    :width: 250
+   
+|PyPI| |PyPI - Python Version| |PyPI - License|
 
 As you may have noticed, our logo features a beautiful bird—loica `(Leistes loyca) <https://en.wikipedia.org/wiki/Long-tailed_meadowlark>`_; a bird native to Chile known for its particular red chest and legendary kindness, with which we share name.
 
@@ -39,3 +41,7 @@ Tutorials
 =========
 
 Now that you have LOICA installed you can familiarize yourself with the tool using the `Jupyter notebook <https://github.com/RudgeLab/LOICA/tree/master/notebooks>`_ tutorials designed for this purpose.
+
+.. |PyPI| image:: https://img.shields.io/pypi/v/loica
+.. |PyPI - Python Version| image:: https://img.shields.io/pypi/pyversions/loica
+.. |PyPI - License| image:: https://img.shields.io/pypi/l/loica
