@@ -92,10 +92,11 @@ class Receiver(Operator):
 
     def residuals(self, df, oddf): 
         def func(x): 
-            a = x[0]
-            b = x[1]
+            b = np.exp(x[1])
+            a = b / np.exp(x[0])
             K_A = np.exp(x[2])
-            n_A = np.exp(x[3])        
+            n_A = np.exp(x[3])
+            print(a, b, K_A, n_A)
             residual_list = []
             df_sorted = df.sort_values(['Sample', 'Time'])
             oddf_sorted = oddf.sort_values(['Sample', 'Time'])
@@ -123,7 +124,8 @@ class Receiver(Operator):
                 model = p.ravel()
                 residual = data - model
                 residual_list.append(residual) 
-            return np.array(residual_list).ravel()
+            residual_array = np.array(residual_list).ravel()
+            return residual_array
         return func
 
 
@@ -151,14 +153,20 @@ class Receiver(Operator):
             n_A = x[3]
         '''
 
-        initx = [self.alpha[0], self.alpha[1], np.log(self.K), np.log(self.n)] 
+        a = self.alpha[0]
+        b = self.alpha[1]
+        K = self.K
+        n = self.n
+        initx = [np.log(b/a), np.log(b), np.log(K), np.log(n)] 
         res = least_squares(
                 self.residuals(
                     expression_df, biomass_df
                     ), 
                 initx 
                 )
+
         self.res = res
-        self.alpha = res.x[0:2]
+        self.alpha[1] = np.exp(res.x[1])
+        self.alpha[0] = self.alpha[1] / np.exp(res.x[0])
         self.K = np.exp(res.x[2])
         self.n = np.exp(res.x[3])
