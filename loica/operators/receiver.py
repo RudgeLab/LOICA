@@ -93,9 +93,9 @@ class Receiver(Operator):
     def residuals(self, df, oddf): 
         def func(x): 
             a = x[0]
-            b = x[1]        
-            K_A = x[2]
-            n_A = x[3]        
+            b = x[1]
+            K_A = np.exp(x[2])
+            n_A = np.exp(x[3])        
             residual_list = []
             df_sorted = df.sort_values(['Sample', 'Time'])
             oddf_sorted = oddf.sort_values(['Sample', 'Time'])
@@ -104,6 +104,8 @@ class Receiver(Operator):
                 data = samp_data.Measurement.values
                 p0 = data[0]
                 A = samp_data.Concentration1.values[0]
+                if np.isnan(A):
+                    A = 0
                 t = samp_data.Time.values
                 dt = np.mean(np.diff(t))
                 nt = len(t)
@@ -142,10 +144,6 @@ class Receiver(Operator):
                             biomass_signal=biomass_signal
                             )
 
-        # Bounds for fitting (a,b,K,n)
-        lower_bounds = [0, 0, 0, 0]
-        upper_bounds = [1e8, 1e8, 1e8, 6]
-        bounds = [lower_bounds, upper_bounds]
         '''
             a = x[0]
             b = x[1]
@@ -153,14 +151,14 @@ class Receiver(Operator):
             n_A = x[3]
         '''
 
+        initx = [self.alpha[0], self.alpha[1], np.log(self.K), np.log(self.n)] 
         res = least_squares(
                 self.residuals(
                     expression_df, biomass_df
                     ), 
-                [0, 1, 1, 1], 
-                bounds=bounds
+                initx 
                 )
         self.res = res
         self.alpha = res.x[0:2]
-        self.K = res.x[2]
-        self.n = res.x[3]
+        self.K = np.exp(res.x[2])
+        self.n = np.exp(res.x[3])
