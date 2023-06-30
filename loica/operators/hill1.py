@@ -184,24 +184,18 @@ class Hill1(Operator):
                             biomass_signal=biomass_signal
                          )
         '''
-        # Bounds for fitting
-        lower_bounds = [0]*4
-        upper_bounds = [8, 1e8, 1e8, 1e8]
-        bounds = [lower_bounds, upper_bounds]
-
-        
-            n_i = x[0]
-            K_i = x[1]
-            a_j = x[2]
-            b_j = x[3]
+            b_j = np.exp(x[3])
+            a_j = b_j/ np.exp(x[2]) 
+            n_i = np.exp(x[0])
+            K_i = np.exp(x[1])
         '''
         a = self.alpha[0]
         b = self.alpha[1]
         K = self.K
         n = self.n
-        initx = [np.log(b/a), np.log(b), np.log(K), np.log(n)] 
-        # Solve for parameters and profile
+        initx = [np.log(n), np.log(K), np.log(b/a), np.log(b)] 
 
+        # Solve for parameters
         res = least_squares(self.residuals(
                                 inverter_df,
                                 biomass_df, 
@@ -214,7 +208,6 @@ class Hill1(Operator):
         self.res = res
         self.n = np.exp(res.x[0])
         self.K = np.exp(res.x[1])
-        self.alpha[0] = np.exp(res.x[2])
         self.alpha[1] = np.exp(res.x[3])
+        self.alpha[0] = self.alpha[1] / np.exp(res.x[2])
       
-        #self.alpha = res.x[2:4]
