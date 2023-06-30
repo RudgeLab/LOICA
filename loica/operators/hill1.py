@@ -98,10 +98,11 @@ class Hill1(Operator):
 
     def residuals(self, df, oddf, a_A, b_A, K_A, n_A, gamma): 
         def func(x): 
-            n_i = x[0]
-            K_i = x[1]  
-            a_j = x[2]          
-            b_j = x[3]  
+            b_j = np.exp(x[3])
+            a_j = b_j/ np.exp(x[2]) 
+            n_i = np.exp(x[0])
+            K_i = np.exp(x[1])  
+            print(a_j, b_j, K_i, n_i)
             residual_list = []
             df_sorted = df.sort_values(['Sample', 'Time'])
             oddf_sorted = oddf.sort_values(['Sample', 'Time'])
@@ -194,15 +195,26 @@ class Hill1(Operator):
             a_j = x[2]
             b_j = x[3]
         '''
+        a = self.alpha[0]
+        b = self.alpha[1]
+        K = self.K
+        n = self.n
+        initx = [np.log(b/a), np.log(b), np.log(K), np.log(n)] 
         # Solve for parameters and profile
-        residuals = self.residuals(
+
+        res = least_squares(self.residuals(
                                 inverter_df,
                                 biomass_df, 
                                 self.a_A, self.b_A, self.K_A, self.n_A,
                                 gamma=gamma
-                            )
-        res = least_squares(residuals, [1,1,1,0],) #bounds=bounds)
+                            ), 
+                            initx,
+        )
+
         self.res = res
-        self.n = res.x[0]
-        self.K = res.x[1]
-        self.alpha = res.x[2:4]
+        self.n = np.exp(res.x[0])
+        self.K = np.exp(res.x[1])
+        self.alpha[0] = np.exp(res.x[2])
+        self.alpha[1] = np.exp(res.x[3])
+      
+        #self.alpha = res.x[2:4]
