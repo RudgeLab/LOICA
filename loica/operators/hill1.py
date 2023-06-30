@@ -111,6 +111,8 @@ class Hill1(Operator):
                 p0_1 = 0
                 p0_2 = data[0]
                 A = samp_data.Concentration1.values[0]
+                if np.isnan(A):
+                    A = 0
                 t = samp_data.Time.values
                 dt = np.mean(np.diff(t))
                 nt = len(t)
@@ -138,7 +140,7 @@ class Hill1(Operator):
 
     def characterize(self, 
             flapjack, 
-            receiver, 
+            receiver: Operator, 
             inverter, 
             media, 
             strain, 
@@ -156,6 +158,7 @@ class Hill1(Operator):
                          )
         
         # Characterize receiver profile and Hill function
+        '''
         rec = Receiver(None, None, 0, 0, 0, 0)
         rec.characterize(
             flapjack,
@@ -165,10 +168,11 @@ class Hill1(Operator):
             signal=signal,
             biomass_signal=biomass_signal
         )
-        self.a_A = rec.alpha[0]
-        self.b_A = rec.alpha[1]
-        self.K_A = rec.K
-        self.n_A = rec.n
+        '''
+        self.a_A = receiver.alpha[0]
+        self.b_A = receiver.alpha[1]
+        self.K_A = receiver.K
+        self.n_A = receiver.n
 
         # Characterize inverter
         inverter_df = flapjack.analysis(type='Background Correct', 
@@ -178,13 +182,13 @@ class Hill1(Operator):
                             signal=signal,
                             biomass_signal=biomass_signal
                          )
-
+        '''
         # Bounds for fitting
         lower_bounds = [0]*4
         upper_bounds = [8, 1e8, 1e8, 1e8]
         bounds = [lower_bounds, upper_bounds]
 
-        '''
+        
             n_i = x[0]
             K_i = x[1]
             a_j = x[2]
@@ -197,7 +201,7 @@ class Hill1(Operator):
                                 self.a_A, self.b_A, self.K_A, self.n_A,
                                 gamma=gamma
                             )
-        res = least_squares(residuals, [1,1,1,0], bounds=bounds)
+        res = least_squares(residuals, [1,1,1,0],) #bounds=bounds)
         self.res = res
         self.n = res.x[0]
         self.K = res.x[1]
