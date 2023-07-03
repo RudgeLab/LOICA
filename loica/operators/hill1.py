@@ -85,8 +85,8 @@ class Hill1(Operator):
             for tt in range(sim_steps):
                 time = (t + tt/sim_steps) * Dt
                 a = (A/K_A)**n_A
-                nextp1 = p1 + (od * (a_A + b_A * a) /(1 + a) - gamma*p1) * Dt/sim_steps
-                p = (p1/od/K_i)**n_i
+                nextp1 = p1 + ((a_A + b_A * a) /(1 + a) - gamma*p1) * Dt/sim_steps
+                p = (p1/K_i)**n_i
                 nextp2 = p2 + ( od * (a_j + b_j*p) / ( 1 + p )) * Dt/sim_steps
                 p1,p2 = nextp1,nextp2
 
@@ -136,7 +136,8 @@ class Hill1(Operator):
                 model = p.ravel()
                 residual = (data[1:] - model[1:]) 
                 residual_list.append(residual) 
-            return np.array(residual_list).ravel()
+            residual_array = np.array(residual_list).ravel()
+            return residual_array
         return func
 
     def characterize(self, 
@@ -196,6 +197,8 @@ class Hill1(Operator):
         initx = [np.log(n), np.log(K), np.log(b/a), np.log(b)] 
 
         # Solve for parameters
+        print(inverter_df)
+        print(biomass_df)
         res = least_squares(self.residuals(
                                 inverter_df,
                                 biomass_df, 
