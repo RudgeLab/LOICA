@@ -1,6 +1,7 @@
 from .operator import *
 import numpy as np
 from scipy.optimize import least_squares
+from scipy.interpolate import interp1d
 from .receiver import *
 
 class Hill1(Operator):
@@ -62,14 +63,11 @@ class Hill1(Operator):
         b_j,
         n_i=2,
         K_i=1,
-        a_A=1e2,
-        b_A=0,
-        K_A=1,
-        n_A=2,
         Dt=0.05,
         sim_steps=10,
         A=0,
         odval=[1]*100,
+        rec_profile=[1]*100,
         gamma=0,
         p0_1=0, p0_2=0,
         nt=100
@@ -84,8 +82,9 @@ class Hill1(Operator):
             od = odval[t]
             for tt in range(sim_steps):
                 time = (t + tt/sim_steps) * Dt
-                a = (A/K_A)**n_A
-                nextp1 = p1 + ((a_A + b_A * a) /(1 + a) - gamma*p1) * Dt/sim_steps
+                #a = (A/K_A)**n_A
+                nextp1 = p1 + (rec_profile(t) - gamma * p1) * Dt / sim_steps
+                #((a_A + b_A * a) /(1 + a) - gamma*p1) * Dt/sim_steps
                 p = (p1/K_i)**n_i
                 nextp2 = p2 + ( od * (a_j + b_j*p) / ( 1 + p )) * Dt/sim_steps
                 p1,p2 = nextp1,nextp2
@@ -96,7 +95,7 @@ class Hill1(Operator):
         t = np.arange(nt) * Dt
         return ap2,AA,tt
 
-    def residuals(self, df, oddf, a_A, b_A, K_A, n_A, gamma): 
+    def residuals(self, df, oddf, rec_df, gamma): 
         def func(x): 
             b_j = np.exp(x[3])
             a_j = b_j/ np.exp(x[2]) 
@@ -112,6 +111,9 @@ class Hill1(Operator):
                 p0_1 = 0
                 p0_2 = data[0]
                 A = samp_data.Concentration1.values[0]
+                rec_profile = rec_df[rec_df.Concentration1==A].sort_values('Time').groupby('Time').mean().Rate.values
+                rec_profile_t = rec_df[rec_df.Concentration1==A].sort_values('Time').groupby('Time').mean().index
+                rec_profile = interp1d(rec_profile_t, rec_profile, bounds_error=False, fill_value='extrapolate')
                 if np.isnan(A):
                     A = 0
                 t = samp_data.Time.values
@@ -122,13 +124,10 @@ class Hill1(Operator):
                             b_j=b_j,
                             n_i=n_i,
                             K_i=K_i,
-                            a_A=a_A,
-                            b_A=b_A,
-                            K_A=K_A,
-                            n_A=n_A,
                             Dt=dt,
                             A=A,
                             odval=odval,
+                            rec_profile=rec_profile,
                             gamma=gamma,
                             nt=nt,
                             p0_1=p0_1, p0_2=p0_2
@@ -142,7 +141,7 @@ class Hill1(Operator):
 
     def characterize(self, 
             flapjack, 
-            receiver: Operator, 
+            receiver, 
             inverter, 
             media, 
             strain, 
@@ -170,11 +169,19 @@ class Hill1(Operator):
             signal=signal,
             biomass_signal=biomass_signal
         )
-        '''
+        
         self.a_A = receiver.alpha[0]
         self.b_A = receiver.alpha[1]
         self.K_A = receiver.K
         self.n_A = receiver.n
+        '''
+        
+        rec_df = flapjack.analysis(vector=receiver,
+                            signal=signal,
+                            media=media,
+                            strain=strain,
+                            type='Expression Rate (indirect)',
+                            biomass_signal=biomass_signal)
 
         # Characterize inverter
         inverter_df = flapjack.analysis(type='Background Correct', 
@@ -202,7 +209,7 @@ class Hill1(Operator):
         res = least_squares(self.residuals(
                                 inverter_df,
                                 biomass_df, 
-                                self.a_A, self.b_A, self.K_A, self.n_A,
+                                rec_df,
                                 gamma=gamma
                             ), 
                             initx,
