@@ -115,7 +115,7 @@ class Hill1(Operator):
         '''
         return p2,tt
 
-    def residuals(self, df, oddf, a_A, b_A, K_A, n_A, gamma): 
+    def residuals(self, df, oddf, rec_df, gamma): 
         def func(x): 
             b_j = np.exp(x[3])
             a_j = b_j/ np.exp(x[2]) 
@@ -137,6 +137,9 @@ class Hill1(Operator):
                 p0_1 = 0
                 p0_2 = samp_data.Measurement.values[0]
                 A = samp_data.Concentration1.values[0]
+                rec_profile = rec_df[rec_df.Concentration1==A].sort_values('Time').groupby('Time').mean().Rate.values
+                rec_profile_t = rec_df[rec_df.Concentration1==A].sort_values('Time').groupby('Time').mean().index
+                rec_profile = interp1d(rec_profile_t, rec_profile, bounds_error=False, fill_value='extrapolate')
                 if np.isnan(A):
                     A = 0
                 p,tt = self.forward_model(
@@ -163,7 +166,7 @@ class Hill1(Operator):
 
     def characterize(self, 
             flapjack, 
-            receiver: Operator, 
+            receiver, 
             inverter, 
             media, 
             strain, 
@@ -191,11 +194,19 @@ class Hill1(Operator):
             signal=signal,
             biomass_signal=biomass_signal
         )
-        '''
+        
         self.a_A = receiver.alpha[0]
         self.b_A = receiver.alpha[1]
         self.K_A = receiver.K
         self.n_A = receiver.n
+        '''
+        
+        rec_df = flapjack.analysis(vector=receiver,
+                            signal=signal,
+                            media=media,
+                            strain=strain,
+                            type='Expression Rate (indirect)',
+                            biomass_signal=biomass_signal)
 
         # Characterize inverter
         inverter_df = flapjack.analysis(type='Background Correct', 
