@@ -1,6 +1,7 @@
 from .operator import *
 import numpy as np
 from scipy.optimize import least_squares
+from scipy.integrate import solve_ivp, odeint
 from scipy.interpolate import interp1d
 from .receiver import *
 
@@ -61,39 +62,58 @@ class Hill1(Operator):
         self,
         a_j,
         b_j,
-        n_i=2,
-        K_i=1,
-        Dt=0.05,
-        sim_steps=10,
-        A=0,
-        odval=[1]*100,
-        rec_profile=[1]*100,
-        gamma=0,
-        p0_1=0, p0_2=0,
-        nt=100
+        n_i,
+        K_i,
+        a_A,
+        b_A,
+        K_A,
+        n_A,
+        A,
+        od,
+        gamma,
+        p0_1, p0_2,
+        tt
     ):
+
+        # od = callable OD as function of time
+        #def dydt(od, a_A, b_A, K_A, n_A, a_j, b_j, K_i, n_i):
+        def dydt(y, t):
+            p1,p2 = y
+            a = (A/K_A)**n_A
+            p = (p1/od(t)/K_i)**n_i
+            dp1dt = od(t) * (a_A + b_A * a) /(1 + a) - gamma*p1
+            dp2dt = od(t) * (a_j + b_j*p) / ( 1 + p )
+            return np.array([dp1dt,dp2dt])
+        #res = solve_ivp(fun=dydt, t_span=[0, np.max(tt)], y0=np.array([p0_1, p0_2], dtype=float), t_eval = tt)
+        #y = res.sol(tt)
+        y = odeint(dydt, np.array([p0_1, p0_2]), tt)
+        p2 = y[:,1]
+
+        '''
         p2_list,A_list,t_list = [],[],[]
-        p1 = p0_1
+        p1 = p0_1     
         p2 = p0_2
-        for t in range(nt):
-            p2_list.append(p2)
-            A_list.append(A)
-            t_list.append(t * Dt)
+        for t in tt:
             od = odval[t]
-            for tt in range(sim_steps):
-                time = (t + tt/sim_steps) * Dt
-                #a = (A/K_A)**n_A
-                nextp1 = p1 + (rec_profile(t) - gamma * p1) * Dt / sim_steps
-                #((a_A + b_A * a) /(1 + a) - gamma*p1) * Dt/sim_steps
-                p = (p1/K_i)**n_i
-                nextp2 = p2 + ( od * (a_j + b_j*p) / ( 1 + p )) * Dt/sim_steps
-                p1,p2 = nextp1,nextp2
+            #od = max(od, 1e-3)
+            if od>=0:
+                p2_list.append(p2)
+                A_list.append(A)
+                t_list.append(t * Dt)
+                for tt in range(sim_steps):
+                    time = (t + tt/sim_steps) * Dt
+                    a = (A/K_A)**n_A
+                    nextp1 = p1 + (od * (a_A + b_A * a) /(1 + a) - gamma*p1) * Dt/sim_steps
+                    p = (p1/od/K_i)**n_i
+                    nextp2 = p2 + ( od * (a_j + b_j*p) / ( 1 + p )) * Dt/sim_steps
+                    p1,p2 = nextp1,nextp2
 
         ap2 = np.array(p2_list).transpose()
         AA = np.array(A_list).transpose()
         tt = np.array(t_list).transpose()
         t = np.arange(nt) * Dt
-        return ap2,AA,tt
+        '''
+        return p2,tt
 
     def residuals(self, df, oddf, rec_df, gamma): 
         def func(x): 
@@ -102,41 +122,46 @@ class Hill1(Operator):
             n_i = np.exp(x[0])
             K_i = np.exp(x[1])  
             print(a_j, b_j, K_i, n_i)
-            residual_list = []
+            
+            residual_array = np.array((0,))
+            
             df_sorted = df.sort_values(['Sample', 'Time'])
             oddf_sorted = oddf.sort_values(['Sample', 'Time'])
+            df_sorted = df_sorted[oddf_sorted.Measurement>0]
+            oddf_sorted = oddf_sorted[oddf_sorted.Measurement>0]
+
             for samp_id,samp_data in df_sorted.groupby('Sample'):
-                odval = oddf_sorted[oddf_sorted.Sample==samp_id].Measurement.values
-                data = samp_data.Measurement.values
+                odval = oddf_sorted[oddf_sorted.Sample==samp_id].Measurement.values.astype(float)
+                tt = oddf_sorted[oddf_sorted.Sample==samp_id].Time.values.astype(float)
+                od = interp1d(tt, odval, bounds_error=False, fill_value='extrapolate')
                 p0_1 = 0
-                p0_2 = data[0]
+                p0_2 = samp_data.Measurement.values[0]
                 A = samp_data.Concentration1.values[0]
                 rec_profile = rec_df[rec_df.Concentration1==A].sort_values('Time').groupby('Time').mean().Rate.values
                 rec_profile_t = rec_df[rec_df.Concentration1==A].sort_values('Time').groupby('Time').mean().index
                 rec_profile = interp1d(rec_profile_t, rec_profile, bounds_error=False, fill_value='extrapolate')
                 if np.isnan(A):
                     A = 0
-                t = samp_data.Time.values
-                dt = np.mean(np.diff(t))
-                nt = len(t)
-                p,AA,tt = self.forward_model(
+                p,tt = self.forward_model(
                             a_j=a_j,
                             b_j=b_j,
                             n_i=n_i,
                             K_i=K_i,
-                            Dt=dt,
+                            a_A=a_A,
+                            b_A=b_A,
+                            K_A=K_A,
+                            n_A=n_A,
                             A=A,
-                            odval=odval,
-                            rec_profile=rec_profile,
+                            od=od,
                             gamma=gamma,
-                            nt=nt,
-                            p0_1=p0_1, p0_2=p0_2
+                            p0_1=p0_1, p0_2=p0_2,
+                            tt=tt
                         )
+                data = samp_data.Measurement.values
                 model = p.ravel()
-                residual = (data[1:] - model[1:]) 
-                residual_list.append(residual) 
-            residual_array = np.array(residual_list).ravel()
-            return residual_array
+                residual_array = np.append(residual_array, data[1:] - model[1:])
+            print(np.sum(np.sqrt(residual_array * residual_array)))
+            return residual_array.ravel()
         return func
 
     def characterize(self, 
@@ -206,15 +231,18 @@ class Hill1(Operator):
         # Solve for parameters
         print(inverter_df)
         print(biomass_df)
-        res = least_squares(self.residuals(
-                                inverter_df,
-                                biomass_df, 
-                                rec_df,
-                                gamma=gamma
-                            ), 
-                            initx,
+        print('Testing func')
+        func = self.residuals(inverter_df,
+                        biomass_df, 
+                        self.a_A, self.b_A, self.K_A, self.n_A,
+                        gamma=gamma)
+        print(f'func(x0) = {func(initx)}')
+        res = least_squares(fun=func, 
+                            x0=initx,
+                            #ftol=1e-3
         )
 
+        print(res)
         self.res = res
         self.n = np.exp(res.x[0])
         self.K = np.exp(res.x[1])
