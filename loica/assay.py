@@ -135,10 +135,10 @@ class Assay:
                     chemical = flapjack.get('chemical', name=supp.name)
                     if len(chemical)==0:
                         chemical = flapjack.create('chemical', name=supp.name, description='Testing')
-                    name = supp.name + f' {conc}'
-                    s = flapjack.get('supplement', name=name, concentration=conc, chemical=chemical.id[0])
+                    name = supp.name + f' {conc[0]}'
+                    s = flapjack.get('supplement', name=name, concentration=conc[0], chemical=chemical.id[0])
                     if len(s)==0:
-                        s = flapjack.create('supplement', name=name, concentration=conc, chemical=chemical.id[0])
+                        s = flapjack.create('supplement', name=name, concentration=conc[0], chemical=chemical.id[0])
                     supplements.append(s.id[0])
                 if len(supplements):
                     flapjack.patch('sample', fj_sample.id[0], supplements=supplements)
