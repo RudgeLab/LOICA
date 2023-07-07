@@ -76,17 +76,14 @@ class Hill1(Operator):
     ):
         # od, rec_profile = callable as function of time
         def dydt(y, t):
-            #a = (A/K_A)**n_A
-            #p = (p1/od(t)/K_i)**n_i
-            #dp1dt = od(t) * (a_A + b_A * a) /(1 + a) - gamma*p1
-            rec = max(rec_profile(t), 1)
+            p2 = y
+            rec = max(rec_profile(t), 0)
             odval = max(od(t), 0.001)
             p1 = rec / odval
             p = (p1 / K_i)**n_i
             dp2dt = odval * profile(t) * (a_j + b_j*p) / ( 1 + p )
             return dp2dt
-        #res = solve_ivp(fun=dydt, t_span=[0, np.max(tt)], y0=np.array([p0_1, p0_2], dtype=float), t_eval = tt)
-        #y = res.sol(tt)
+
         y = odeint(dydt, p0_2, tt, rtol=1e-3)
         p2 = y[:,0]
 
@@ -121,11 +118,13 @@ class Hill1(Operator):
         def func(x): 
             self.data = []
             self.model = []
-            b_j = x[3] #np.exp(x[3])
-            a_j = x[2] #b_j / np.exp(x[2]) 
-            n_i = x[0] #np.exp(x[0])
-            K_i = x[1] #np.exp(x[1])  
+            n_i = np.exp(x[0])
+            K_i = np.exp(x[1])
+            a_j = np.exp(x[2]) 
+            b_j = np.exp(x[3])
             print(a_j, b_j, K_i, n_i)
+
+            p0_1 = 0
             
             residual_array = np.array((0,))
             
@@ -134,13 +133,14 @@ class Hill1(Operator):
             df_sorted = df_sorted[oddf_sorted.Measurement>0]
             oddf_sorted = oddf_sorted[oddf_sorted.Measurement>0]
 
-            for samp_id,samp_data in df_sorted.groupby('Sample'):
-                odval = oddf_sorted[oddf_sorted.Sample==samp_id].Measurement.values.astype(float)
-                tt = oddf_sorted[oddf_sorted.Sample==samp_id].Time.values.astype(float)
+            for conc,conc_data in df_sorted.groupby('Concentration1'):
+                odmean = oddf_sorted[oddf_sorted.Concentration1==conc].groupby('Time').mean()
+                odval = odmean.Measurement.values
+                tt = odmean.index.values
                 od = interp1d(tt, odval, bounds_error=False, fill_value='extrapolate')
-                p0_1 = 0
-                p0_2 = samp_data.Measurement.values[0]
-                A = samp_data.Concentration1.values[0]
+                sigmean = conc_data.groupby('Time').mean()
+                p0_2 = sigmean.Measurement.values[0]
+                A = conc
                 #if np.isnan(A):
                 #    A = 0
                 #    rec_profile = rec_df[rec_df.Concentration1.isna()].sort_values('Time').groupby('Time').mean().Measurement.values
@@ -148,7 +148,7 @@ class Hill1(Operator):
                 #else:
                 if ~np.isnan(A):
                     rec_profile = rec_df[rec_df.Concentration1==A].sort_values('Time').groupby('Time').mean().Measurement.values
-                    rec_profile_t = rec_df[rec_df.Concentration1==A].sort_values('Time').groupby('Time').mean().index
+                    rec_profile_t = rec_df[rec_df.Concentration1==A].sort_values('Time').groupby('Time').mean().index.values
                     #print(A)
                     #print(rec_profile_t)
                     #print(rec_profile)
@@ -165,7 +165,7 @@ class Hill1(Operator):
                                 p0_1=p0_1, p0_2=p0_2,
                                 tt=tt
                             )
-                    data = samp_data.Measurement.values
+                    data = sigmean.Measurement.values
                     self.data.append(data)
                     model = p.ravel()
                     self.model.append(model)
@@ -187,7 +187,9 @@ class Hill1(Operator):
             strain, 
             signal, 
             biomass_signal,
-            gamma
+            gamma,
+            tmin,
+            tmax
             ):
         # Get biomass time series
         biomass_df = flapjack.analysis(type='Background Correct', 
@@ -198,6 +200,17 @@ class Hill1(Operator):
                             signal=biomass_signal,
                             biomass_signal=biomass_signal
                          )
+        biomass_df = biomass_df[(biomass_df.Time>tmin)*(biomass_df.Time<tmax)]
+
+        rec_biomass_df = flapjack.analysis(type='Background Correct', 
+                            study=study,
+                            vector=receiver,
+                            media=media,
+                            strain=strain,
+                            signal=biomass_signal,
+                            biomass_signal=biomass_signal
+                         )
+        rec_biomass_df = rec_biomass_df[(rec_biomass_df.Time>tmin)*(rec_biomass_df.Time<tmax)]
         
         # Characterize receiver profile and Hill function
         '''
@@ -224,6 +237,8 @@ class Hill1(Operator):
                             strain=strain,
                             type='Background Correct',
                             biomass_signal=biomass_signal)
+        rec_df = rec_df[(rec_df.Time>tmin)*(rec_df.Time<tmax)]
+        #rec_er_df = expression_rate_inverse(rec_df, rec_biomass_df)
 
         inv_df = flapjack.analysis(vector=inverter,
                             study=study,
@@ -232,8 +247,8 @@ class Hill1(Operator):
                             strain=strain,
                             type='Background Correct',
                             biomass_signal=biomass_signal)
-        inv_er_df = expression_rate_inverse(inv_df, biomass_df)
-        inv_er_df = inv_er_df[inv_er_df.Concentration1.isna()]
+        inv_df = inv_df[(inv_df.Time>tmin)*(inv_df.Time<tmax)]
+        inv_er_df = expression_rate_inverse(inv_df[inv_df.Concentration1.isna()], biomass_df[biomass_df.Concentration1.isna()])
         inv_er_val = inv_er_df.groupby('Time').mean().Rate.values
         inv_er_t = inv_er_df.groupby('Time').mean().index
         
@@ -251,10 +266,13 @@ class Hill1(Operator):
         b = self.alpha[1]
         K = self.K
         n = self.n
-        initx = [n, K, a, b] 
-        lower_bounds = [1, 0, 0, 0]
-        upper_bounds = [6, 1e8, 1e8, 1e8]
-        bounds = [lower_bounds, upper_bounds]
+        gamma = 0
+        p0_1 = 0
+        initx = np.array([n, K, a, b])
+        initx = np.log(initx)
+        #lower_bounds = [0, 0, 0, 0, 0]
+        #upper_bounds = [1e8, 1e8, 1e8, 0.5, 1e4]
+        #bounds = [lower_bounds, upper_bounds]
 
         func = self.residuals(inv_df,
                         biomass_df,
@@ -265,7 +283,7 @@ class Hill1(Operator):
         # Solve for parameters
         res = least_squares(fun=func, 
                             x0=initx,
-                            bounds=bounds,
+                            #bounds=bounds,
                             diff_step=[0.1,0.1,0.1,0.1]
                             #ftol=1e-3
         )
@@ -282,9 +300,10 @@ class Hill1(Operator):
 
         print(res)
         self.res = res
-        self.n = np.exp(res.x[0])
-        self.K = np.exp(res.x[1])
-        self.alpha[1] = np.exp(res.x[3])
-        self.alpha[0] = self.alpha[1] / np.exp(res.x[2])
+        xx = np.exp(res.x)
+        self.n = xx[0]
+        self.K = xx[1]
+        self.alpha[0] = xx[2]
+        self.alpha[1] = xx[3]
         self.profile = profile
       
