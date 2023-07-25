@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "loica"
+version = "1.0.6"
+description = "LOICA: Logical Operators for Integrated Cell Algorithms"
+readme = "README.md"
+requires-python = ">=3.7"
+license = {file = "LICENSE"}
+keywords = ["loica", "genetic", "GDA", "design", "synthetic biology"]
+authors = [
+  { name="Gonzalo Vidal", email="g.a.vidal-pena2@ncl.ac.uk" },
+  { name="Timothy Rudge", email="tim.rudge@ncl.ac.uk" }
+]
+maintainers = [
+  {name = "Gonzalo Vidal", email = "g.a.vidal-pena2@ncl.ac.uk"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+dependencies = [
+    'numpy', 
+    'scipy',
+    'networkx',
+    'pandas',
+    'sbol3',
+    'tyto',
+    'tdqm'
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest < 5.0.0",
+  "pytest-cov[all]"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/RudgeLab/LOICA"
+"Bug Tracker" = "https://github.com/RudgeLab/LOICA/issues"
