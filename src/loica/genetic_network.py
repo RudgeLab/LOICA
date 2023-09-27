@@ -25,7 +25,7 @@ class GeneticNetwork():
     reporters : List[Reporter]
         List of Reporters that are part of the genetic network
     vector : int
-        Flapjack ID of the vector that is associated with the genetic network
+        Flapjack ID of the vector that is associated with the genetic network, if none use 0
 
     Methods
     -------
