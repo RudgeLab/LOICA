@@ -296,7 +296,7 @@ class GeneticNetwork():
                     input_comp = inp.sbol_comp
                     if type(input_comp)==sbol3.Component:
                         input_sc = sbol3.SubComponent(input_comp)
-                        tu.features.append(input_sc)
+                        #tu.features.append(input_sc)
                     else:
                         tu.features.append(input_comp)
             else:
@@ -308,7 +308,7 @@ class GeneticNetwork():
                 input_comp = op.input.sbol_comp
                 if type(input_comp)==sbol3.Component:
                     input_sc = sbol3.SubComponent(input_comp)
-                    tu.features.append(input_sc)
+                    #tu.features.append(input_sc)
                 else:
                     tu.features.append(input_comp)                  
 
