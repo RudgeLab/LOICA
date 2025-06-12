@@ -280,7 +280,6 @@ class GeneticNetwork():
             if type(op)==Source:
                 input_str= 'c'
                 tu = sbol3.Component(f'TU_{input_str}_{op}{output_str}', sbol3.SBO_DNA) #generalize to multi input/output TUs
-                tu.roles.append(sbol3.SO_ENGINEERED_REGION)
                 tu.features = [operator_sc] 
                 for sc in output_scs:
                     tu.features.append(sc)
@@ -292,25 +291,29 @@ class GeneticNetwork():
                 tu.features = [operator_sc] 
                 for sc in output_scs:
                     tu.features.append(sc)
+                """
                 for inp in op.input:
                     input_comp = inp.sbol_comp
                     if type(input_comp)==sbol3.Component:
                         input_sc = sbol3.SubComponent(input_comp)
-                        tu.features.append(input_sc)
+                        #tu.features.append(input_sc)
                     else:
                         tu.features.append(input_comp)
+                """
             else:
                 input_str= f'_{op.input.name}'
                 tu = sbol3.Component(f'TU{input_str}_{op}{output_str}', sbol3.SBO_DNA) #generalize to multi input/output TUs
                 tu.features = [operator_sc] 
                 for sc in output_scs:
                     tu.features.append(sc)
+                """
                 input_comp = op.input.sbol_comp
                 if type(input_comp)==sbol3.Component:
                     input_sc = sbol3.SubComponent(input_comp)
                     tu.features.append(input_sc)
                 else:
-                    tu.features.append(input_comp)                  
+                    tu.features.append(input_comp)   
+                """
 
             tu.roles.append(sbol3.SO_ENGINEERED_REGION)
             for i in range(len(tu.features)-1):
