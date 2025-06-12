@@ -434,7 +434,7 @@ class GeneticNetwork():
             tu_sc = sbol3.SubComponent(tu)
             geneticnetwork.features.append(tu_sc)
         loica_list = list(loica_set)
-        #doc.add(loica_list) 
+        doc.add(loica_list) 
         if len(geneticnetwork.features) > 1:
             for i in range(len(geneticnetwork.features)-1):
                 geneticnetwork.constraints = [sbol3.Constraint(sbol3.SBOL_PRECEDES, geneticnetwork.features[i], geneticnetwork.features[i+1])]
