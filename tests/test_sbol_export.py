@@ -42,6 +42,10 @@ def assert_exports_to_sbol(tmp_path, network, expected_min_objects):
     assert len(doc.objects) >= expected_min_objects
     assert doc.find("geneticnetwork") is not None
 
+    identities = [obj.identity for obj in doc.objects]
+    report_sbol3 = doc.validate()
+    assert len(report_sbol3) == 0, f"SBOL3 validation issues for {identities}: {report_sbol3}"
+
     output_file = tmp_path / "network.nt"
     doc.write(str(output_file), sbol3.SORTED_NTRIPLES)
 
