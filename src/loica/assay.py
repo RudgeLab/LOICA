@@ -63,6 +63,7 @@ class Assay:
         #substeps = self.interval / dt
         dt = self.interval / substeps
         n_samples = len(self.samples)
+        rows = []
         with tqdm(total=100) as pbar:
             for sample_id, sample in enumerate(self.samples):
                 sample.initialize()
@@ -86,7 +87,7 @@ class Assay:
                                 'Measurement': corr_meas,
                                 'Sample':sample_id
                                 }
-                        self.measurements = self.measurements.append(row, ignore_index=True)
+                        rows.append(row)
                     # Record measurement of biomass
                     noise = np.random.normal(scale=np.sqrt(nsr))
                     meas = sample.biomass(time) + biomass_bg
@@ -97,10 +98,10 @@ class Assay:
                             'Time': time, 
                             'Signal_id': self.biomass_signal_id, 
                             'Measurement': corr_meas,
-                            'Signal':'Biomass', 
+                            'Signal':'Biomass',
                             'Sample':sample_id
                             }
-                    self.measurements = self.measurements.append(row, ignore_index=True)
+                    rows.append(row)
                     # Compute next time step
                     if stochastic:
                         time = t * self.interval
@@ -111,6 +112,9 @@ class Assay:
                             sample.step(time, dt)
                     pbar.update(1 / self.n_measurements / n_samples * 100)
             pbar.close()
+        # Build the measurements frame once. Appending per row is removed in pandas 2 and
+        # is quadratic; accumulating rows and constructing once is equivalent and faster.
+        self.measurements = pd.DataFrame(rows)
                 
     def upload(self, flapjack, study):
         assay = flapjack.create('assay', 
