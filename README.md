@@ -7,7 +7,7 @@ Welcome to the LOICA (Logical Operators for Integrated Cell Algorithms) reposito
 
 
 ![PyPI](https://img.shields.io/pypi/v/loica)
-[![Documentation Status](https://readthedocs.org/projects/loica/badge/?version=latest)](https://loica.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/loica/badge/?version=latest)](https://loica.readthedocs.io/en/latest/)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/loica)
 ![PyPI - License](https://img.shields.io/pypi/l/loica)
 
@@ -43,7 +43,7 @@ For more details please refer to our [Wiki](https://github.com/RudgeLab/LOICA/wi
 
 ## Documentation
 
- Please visit our documentation with API reference at Read the Docs [loica.rtfd.io](https://loica.rtfd.io)
+ Please visit our documentation with API reference at Read the Docs: [loica.readthedocs.io](https://loica.readthedocs.io/en/latest/).
 
 ## Tutorials
 

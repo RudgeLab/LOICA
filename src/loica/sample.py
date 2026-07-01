@@ -18,10 +18,10 @@ class Sample:
     strain : str
         Name of the strain in the sample
     
-     Methods
+    Methods
     -------
-    add_supplement(supplement, concentration)
-        stablishes the concentration of Supplement
+    set_supplement(supplement, concentration, profile=None)
+        Sets the concentration profile for a supplement.
     """
     def __init__(self, 
             genetic_network=None, 

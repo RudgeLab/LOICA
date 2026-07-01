@@ -1,4 +1,5 @@
-# these are fixed in accordance with rtd recommendations: https://docs.readthedocs.io/en/stable/guides/reproducible-builds.html#pinning-dependencies
-sphinx==4.4.0
-sphinx_rtd_theme==1.0.0
-sphinx-autoapi==1.8.4
+# These pins follow Read the Docs' reproducible-build recommendations while
+# staying compatible with the current Read the Docs build image.
+sphinx==7.4.7
+sphinx_rtd_theme==2.0.0
+sphinx-autoapi==3.6.0
