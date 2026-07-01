@@ -14,7 +14,7 @@ class GeneProduct:
         Initial concentration of the gene product in Molar
     degradation_rate : int | float
         Degradation rate of the gene product
-    type_ : str, optional
+    type\_ : str, optional
         Molecular type of the gene product, could be 'PRO' or 'RNA'
     uri : str, optional
         SynBioHub URI
