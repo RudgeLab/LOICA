@@ -9,12 +9,8 @@ Welcome to LOICA's documentation!
 
 .. toctree::
    :maxdepth: 2
-   
+
    introduction
-   
-   ============
-Introduction
-============
 
 Welcome to the LOICA (Logical Operators for Integrated Cell Algorithms) repository, our Python package for designing, modeling and characterizing genetic networks.
 
